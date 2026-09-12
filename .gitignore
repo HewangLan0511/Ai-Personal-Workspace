@@ -1,0 +1,60 @@
+# ===== 依赖与构建产物 =====
+node_modules/
+target/
+dist/
+build/
+out/
+.next/
+coverage/
+*.pdb
+*.rlib
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== 数据库（含分类：本地数据不入库）=====
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+
+# ===== 密钥与本地配置 =====
+.env
+.env.*
+!.env.example
+config/local.toml
+config/local.*.toml
+*.pem
+*.key
+
+# ===== 日志与临时文件 =====
+*.log
+*.tmp
+*.temp
+logs/
+tmp/
+temp/
+.cache/
+
+# ===== 编辑器与系统 =====
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== 监控工具本地报告 =====
+docs/reviews/.gate-cache/

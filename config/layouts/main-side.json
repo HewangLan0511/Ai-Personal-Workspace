@@ -1,0 +1,10 @@
+{
+  "name": "main-side",
+  "description": "左侧主窗口 + 右侧副窗口",
+  "monitor": 0,
+  "slots": [
+    { "app": "VSCode",   "rect": { "x": 0.0, "y": 0.0, "w": 2.0/3.0, "h": 1.0 }, "z": 1 },
+    { "app": "Chrome",   "rect": { "x": 2.0/3.0, "y": 0.0, "w": 1.0/3.0, "h": 1.0 }, "z": 2 }
+  ],
+  "aiSidebar": { "enabled": false }
+}

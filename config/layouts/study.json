@@ -1,0 +1,11 @@
+{
+  "name": "study",
+  "description": "学习模式：左浏览器 / 右上 PDF / 右下笔记 / 右 AI",
+  "monitor": 0,
+  "slots": [
+    { "app": "Chrome",  "rect": { "x": 0.0, "y": 0.0, "w": 0.5, "h": 1.0 }, "z": 1 },
+    { "app": "PDF",     "rect": { "x": 0.5, "y": 0.0, "w": 0.3, "h": 0.5 }, "z": 2 },
+    { "app": "Notes",   "rect": { "x": 0.5, "y": 0.5, "w": 0.3, "h": 0.5 }, "z": 3 }
+  ],
+  "aiSidebar": { "enabled": true, "edge": "right", "width": 0.2 }
+}

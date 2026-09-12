@@ -1,0 +1,10 @@
+{
+  "name": "split-h",
+  "description": "上下各半",
+  "monitor": 0,
+  "slots": [
+    { "app": "VSCode",    "rect": { "x": 0.0, "y": 0.0, "w": 1.0, "h": 0.5 }, "z": 1 },
+    { "app": "Terminal", "rect": { "x": 0.0, "y": 0.5, "w": 1.0, "h": 0.5 }, "z": 2 }
+  ],
+  "aiSidebar": { "enabled": true, "edge": "right", "width": 0.18 }
+}

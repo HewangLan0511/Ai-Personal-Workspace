@@ -1,0 +1,12 @@
+{
+  "name": "quad",
+  "description": "四宫格",
+  "monitor": 0,
+  "slots": [
+    { "app": "VSCode",   "rect": { "x": 0.0, "y": 0.0, "w": 0.5, "h": 0.5 }, "z": 1 },
+    { "app": "Chrome",   "rect": { "x": 0.5, "y": 0.0, "w": 0.5, "h": 0.5 }, "z": 2 },
+    { "app": "PDF",      "rect": { "x": 0.0, "y": 0.5, "w": 0.5, "h": 0.5 }, "z": 3 },
+    { "app": "Terminal", "rect": { "x": 0.5, "y": 0.5, "w": 0.5, "h": 0.5 }, "z": 4 }
+  ],
+  "aiSidebar": { "enabled": true, "edge": "right", "width": 0.2 }
+}

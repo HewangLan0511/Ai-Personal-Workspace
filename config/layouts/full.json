@@ -1,0 +1,15 @@
+{
+  "name": "full",
+  "description": "单窗口全屏",
+  "monitor": 0,
+  "slots": [
+    {
+      "app": "VSCode",
+      "rect": { "x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0 },
+      "z": 1,
+      "alwaysOnTop": false,
+      "maximized": false
+    }
+  ],
+  "aiSidebar": { "enabled": true, "edge": "right", "width": 0.2 }
+}

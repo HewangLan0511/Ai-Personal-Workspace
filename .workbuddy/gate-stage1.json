@@ -1,0 +1,176 @@
+{
+  "root": "C:\\Users\\baiyu\\Desktop\\Personal Workspace",
+  "stage": "1",
+  "verdict": "PASS",
+  "counts": {
+    "FAIL": 0,
+    "WARN": 0,
+    "PASS": 23
+  },
+  "findings": [
+    {
+      "level": "PASS",
+      "code": "S000",
+      "message": "基线目录存在：docs/agent-dev",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S000",
+      "message": "基线目录存在：docs/reviews",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S000",
+      "message": "基线目录存在：HANDOFF.md",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S000",
+      "message": "基线目录存在：AGENTS.md",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S000",
+      "message": "基线目录存在：tools/gate.py",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S100",
+      "message": "[阶段1] 存在：core/Cargo.toml",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S100",
+      "message": "[阶段1] 存在：core/tauri.conf.json",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S100",
+      "message": "[阶段1] 存在：core/migrations",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S100",
+      "message": "[阶段1] 存在：database/schema.sql",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S100",
+      "message": "[阶段1] 存在：ui/package.json",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S100",
+      "message": "[阶段1] 存在：config/app.toml",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S100",
+      "message": "[阶段1] 存在：system/service.py",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S100",
+      "message": "[阶段1] 存在：docs/adr/ADR-001-窗口控制与进程启动实现语言.md",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：core/src/state",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：core/src/db",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：core/src/event_bus",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：ui/src/views",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：ui/src/widgets",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：ui/src/components",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：ui/src/stores",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：ui/src/api",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：modules",
+      "path": "",
+      "line": 0
+    },
+    {
+      "level": "PASS",
+      "code": "S110",
+      "message": "[阶段1] 目录结构到位：plugins",
+      "path": "",
+      "line": 0
+    }
+  ],
+  "skipped": [
+    "编译门禁（未加 --build）"
+  ]
+}

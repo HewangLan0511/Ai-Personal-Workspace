@@ -1,0 +1,13 @@
+{
+  "name": "AI开发模式",
+  "description": "默认开发场景：一键打开 IDE + 浏览器 + 终端，AI 侧栏常驻",
+  "apps": ["VSCode", "Chrome", "Terminal"],
+  "openTargets": [],
+  "layout": "coding.json",
+  "aiProfile": {
+    "provider": "deepseek",
+    "systemPromptKey": "dev_assistant",
+    "permissionScope": ["file:read", "app:launch"]
+  },
+  "autoApply": false
+}

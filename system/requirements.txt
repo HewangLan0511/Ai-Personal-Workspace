@@ -1,0 +1,5 @@
+# sidecar 刻意保持零第三方依赖（stdlib-only）。
+# 阶段5 引入 AI SDK 时再评估，并在此登记理由。
+#
+# 构建期依赖（不进入 runtime）：
+#   pyinstaller>=6.0     # 仅用于 `python system/build_sidecar.py` 打单文件（04 §5）

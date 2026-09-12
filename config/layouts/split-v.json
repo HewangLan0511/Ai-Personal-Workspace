@@ -1,0 +1,10 @@
+{
+  "name": "split-v",
+  "description": "左右各半",
+  "monitor": 0,
+  "slots": [
+    { "app": "VSCode",  "rect": { "x": 0.0, "y": 0.0, "w": 0.5, "h": 1.0 }, "z": 1 },
+    { "app": "Chrome",  "rect": { "x": 0.5, "y": 0.0, "w": 0.5, "h": 1.0 }, "z": 2 }
+  ],
+  "aiSidebar": { "enabled": true, "edge": "right", "width": 0.18 }
+}

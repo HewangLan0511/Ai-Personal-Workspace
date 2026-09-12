@@ -1,0 +1,53 @@
+Exception in thread Thread-2 (_readerthread):
+Traceback (most recent call last):
+  File "C:\Users\baiyu\.workbuddy\binaries\python\versions\3.13.12\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\baiyu\.workbuddy\binaries\python\versions\3.13.12\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baiyu\.workbuddy\binaries\python\versions\3.13.12\Lib\subprocess.py", line 1615, in _readerthread
+    buffer.append(fh.read())
+                  ~~~~~~~^^
+  File "<frozen codecs>", line 325, in decode
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte
+====================================================================
+Personal Workspace · 阶段门禁报告
+项目根目录：C:\Users\baiyu\Desktop\Personal Workspace
+审核阶段  ：阶段 1 · 基础桌面框架
+====================================================================
+
+--- FAIL（1）----------------------------------------------
+  [FAIL] B101 — cargo check 失败：未知错误
+
+--- PASS（24）----------------------------------------------
+  [PASS] S000 — 基线目录存在：docs/agent-dev
+  [PASS] S000 — 基线目录存在：docs/reviews
+  [PASS] S000 — 基线目录存在：HANDOFF.md
+  [PASS] S000 — 基线目录存在：AGENTS.md
+  [PASS] S000 — 基线目录存在：tools/gate.py
+  [PASS] S100 — [阶段1] 存在：core/Cargo.toml
+  [PASS] S100 — [阶段1] 存在：core/tauri.conf.json
+  [PASS] S100 — [阶段1] 存在：core/migrations
+  [PASS] S100 — [阶段1] 存在：database/schema.sql
+  [PASS] S100 — [阶段1] 存在：ui/package.json
+  [PASS] S100 — [阶段1] 存在：config/app.toml
+  [PASS] S100 — [阶段1] 存在：system/service.py
+  [PASS] S100 — [阶段1] 存在：docs/adr/ADR-001-窗口控制与进程启动实现语言.md
+  [PASS] S110 — [阶段1] 目录结构到位：core/src/state
+  [PASS] S110 — [阶段1] 目录结构到位：core/src/db
+  [PASS] S110 — [阶段1] 目录结构到位：core/src/event_bus
+  [PASS] S110 — [阶段1] 目录结构到位：ui/src/views
+  [PASS] S110 — [阶段1] 目录结构到位：ui/src/widgets
+  [PASS] S110 — [阶段1] 目录结构到位：ui/src/components
+  [PASS] S110 — [阶段1] 目录结构到位：ui/src/stores
+  [PASS] S110 — [阶段1] 目录结构到位：ui/src/api
+  [PASS] S110 — [阶段1] 目录结构到位：modules
+  [PASS] S110 — [阶段1] 目录结构到位：plugins
+  [PASS] B110 — 前端 typecheck 通过
+
+====================================================================
+❌ 门禁不通过   FAIL=1  WARN=0  PASS=24
+
+不通过项需返工。判定口径见 docs/reviews/SUPERVISOR.md 第四章。
+====================================================================

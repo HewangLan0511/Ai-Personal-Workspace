@@ -1,0 +1,11 @@
+{
+  "name": "coding",
+  "description": "开发模式：左编辑器 / 右上浏览器 / 右下终端 / 右 AI",
+  "monitor": 0,
+  "slots": [
+    { "app": "VSCode",   "rect": { "x": 0.0, "y": 0.0, "w": 0.6, "h": 1.0 }, "z": 1 },
+    { "app": "Chrome",   "rect": { "x": 0.6, "y": 0.0, "w": 0.2, "h": 0.5 }, "z": 2 },
+    { "app": "Terminal", "rect": { "x": 0.6, "y": 0.5, "w": 0.2, "h": 0.5 }, "z": 3 }
+  ],
+  "aiSidebar": { "enabled": true, "edge": "right", "width": 0.2 }
+}

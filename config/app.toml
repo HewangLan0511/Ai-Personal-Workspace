@@ -1,0 +1,42 @@
+# 应用级配置（02 §2.2 config/）
+#
+# 重要决策登记（ADR-001）：
+#   窗口控制与进程启动用 Rust（windows crate），Python sidecar 不做窗口/进程操作。
+#   决策文档：docs/adr/ADR-001-窗口控制与进程启动实现语言.md
+
+[app]
+name = "Personal Workspace"
+version = "0.1.0"
+identifier = "com.baiyu.personalworkspace"
+# 数据目录：占位符由 core 启动时展开（不硬编码用户路径 —— 门禁红线 A020）
+data_dir_template = "{APPDATA}/PersonalWorkspace"
+
+[sidecar]
+# Python sidecar 启动命令模板。Python 解释器由 PW_PYTHON 环境变量覆盖。
+python = "python"
+script = "system/service.py"
+# sidecar 崩溃自动重启间隔（毫秒）
+restart_delay_ms = 2000
+# 健康检查超时（毫秒）
+health_timeout_ms = 5000
+# 端口 0 = 由系统随机分配；启动后写入 config 表 runtime.sidecar_port
+port = 0
+
+[ui]
+default_theme = "light"
+window_width = 1280
+window_height = 800
+min_width = 1024
+min_height = 640
+
+[ai]
+default_provider = ""
+consult_mode_isolated = true   # 咨询模式不可访问用户数据（红线 V2）
+
+[privacy]
+telemetry_enabled = false       # 默认关闭（红线 + 隐私基线）
+
+# ADR-001：窗口/进程实现的语言。读这条可一眼看到决策结果。
+[adr]
+window_and_process_implementation = "rust"
+adr_ref = "docs/adr/ADR-001-窗口控制与进程启动实现语言.md"

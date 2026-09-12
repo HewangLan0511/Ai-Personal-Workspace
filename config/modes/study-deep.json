@@ -1,0 +1,13 @@
+{
+  "name": "深度学习模式",
+  "description": "学习一项技术时的标准环境：四宫格 + AI 陪伴",
+  "apps": ["VSCode", "Chrome", "PDF", "Terminal"],
+  "openTargets": [],
+  "layout": "quad.json",
+  "aiProfile": {
+    "provider": "deepseek",
+    "systemPromptKey": "study_assistant",
+    "permissionScope": ["file:read"]
+  },
+  "autoApply": false
+}

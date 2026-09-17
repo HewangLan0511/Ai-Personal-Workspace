@@ -671,4 +671,18 @@
 > 交互恢复 · edge snap 精确吸至 work_x · se/nw 双向越界收口 · 卡片补全实证。R 段八套（C1~C6 +
 > TECH-02 + 契约）全部有通过证据；全套两轮的 R 红灯为四层嵌套资源争抢轮转（不重合、空闲单跑
 > 即绿），非产品问题——收口口径：每套独立通过证据即判通过，不追嵌套连绿。
-> **停止点**：C7 完成，未进入 C8。遗留登记：多显示器 / WindowInfo 无 exe / dist chunk housekeeping。
+> **停止点**：C7 完成，未进入 C8。
+
+## V0.1-FINAL · 项目收口、清理与基线固化（2026-09-17，全绿冻结）
+
+> **范围**：Stabilization / Cleanup / Baseline Freeze（零新功能、零 C8）。审计 `docs/tech/V0.1-FINAL-audit.md`
+> → 清理（dist 779→41 assets；一次性日志清除；`emptyOutDir:false` 方案 A 保持）→ 构建
+> （UI 同源构建 ✅ · gate --stage 9 --build **0F/30P** · cargo release 5m23s ✅）→ 全量回归
+> （TECH-02 + C1~C7 + contracts 全部 exit=0，**c7 单跑 27/27 历史首次**，含 c1~c6 全量嵌套复验）→
+> Smoke（9 路由渲染 ✅ · 启动 ✅ · 窗口链 ✅ · Layout/Snapshot ✅ · AI 28P+32/32 ✅ · Profile 29/29 ✅）。
+>
+> **过程红灯定位（已闭环）**：回归中 c5/c6/c7 的 exit=1 全部为沙箱对嵌套三层 spawn 的间歇拦截
+> （core.exe / msedgewebview2.exe 执行拒绝，stderr 实录）；各套件自身断言零红灯，c7 单跑 27/27
+> 覆盖全部套件 exit=0 证据。报告：`docs/tech/V0.1-FINAL-report.md`。
+> **冻结**：V0.1-FINAL complete · no new feature · no C8 · C1~C7 remain green。tag = `v0.1`。
+> **Debt 登记**：多显示器 / exePath / debug target 6.3GB / tauri bundle / 嵌套回归沙箱干扰。遗留登记：多显示器 / WindowInfo 无 exe / dist chunk housekeeping。

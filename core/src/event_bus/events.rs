@@ -13,6 +13,7 @@ pub const AI_REQUEST: &str = "AI_REQUEST";
 pub const AI_STREAM_CHUNK: &str = "AI_STREAM_CHUNK";
 pub const AI_RESPONSE: &str = "AI_RESPONSE";
 pub const LEARNING_PROGRESS_UPDATED: &str = "LEARNING_PROGRESS_UPDATED";
+pub const LEARNING_REMINDER: &str = "LEARNING_REMINDER";
 pub const PROFILE_UPDATED: &str = "PROFILE_UPDATED";
 pub const PLUGIN_LOADED: &str = "PLUGIN_LOADED";
 pub const PLUGIN_ERROR: &str = "PLUGIN_ERROR";

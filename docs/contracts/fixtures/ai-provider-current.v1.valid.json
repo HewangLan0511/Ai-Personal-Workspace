@@ -1,0 +1,57 @@
+{
+  "contractVersion": 1,
+  "canonical": {
+    "providerKey": "ai.provider.current",
+    "modelKey": "ai.model.current",
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "role": "single-source-of-truth"
+  },
+  "cache": {
+    "store": "localStorage",
+    "keys": ["ui.ai.provider", "ui.ai.model"],
+    "role": "cache-only",
+    "mayWriteTruth": false
+  },
+  "suggestion": {
+    "source": "work_modes.ai_profile.provider",
+    "runtimeProjectionKey": "ai.active_profile",
+    "role": "suggestion-only",
+    "mayWriteTruth": false
+  },
+  "headlessDefault": {
+    "configKey": "ai.default_provider",
+    "role": "fallback-for-non-ui-callers",
+    "consumers": [
+      "ui/src/plugin/pluginHost.ts:ai.invoke",
+      "core/src/agents.rs:ai.invoke",
+      "ui/src/stores/settings.ts:defaultProvider"
+    ],
+    "mayWriteTruth": false
+  },
+  "transport": {
+    "args": ["provider", "model"],
+    "role": "resolved-only",
+    "mayDecide": false
+  },
+  "registry": {
+    "ref": "ai/providers/registry.py",
+    "enabledIds": ["openai", "deepseek", "compatible", "ollama", "lmstudio"],
+    "disabledIds": ["web-ai", "user-agent"],
+    "note": "web-ai / user-agent 为占位，enabled=false；canonical 不得指向它们。"
+  },
+  "resolutionOrder": [
+    "request-explicit",
+    "canonical",
+    "suggestion",
+    "headlessDefault",
+    "registry-first-enabled"
+  ],
+  "readers": {
+    "aiSidebar": "canonical",
+    "aiAssistantPage": "canonical",
+    "settingsView": "registry+canonical",
+    "pluginHost": "headlessDefault",
+    "externalAgent": "headlessDefault"
+  }
+}

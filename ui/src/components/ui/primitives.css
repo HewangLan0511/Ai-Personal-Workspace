@@ -1,0 +1,541 @@
+/* ============================================================
+ * Personal Workspace · 共享原语层（TECH-05-C §P0）
+ * ------------------------------------------------------------
+ * ## 它补的是什么（不是第二套体系）
+ * 原型 `personal-workspace-ui/index.html` 的视觉语言建立在 §5 PRIMITIVES
+ * （card / chip / btn / drawer / field / input / avatar / row-item / seg / empty）
+ * 之上；而真实应用 `ui/` **从来没有这一层** —— 于是 ModeView / ProfileView /
+ * SettingsView 各自写了一套 `mode-card` / `basic-card` / `settings-section`，
+ * 导致「同一段设计语言在三个页面各实现一遍」。
+ *
+ * 本文件把这些**补齐到一处**（TECH-05-B §3 的结论：补齐 not 搬运）。
+ *
+ * ## 硬规则
+ * - **不新增 token**：颜色/圆角/阴影/间距/时长全部消费 `tokens.css` +
+ *   `motion-tokens.css` 已有的 Semantic / Motion 变量（TECH-05-C 只补齐了
+ *   `--surface-overlay` / `--surface-hover` / `--*-soft` / `--scrim` 这几个
+ *   原型用到而真实应用缺失的语义值，仍写在同一个 tokens.css 里）。
+ * - **不新增动画体系**：本文件**零 `@keyframes`**（`verify_tech04.py` T4c 把
+ *   全局 keyframes 锁死在 base.css 一处）；进入/离开一律走 CSS transition，
+ *   时长取自 `--mt-dur-*`。
+ * - **前缀 `pw-`**：与既有共享类 `pw-clickable` / `pw-motion-essential`
+ *   同一命名约定，避免与各页面自己的 scoped 类名相互污染。
+ *
+ * ## 字号为什么不走 token
+ * 真实应用的 token 体系里从未有字号档位（tokens.css 只有 `--f-font-ui`），
+ * 既有 base.css 与各 view 也一律写 px。为不制造"两套字号口径"，此处沿用
+ * 既有约定写 px，并把档位收敛成下面这一张注释表（不再有第二处定义）：
+ *   页面标题 20/600 · 区块标题 16/600 · 卡片标题 15/600
+ *   正文 14 · 小字 13 · 说明 12 · 标签 11
+ * ============================================================ */
+
+/* ---------------------------------------------------------- 排版（.pw-t-*） */
+
+.pw-t-page {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
+}
+
+.pw-t-section {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.pw-t-card {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.pw-t-sm {
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.pw-t-cap {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.pw-t-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-4);
+}
+
+.pw-mono {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 12px;
+}
+
+.pw-c2 {
+  color: var(--text-2);
+}
+
+/* ---------------------------------------------------------- 布局小工具 */
+
+.pw-row {
+  display: flex;
+  align-items: center;
+  gap: var(--f-space-2);
+  min-width: 0;
+}
+
+.pw-row--wrap {
+  flex-wrap: wrap;
+}
+
+.pw-row--top {
+  align-items: flex-start;
+}
+
+.pw-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-space-3);
+  min-width: 0;
+}
+
+.pw-grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.pw-spacer {
+  flex: 1;
+}
+
+/* ---------------------------------------------------------- Button（.pw-btn） */
+
+.pw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--f-space-2);
+  height: 34px;
+  padding: 0 var(--f-space-4);
+  border-radius: var(--radius-controls);
+  border: 1px solid transparent;
+  background: var(--surface-3);
+  color: var(--text-1);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pw-btn:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.pw-btn:disabled,
+.pw-btn.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.pw-btn--sm {
+  height: 28px;
+  padding: 0 var(--f-space-3);
+  font-size: 12px;
+}
+
+.pw-btn--lg {
+  height: 40px;
+  padding: 0 var(--f-space-5);
+  font-size: 15px;
+}
+
+.pw-btn--primary {
+  background: var(--brand-500);
+  border-color: var(--brand-500);
+  color: #fff;
+}
+
+.pw-btn--primary:hover:not(:disabled) {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
+}
+
+.pw-btn--secondary {
+  background: var(--surface-1);
+  border-color: var(--border);
+  color: var(--text-1);
+}
+
+.pw-btn--secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.pw-btn--ghost {
+  background: transparent;
+  color: var(--text-2);
+}
+
+.pw-btn--ghost:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text-1);
+}
+
+.pw-btn--danger {
+  background: var(--danger-soft);
+  border-color: transparent;
+  color: var(--danger);
+}
+
+.pw-btn--danger:hover:not(:disabled) {
+  border-color: var(--danger);
+}
+
+/* 图标按钮（返回 / 关闭）：与 .pw-btn 同族，方形无文字 */
+.pw-btn--icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-3);
+}
+
+.pw-btn--icon:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text-1);
+}
+
+/* ---------------------------------------------------------- Chip（.pw-chip） */
+
+.pw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 var(--f-space-3);
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.pw-chip--sm {
+  height: 22px;
+}
+
+.pw-chip--brand {
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+
+.pw-chip--outline {
+  background: transparent;
+  border-color: var(--border);
+}
+
+.pw-chip--removable {
+  padding-right: var(--f-space-1);
+}
+
+.pw-chip__x {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pw-chip__x:hover {
+  background: var(--border);
+  color: var(--text-1);
+}
+
+/* 状态点：运行中 / 等待 / 关闭 */
+.pw-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--text-4);
+}
+
+.pw-dot--ok {
+  background: var(--success);
+}
+
+.pw-dot--wait {
+  background: var(--warning);
+}
+
+.pw-dot--off {
+  background: var(--text-4);
+}
+
+/* ---------------------------------------------------------- Card（.pw-card） */
+
+.pw-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--f-space-4);
+}
+
+.pw-card--lg {
+  padding: var(--f-space-5);
+}
+
+.pw-card--ghost {
+  background: var(--surface-2);
+  border-color: transparent;
+}
+
+.pw-card--hoverable:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+/* 竖排卡片：模型卡 / 档案扩展块 */
+.pw-card--stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-space-2);
+  text-align: left;
+}
+
+/* ---------------------------------------------------------- Field / Input */
+
+.pw-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-space-2);
+}
+
+.pw-field > label {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.pw-input {
+  display: flex;
+  align-items: center;
+  gap: var(--f-space-2);
+  height: 34px;
+  padding: 0 var(--f-space-3);
+  background: var(--surface-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-controls);
+}
+
+.pw-input:hover {
+  background: var(--surface-hover);
+}
+
+.pw-input:focus-within {
+  background: var(--surface-1);
+  border-color: var(--brand-500);
+}
+
+.pw-input > input,
+.pw-input > textarea {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  outline: 0;
+  padding: 0;
+  border-radius: 0;
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.pw-input > textarea {
+  resize: none;
+  line-height: 1.5;
+  padding: 2px 0;
+}
+
+.pw-input > input::placeholder,
+.pw-input > textarea::placeholder {
+  color: var(--text-4);
+}
+
+.pw-input--lg {
+  height: 40px;
+  padding: 0 var(--f-space-4);
+}
+
+.pw-input--multi {
+  height: auto;
+  min-height: 64px;
+  align-items: flex-start;
+  padding: 8px var(--f-space-3);
+}
+
+/* ---------------------------------------------------------- Avatar */
+
+.pw-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brand-50);
+  color: var(--brand-600);
+  font-weight: 600;
+  font-size: 13px;
+  flex: 0 0 auto;
+}
+
+.pw-avatar--lg {
+  width: 56px;
+  height: 56px;
+  font-size: 18px;
+}
+
+/* ---------------------------------------------------------- Row item */
+
+.pw-row-item {
+  display: flex;
+  align-items: center;
+  gap: var(--f-space-3);
+  width: 100%;
+  padding: var(--f-space-3) var(--f-space-4);
+  border: none;
+  border-radius: var(--f-radius-3);
+  background: transparent;
+  color: var(--text-1);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pw-row-item:hover {
+  background: var(--surface-2);
+}
+
+.pw-row-item .pw-row-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.pw-row-item .pw-row-item__title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------- Drawer + Scrim */
+
+.pw-scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+  z-index: 40;
+}
+
+.pw-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 92vw;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-overlay);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-floating);
+}
+
+.pw-drawer__head {
+  display: flex;
+  align-items: center;
+  gap: var(--f-space-3);
+  padding: var(--f-space-4) var(--f-space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pw-drawer__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--f-space-5);
+}
+
+.pw-drawer__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--f-space-2);
+  padding: var(--f-space-4) var(--f-space-5);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* 进入/离开：只用 transition（无 @keyframes），时长取自 Motion Token */
+.pw-fade-enter-active,
+.pw-fade-leave-active {
+  transition: opacity var(--mt-dur-base) var(--mt-ease-standard);
+}
+
+.pw-fade-enter-from,
+.pw-fade-leave-to {
+  opacity: 0;
+}
+
+.pw-slide-enter-active,
+.pw-slide-leave-active {
+  transition:
+    transform var(--mt-dur-panel) var(--mt-ease-entry),
+    opacity var(--mt-dur-panel) var(--mt-ease-entry);
+}
+
+.pw-slide-enter-from,
+.pw-slide-leave-to {
+  transform: translateX(24px);
+  opacity: 0.4;
+}
+
+/* ---------------------------------------------------------- 网格 */
+
+.pw-grid {
+  display: grid;
+  gap: var(--f-space-3);
+}
+
+.pw-grid--models {
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+}
+
+.pw-grid--avatars {
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: var(--f-space-2);
+}
+
+.pw-avatar-pick {
+  display: grid;
+  place-items: center;
+  height: 64px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--f-radius-3);
+  background: var(--surface-1);
+  color: var(--text-1);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.pw-avatar-pick:hover {
+  background: var(--surface-2);
+}
+
+.pw-avatar-pick.on {
+  border-color: var(--brand-500);
+  background: var(--brand-50);
+}

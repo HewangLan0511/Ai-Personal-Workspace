@@ -9,17 +9,22 @@ npm install
 npm run dev         # http://localhost:5173
 npm run typecheck   # vue-tsc --noEmit（门禁 B110 会跑这条）
 npm run build       # vue-tsc + vite build
+npm run tauri dev   # 开发态桌面应用（04 验收项 1）
+npm run tauri build # 产出安装包（04 验收项 7）
 ```
 
 Tauri 集成：
 - `core/tauri.conf.json` 的 `build.devUrl` 指向 `http://localhost:5173`
 - `build.frontendDist` 指向本目录的 `dist/`（npm run build 产出）
+- `npm run tauri *` 经 `scripts/tauri.mjs` 转发：Tauri CLI 必须在 `core/` 下运行
+  （`tauri.conf.json` / `Cargo.toml` 在那里），而 `npm run` 的 cwd 固定是本目录，
+  故由该脚本切换工作目录后再调 CLI。
 
 ## 目录
 
 ```
 src/
-├── api/            core HTTP 客户端 + 配置服务封装（含离线降级）
+├── api/            core 调用封装（invoke 优先，HTTP 兜底）+ 配置服务（含离线降级）
 ├── components/     TopBar / NavSide / StatusBar / WidgetCard
 ├── composables/    useWidgets
 ├── router/         9 路由（含 /plugins 占位）
@@ -30,6 +35,8 @@ src/
 ├── widgets/        7 Widget + fallback
 ├── App.vue
 └── main.ts
+scripts/
+└── tauri.mjs       Tauri CLI 转发器（cwd → core/）
 ```
 
 ## 配置键（写入 core SQLite config 表）

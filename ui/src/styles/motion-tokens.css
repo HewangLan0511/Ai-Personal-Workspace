@@ -1,0 +1,117 @@
+/* ============================================================
+ * Personal Workspace · Motion Token Runtime（TECH-01 §六~§十三）
+ * ------------------------------------------------------------
+ * 关键规则：
+ *   - Duration 与 Intensity 解耦（§七）：intensity 永远不乘 duration；
+ *   - Intensity 只影响 translate/scale/opacity/blur/shake 的幅度（§八）；
+ *   - Interactive Gate（§十三）：到达后用户必须恢复交互，动画后半段
+ *     只做 Background Stabilization，不得阻塞操作；
+ *   - Motion Guard 三档（§九）与 Performance Guard 三档（§十）通过
+ *     data-motion / data-perf 属性驱动 CSS 变量，JS 侧由 runtime 同步。
+ * ============================================================ */
+
+:root {
+  /* ---------- Skin 通道（Skin Engine 白名单变量） ----------
+   * Skin 只允许写 --mt-skin-* 通道变量（运行时经内联样式下发），
+   * 不允许直接写最终值。Guard（data-motion / data-perf）与 Gate 硬设
+   * 最终值，天然高于 Skin —— off/reduced 下 Skin 强度被完全覆盖（§十八）。
+   * 白名单：intensity / drift / scale-on / blur / duration(5 档) /
+   *         easing(3 档) / stagger。
+   * 禁止：--mt-interactive-gate、--mt-dur-instant、派生幅度
+   *       （--mt-press-scale / --mt-hover-lift）不设通道，Skin 无从触碰。
+   */
+  --mt-intensity: var(--mt-skin-intensity, 1);
+  --mt-drift: var(--mt-skin-drift, 1);
+  --mt-scale-on: var(--mt-skin-scale-on, 1);
+  --mt-blur: var(--mt-skin-blur, 1);
+
+  /* ---------- Stagger Token ---------- */
+  --mt-stagger: var(--mt-skin-stagger, 24ms);
+
+  /* ---------- Duration Token（§七；instant 不开放给 Skin） ---------- */
+  --mt-dur-instant: 0ms;
+  --mt-dur-quick: var(--mt-skin-dur-quick, 120ms);
+  --mt-dur-base: var(--mt-skin-dur-base, 180ms);
+  --mt-dur-panel: var(--mt-skin-dur-panel, 240ms);  /* 与 Interactive Gate 同值（§十四 时间轴锚点），Gate 本身不开放 */
+  --mt-dur-scene: var(--mt-skin-dur-scene, 320ms);
+  --mt-dur-cinematic: var(--mt-skin-dur-cinematic, 560ms);
+
+  /* ---------- Easing Token ---------- */
+  --mt-ease-standard: var(--mt-skin-ease-standard, cubic-bezier(0.2, 0, 0, 1));
+  --mt-ease-entry: var(--mt-skin-ease-entry, cubic-bezier(0, 0, 0.2, 1));
+  --mt-ease-exit: var(--mt-skin-ease-exit, cubic-bezier(0.4, 0, 1, 1));
+
+  /* ---------- Interactive Gate（§十三） ---------- */
+  --mt-interactive-gate: 240ms;
+
+  /* ---------- 组件 motion 语义值（由上面的 token 派生，组件直接用） ---------- */
+  --mt-press-scale: calc(1 - 0.015 * var(--mt-intensity));
+  --mt-hover-lift: calc(1px * var(--mt-intensity));
+}
+
+/* ---------- Motion Guard（§九） ----------
+ * standard：完整 motion（即 :root 默认值）
+ * reduced ：降 translate/scale/blur/装饰性，保留 focus/state/progress/状态反馈
+ * off     ：关闭非必要 motion；必要交互状态反馈靠“瞬时切换”仍然可见
+ */
+[data-motion='reduced'] {
+  --mt-intensity: 0.35;
+  --mt-drift: 0.3;
+  --mt-scale-on: 0.5;
+  --mt-blur: 0;
+}
+
+[data-motion='off'] {
+  --mt-intensity: 0;
+  --mt-drift: 0;
+  --mt-blur: 0;
+  /* scale-on 保持 1：状态反馈（press 等）仍有几何变化，只是瞬时完成 */
+}
+
+/* off 档：非必要动画归零；.pw-motion-essential（loading/进度等）豁免（§九） */
+[data-motion='off'] *:not(.pw-motion-essential):not(.pw-motion-essential *) {
+  transition-duration: 0ms !important;
+  animation-duration: 0ms !important;
+}
+
+/* ---------- Performance Guard（§十） ----------
+ * 只降表现（blur/shadow/同时动画数/intensity），禁止改布局逻辑。
+ */
+[data-perf='reduced'] {
+  --shadow-floating: var(--shadow-card); /* 阴影降级：浮层 → 卡片 */
+  --mt-blur: 0;
+}
+
+[data-perf='emergency'] {
+  --mt-intensity: 0;
+  --mt-blur: 0;
+  --shadow-floating: none;
+  --shadow-card: none;
+}
+
+[data-perf='emergency'] *:not(.pw-motion-essential):not(.pw-motion-essential *) {
+  transition-duration: 0ms !important;
+  animation-duration: 0ms !important;
+}
+
+/* ---------- 组件 motion 基线（§十九：组件不自带动画系统） ----------
+ * 交互元素的 hover/press 统一走 Motion Token；时长/强度全部来自 token，
+ * 未来 Skin 只需改 token/组件 motion profile，不必逐组件改。
+ */
+button,
+[role='button'],
+select,
+.pw-clickable {
+  transition:
+    background-color var(--mt-dur-quick) var(--mt-ease-standard),
+    border-color var(--mt-dur-quick) var(--mt-ease-standard),
+    color var(--mt-dur-quick) var(--mt-ease-standard),
+    box-shadow var(--mt-dur-quick) var(--mt-ease-standard),
+    transform var(--mt-dur-quick) var(--mt-ease-standard);
+}
+
+button:active:not(:disabled),
+[role='button']:active:not(.disabled),
+.pw-clickable:active {
+  transform: scale(var(--mt-press-scale));
+}

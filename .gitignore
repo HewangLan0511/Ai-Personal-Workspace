@@ -9,6 +9,12 @@ coverage/
 *.pdb
 *.rlib
 
+# Tauri sidecar 构建产物（由 system/build_sidecar.py 生成，非源码）
+core/binaries/
+
+# Tauri 由 tauri-build 自动生成的 ACL schema（每次构建重生成，非源码）
+core/gen/
+
 # ===== Python =====
 __pycache__/
 *.py[cod]

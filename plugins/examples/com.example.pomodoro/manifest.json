@@ -1,0 +1,11 @@
+{
+  "pluginId": "com.example.pomodoro",
+  "name": "番茄钟",
+  "version": "1.0.0",
+  "author": "pw-examples",
+  "description": "最小示例插件：25 分钟番茄钟，完成时通知并计数（data:own + ui:widget）。",
+  "entry": "index.html",
+  "permissions": ["data:own", "ui:widget"],
+  "ui": { "type": "widget", "size": "small", "route": "index.html" },
+  "minAppVersion": "0.1.0"
+}

@@ -1,0 +1,188 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pw://contracts/workspace-snapshot.v1",
+  "title": "WorkspaceSnapshot v1",
+  "contractVersion": 1,
+  "configKey": "workspace.snapshot.last",
+  "writer": "core (exclusive)",
+  "note": "PW-INTEGRATION-003 Contract Freeze。v1 只保最近 1 份；additionalProperties=false 就是『禁止偷偷加 v2 字段』的机器门禁。",
+  "x-pw-v2-forbidden": [
+    "history",
+    "snapshots",
+    "snapshotHistory",
+    "previousSnapshots",
+    "multiSnapshot",
+    "hwndIdentity",
+    "windowIdentityMap",
+    "restoreCount",
+    "restoreLog",
+    "keepAliveRegistry"
+  ],
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "snapshotId",
+    "takenAt",
+    "trigger",
+    "source",
+    "monitors",
+    "desktop",
+    "workspace"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "snapshotId": { "type": "string", "pattern": "^ws-[0-9]{8}-[0-9]{6}-[0-9a-f]{4}$" },
+    "takenAt": { "type": "integer", "minimum": 1 },
+    "trigger": {
+      "type": "string",
+      "enum": ["enter_mode"],
+      "note": "v1 只有『从无模式进入模式』会写持久快照。A→B 切换不覆盖（见 contract §2.6）。"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appVersion", "corePid", "runId"],
+      "properties": {
+        "appVersion": { "type": "string", "minLength": 1 },
+        "corePid": { "type": "integer", "minimum": 1 },
+        "runId": {
+          "type": "string",
+          "minLength": 1,
+          "note": "本次 core 进程运行期唯一标识。hwnd 的有效性边界就是这个 runId —— 换 runId 即视为 hwnd 全部失效。"
+        }
+      }
+    },
+    "monitors": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["index", "primary", "bounds", "work"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "primary": { "type": "boolean" },
+          "bounds": { "$ref": "#/definitions/pxRect" },
+          "work": { "$ref": "#/definitions/pxRect", "note": "不含任务栏。rectNorm 的换算基准。" }
+        }
+      }
+    },
+    "desktop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["foregroundHwnd", "windows"],
+      "properties": {
+        "foregroundHwnd": {
+          "type": ["integer", "null"],
+          "note": "若前景窗口被 is_candidate 过滤掉（工具窗口等）则写 null，不得写一个不在 windows[] 里的 hwnd。"
+        },
+        "windows": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 200,
+          "items": { "$ref": "#/definitions/windowEntry" }
+        }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modeName", "modeId", "layoutName", "monitor", "launchedAppIds", "managed"],
+      "properties": {
+        "modeName": { "type": "string", "minLength": 1 },
+        "modeId": { "type": "integer", "minimum": 1 },
+        "layoutName": { "type": ["string", "null"] },
+        "monitor": { "type": "integer", "minimum": 0 },
+        "launchedAppIds": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 },
+          "note": "退出时『哪些软件归模式管、可以关』的唯一依据（R-01）。"
+        },
+        "managed": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/managedEntry" },
+          "note": "模式布局接管过的窗口（退出时收尾对象）。"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "pxRect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer" },
+        "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "normRect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "number", "minimum": 0, "maximum": 1 },
+        "y": { "type": "number", "minimum": 0, "maximum": 1 },
+        "w": { "type": "number", "minimum": 0, "maximum": 1 },
+        "h": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "windowState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["visible", "minimized", "maximized"],
+      "properties": {
+        "visible": { "type": "boolean" },
+        "minimized": { "type": "boolean" },
+        "maximized": { "type": "boolean" }
+      }
+    },
+    "windowEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hwnd",
+        "pid",
+        "exeName",
+        "exePath",
+        "appId",
+        "title",
+        "className",
+        "monitorIndex",
+        "rectPx",
+        "rectNorm",
+        "state",
+        "zIndex"
+      ],
+      "properties": {
+        "hwnd": { "type": "integer", "minimum": 1, "note": "volatile：仅 source.runId 相同期间有效。" },
+        "pid": { "type": "integer", "minimum": 1 },
+        "exeName": { "type": "string", "minLength": 1, "note": "如 Code.exe。v1 必须采集（process_image_name 已有）。" },
+        "exePath": { "type": ["string", "null"], "note": "v1 尽力采集，允许 null（QueryFullProcessImageNameW 不是 v1 强制项）。" },
+        "appId": { "type": ["integer", "null"], "note": "能按名匹配 apps 表时补；匹配不到为 null。" },
+        "title": { "type": "string", "maxLength": 120, "note": "超长截断，不存全文（体积 + 隐私）。" },
+        "className": { "type": "string" },
+        "monitorIndex": { "type": "integer", "minimum": 0 },
+        "rectPx": { "$ref": "#/definitions/pxRect", "note": "绝对物理像素。同屏同拓扑时优先用它恢复。" },
+        "rectNorm": { "$ref": "#/definitions/normRect", "note": "相对所属显示器 work 的归一化坐标。拓扑变化时按它比例映射。" },
+        "state": { "$ref": "#/definitions/windowState" },
+        "zIndex": { "type": "integer", "minimum": 1, "note": "EnumWindows 返回序的近似 Z 序，越大越靠前。" }
+      }
+    },
+    "managedEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appId", "appName", "pid", "hwnd"],
+      "properties": {
+        "appId": { "type": ["integer", "null"] },
+        "appName": { "type": "string", "minLength": 1 },
+        "pid": { "type": ["integer", "null"] },
+        "hwnd": { "type": ["integer", "null"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>正在播放</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 10px; font-size: 13px; }
+    .track { min-height: 40px; margin-bottom: 6px; }
+    .track .title { font-weight: 600; }
+    .track .artist { color: #888; }
+    .row { display: flex; gap: 6px; justify-content: center; }
+    button { padding: 4px 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="track" id="track">
+    <div class="artist" id="artist">—</div>
+    <div class="title" id="title">点击刷新读取当前曲目</div>
+  </div>
+  <div class="row">
+    <button data-action="previous">⏮</button>
+    <button data-action="play">▶</button>
+    <button data-action="pause">⏸</button>
+    <button data-action="next">⏭</button>
+    <button id="refresh">↻</button>
+  </div>
+  <script src="index.js"></script>
+</body>
+</html>

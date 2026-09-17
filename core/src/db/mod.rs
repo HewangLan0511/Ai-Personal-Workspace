@@ -16,8 +16,8 @@ use anyhow::Context;
 use rusqlite::Connection;
 
 /// 写入白名单表（契约 3.4 `/internal/db/exec` 仅限白名单）。
-/// 阶段1 只开放 config；后续阶段按需扩表并同步契约。
-pub const WRITABLE_TABLES: &[&str] = &["config"];
+/// 阶段1 开放 config；阶段2 增加 apps（05 §1 软件注册）。按需扩表并同步契约。
+pub const WRITABLE_TABLES: &[&str] = &["config", "apps"];
 
 #[derive(Clone)]
 pub struct Db {
@@ -104,6 +104,31 @@ impl Db {
         let conn = self.lock();
         let affected = conn.execute(sql, rusqlite::params_from_iter(params.iter().map(to_rusqlite)))?;
         Ok(affected as u64)
+    }
+
+    /// 参数化插入并返回新行 rowid。
+    ///
+    /// 阶段2 新增：软件注册（`apps`）需要拿到自增 id 才能回读完整记录。
+    /// 复用 `exec` 拿不到 rowid，故单列一个方法，避免调用方走 "INSERT ... RETURNING" 而混淆读写语义。
+    pub fn insert(&self, sql: &str, params: &[serde_json::Value]) -> anyhow::Result<i64> {
+        let conn = self.lock();
+        conn.execute(sql, rusqlite::params_from_iter(params.iter().map(to_rusqlite)))?;
+        Ok(conn.last_insert_rowid())
+    }
+
+    /// 在**一个事务**里顺序执行多条参数化写语句（全成功才提交，任一失败则整体回滚）。
+    ///
+    /// 阶段6 新增。为什么需要：学习路线的"确认采纳"是**全量替换**
+    /// （先清空该目标的节点、再按顺序写入），逐条 `exec` 遇到中途失败会留下
+    /// "删了一半"的半截路线 —— 用户看到的是坏数据而不是"操作失败"。
+    pub fn exec_many(&self, stmts: &[(String, Vec<serde_json::Value>)]) -> anyhow::Result<()> {
+        let mut conn = self.lock();
+        let tx = conn.transaction()?;
+        for (sql, params) in stmts {
+            tx.execute(sql, rusqlite::params_from_iter(params.iter().map(to_rusqlite)))?;
+        }
+        tx.commit()?;
+        Ok(())
     }
 
     /// KV 直读（config 表专用）。

@@ -14,12 +14,16 @@ interface NavEntry {
 
 const entries: NavEntry[] = [
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/mode', label: '模式' },
+  { to: '/software', label: '软件' },
+  { to: '/layout', label: '布局' },
   { to: '/ai', label: 'AI' },
   { to: '/learning', label: '学习' },
   { to: '/project', label: '项目' },
   { to: '/profile', label: '档案' },
   { to: '/life', label: '生活' },
   { to: '/device', label: '设备' },
+  { to: '/plugins', label: '插件' },
 ]
 </script>
 

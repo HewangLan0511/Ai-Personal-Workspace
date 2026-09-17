@@ -28,16 +28,29 @@
 - **目录树增量说明**：02 §2.2 强制树之外的 `src/api/`、`src/sidecar/` 为架构师裁量新增（HTTP 接口面与 sidecar 监管需要独立模块），在此登记。
 - **devtools**：Tauri 2 在 release 构建默认禁用 devtools（未启用 devtools feature），满足 04 §1 要求。
 
-## 运行（前置：Rust 工具链）
+## 运行（前置：Rust 工具链 + Node）
+
+**推荐入口**（在仓库根执行，已封装 Tauri CLI 的工作目录切换）：
 
 ```bash
-# ⚠️ 2026-09-12 实测：本机未安装 cargo/rustc，以下命令待工具链就绪后执行
-# 需要：rustup (MSVC toolchain) + WebView2 Runtime
+npm --prefix ui install                      # 前端依赖（含 @tauri-apps/cli）
+python system/build_sidecar.py               # 先出 sidecar 产物，见下方说明
+npm --prefix ui run tauri dev                # 开发态运行
+npm --prefix ui run tauri build              # 产出安装包（验收项 7）
+```
 
-cd ui && npm install          # 前端依赖
-cd ../core && cargo check     # 编译检查（补验项）
-cargo tauri dev               # 开发态运行
-cargo tauri build             # 产出安装包（验收项 7）
+> ⚠️ **为什么必须先出 sidecar**：`core/tauri.conf.json` 的 `bundle.externalBin`
+> 是 **tauri-build 在编译期校验**的资源。产物缺失时连 `cargo check` 都会失败：
+> `resource path binaries\service-<triple>.exe doesn't exist`。
+> `pyinstaller` 属构建期依赖，可用 `PW_PYTHON` 指向已装它的解释器。
+> 门禁已为此加静态检查 **B120/B121**（编译前即可发现，不必烧一次完整编译）。
+
+等价的底层命令（Tauri CLI 的 app 目录即本目录）：
+
+```bash
+cd ui && npm install
+cd ../core && cargo check                    # 门禁 B100
+cd ../core && cargo test                     # 4 条单元测试
 ```
 
 sidecar 的 Python 解释器可用环境变量 `PW_PYTHON` 指定（默认 PATH 上的 `python`）。
@@ -45,14 +58,38 @@ sidecar 的 Python 解释器可用环境变量 `PW_PYTHON` 指定（默认 PATH 
 
 ## 验收步骤（阶段1）
 
-1. `npm --prefix ../ui run build` → 前端构建通过
-2. `python ../system/service.py --announce` → stdout 首行输出 `{"event":"sidecar_ready","port":N}`，`GET /health` 返回 200
-3. `cargo tauri dev` → 窗口出现（1280×800），Dashboard 渲染
-4. 左侧 7 个导航项切换无白屏；`/plugins` 为占位页
-5. 改主题 → 重启 → 主题保持（持久化走 config 表）
+1. `npm --prefix ui run build` → 前端构建通过
+2. `python system/build_sidecar.py` → 产出 `core/binaries/service-<triple>.exe`
+3. `python tools/verify_stage1.py` → 自动核验启动 / 启动耗时 / 建库 / sidecar / 持久化
+4. `npm --prefix ui run tauri dev` → 窗口出现（1280×800），Dashboard 渲染
+5. 左侧导航切换无白屏；`/plugins` 为占位页（本项需人工点，脚本不覆盖）
 6. 首次启动自动建库：`%APPDATA%/PersonalWorkspace/workspace.db` 存在且 `config` 表有默认行
+
+## 验收步骤（阶段2 · 软件管理）
+
+```bash
+# 1. 构建（sidecar 需单独打包，PyInstaller）
+python system/build_sidecar.py                 # 产出 core/binaries/service-<triple>.exe
+cd core && cargo build --release
+cd ..
+
+# 2. 端到端验收（05 的 8 项验收标准 + 2 项强化检查，全自动）
+python tools/verify_stage2.py
+
+# 3. 门禁
+python tools/gate.py --stage 2 --build
+```
+
+覆盖：添加 / 启动（**pid 用 `tasklist` 复核**，不信 core 的返回值）/ 失败提示 / 状态同步 /
+分类搜索 / 排序（含置顶）/ 注册表扫描 / 重启持久化，外加图标接口的**目录穿越防护**与
+自动补全（`FileDescription` → `name`、内嵌图标 → PNG 缓存）。
+
+> ⚠️ **改了 `system/` 下的 sidecar 代码后必须重新打包**并把产物同步到
+> `core/target/release/service.exe`，否则 core 仍会启动**旧的**打包二进制。
+> 阶段2 首次验收就栽在这里（`/apps/scan` 报"未知路径"，实为旧 exe）。
 
 ## 已知限制
 
-- 本机无 Rust 工具链：`cargo check` / `tauri dev` / `tauri build` 未在本阶段执行（登记遗留，装好工具链后补验）。
-- 阶段2~4 模块为接口占位（`anyhow::bail!("阶段N 实现…")`），不含业务逻辑。
+- 阶段2~4 模块为接口占位（`anyhow::bail!("阶段N 实现…")`），不含业务逻辑；
+  `cargo check` 会报约 30 条 `dead_code` 警告，来源即这些尚未接线的占位项与事件常量。
+- 打包产物（`binaries/`、`target/`、`dist/`）均不入库（红线 V8）。

@@ -24,15 +24,21 @@ python system/service.py --announce
 ## 打包（04 §5 · PyInstaller 单文件）
 
 ```bash
-python -m pip install pyinstaller     # 构建期依赖，不进 runtime
-python system/build_sidecar.py        # 产出 core/binaries/service-<triple>.exe
-python system/build_sidecar.py --check # 只检查产物是否就绪
+python -m pip install pyinstaller        # 构建期依赖，不进 runtime
+python system/build_sidecar.py           # 产出 core/binaries/service-<triple>.exe
+python system/build_sidecar.py --check   # 只检查产物是否就绪
+python system/build_sidecar.py --if-needed  # 产物不比源码旧则跳过（beforeBuildCommand 用）
 ```
 
 - 产物名带**目标三元组**（如 `service-x86_64-pc-windows-msvc.exe`），与
   `core/tauri.conf.json` 的 `bundle.externalBin: ["binaries/service"]` 约定一致。
-- `npm run tauri build` 的 `beforeBuildCommand` 已串上本脚本，**打包前会自动构建 sidecar**；
-  缺 PyInstaller 会明确报错并给出安装提示（不静默跳过）。
+- `npm run tauri build` 的 `beforeBuildCommand` 已串上 `--if-needed`，
+  **打包前会自动构建 sidecar**；产物已是最新则跳过（不重复烧 PyInstaller）。
+- PyInstaller 装在 venv 里时，用 `PW_PYTHON` 指定该解释器：
+  `PW_PYTHON=/path/to/venv/python python system/build_sidecar.py`
+- ⚠️ `bundle.externalBin` 是 **tauri-build 的编译期校验资源**：产物缺失时
+  连 `cargo check` 都会报 `resource path binaries\service-<triple>.exe doesn't exist`。
+  门禁已加静态检查 **B120/B121**（编译前发现，不必烧一次完整编译）。
 - core 侧启动顺序：**打包态优先**找主程序同目录的 `service.exe`，找不到才回退开发态
   `python ../system/service.py`（见 `core/src/sidecar/mod.rs::resolve_launcher`）。
 - ⚠️ 打包**不能加 `--noconsole`**：core 靠读 sidecar 的 stdout 首行拿随机端口。

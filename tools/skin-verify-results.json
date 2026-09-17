@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-14",
+  "tool": "verify_skin_engine.py",
+  "pass": 12,
+  "total": 12,
+  "cases": [
+    {
+      "name": "boot",
+      "ok": true,
+      "detail": "Motion Guard 显式 standard（实际 standard）"
+    },
+    {
+      "name": "T1 default-no-override",
+      "ok": true,
+      "detail": "active=None data-skin=False inline='' intensity=1 quick=.12s gate=.24s"
+    },
+    {
+      "name": "T2a calm-apply",
+      "ok": true,
+      "detail": "intensity=0.7 drift=0.4 blur=0.2 stagger=18ms accent=#5b8def gate=.24s"
+    },
+    {
+      "name": "T2b lively-apply",
+      "ok": true,
+      "detail": "intensity=1.35 quick=100ms base=150ms accent=#ff6b3d"
+    },
+    {
+      "name": "T2c clear-restore",
+      "ok": true,
+      "detail": "intensity=1 accent==baseline: True"
+    },
+    {
+      "name": "T3 illegal-rejected",
+      "ok": true,
+      "detail": "schema-v2:拒绝; forbidden-gate:拒绝; forbidden-typography:拒绝; forbidden-duration-instant:拒绝; range-intensity:拒绝; bad-accent:拒绝; bad-easing:拒绝；拒绝后仍为 lively(intensity=1.35)"
+    },
+    {
+      "name": "T3w unknown-ignored-warn",
+      "ok": true,
+      "detail": "ok=True warnings=['未知字段 motion.unknownThing 已忽略', '未知字段 futureField 已忽略'] intensity=0.9"
+    },
+    {
+      "name": "T4 reduced-overrides-skin",
+      "ok": true,
+      "detail": "motion=reduced + skin=lively → intensity=.35 drift=.3 blur=0 scaleOn=.5"
+    },
+    {
+      "name": "T4b standard-restores-skin",
+      "ok": true,
+      "detail": "回 standard → intensity=1.35"
+    },
+    {
+      "name": "T5 off-overrides-skin",
+      "ok": true,
+      "detail": "intensity=0 drift=0 blur=0 gate=.24s buttonTransition=0s"
+    },
+    {
+      "name": "T6 no-render-on-switch",
+      "ok": true,
+      "detail": "childAdd=0 childRm=0 :root属性=['data-skin', 'style'] 非root变更=[]（对照组同款噪声：[]）"
+    },
+    {
+      "name": "T7 no-motion-scene",
+      "ok": true,
+      "detail": "vtCalls 0→0 pendingAnims=False motionTransitions=0 cssAnimations=0 colorTransitions=0（accent 颜色渐变属变量层传播，放行）"
+    }
+  ]
+}

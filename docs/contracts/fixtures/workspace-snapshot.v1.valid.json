@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "snapshotId": "ws-20260915-104233-7f3a",
+  "takenAt": 1757904153000,
+  "trigger": "enter_mode",
+  "source": {
+    "appVersion": "0.1.0",
+    "corePid": 14208,
+    "runId": "run-14208-1757904000000"
+  },
+  "monitors": [
+    {
+      "index": 0,
+      "primary": true,
+      "bounds": { "x": 0, "y": 0, "w": 2560, "h": 1440 },
+      "work": { "x": 0, "y": 0, "w": 2560, "h": 1400 }
+    },
+    {
+      "index": 1,
+      "primary": false,
+      "bounds": { "x": 2560, "y": 0, "w": 1920, "h": 1080 },
+      "work": { "x": 2560, "y": 0, "w": 1920, "h": 1040 }
+    }
+  ],
+  "desktop": {
+    "foregroundHwnd": 987655,
+    "windows": [
+      {
+        "hwnd": 987654,
+        "pid": 2211,
+        "exeName": "Code.exe",
+        "exePath": "C:\\Users\\baiyu\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe",
+        "appId": 3,
+        "title": "main.rs — Visual Studio Code",
+        "className": "Chrome_WidgetWin_1",
+        "monitorIndex": 0,
+        "rectPx": { "x": 0, "y": 0, "w": 1280, "h": 1400 },
+        "rectNorm": { "x": 0.0, "y": 0.0, "w": 0.5, "h": 1.0 },
+        "state": { "visible": true, "minimized": false, "maximized": false },
+        "zIndex": 3
+      },
+      {
+        "hwnd": 987655,
+        "pid": 3311,
+        "exeName": "msedge.exe",
+        "exePath": null,
+        "appId": 7,
+        "title": "设计交付文档 — Microsoft Edge",
+        "className": "Chrome_WidgetWin_1",
+        "monitorIndex": 0,
+        "rectPx": { "x": 1280, "y": 0, "w": 1280, "h": 1400 },
+        "rectNorm": { "x": 0.5, "y": 0.0, "w": 0.5, "h": 1.0 },
+        "state": { "visible": true, "minimized": false, "maximized": false },
+        "zIndex": 4
+      },
+      {
+        "hwnd": 987656,
+        "pid": 4400,
+        "exeName": "Notion.exe",
+        "exePath": "C:\\Users\\baiyu\\AppData\\Local\\Programs\\Notion\\Notion.exe",
+        "appId": null,
+        "title": "周报 - Notion",
+        "className": "Chrome_WidgetWin_1",
+        "monitorIndex": 1,
+        "rectPx": { "x": 2560, "y": 0, "w": 1920, "h": 1040 },
+        "rectNorm": { "x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0 },
+        "state": { "visible": true, "minimized": false, "maximized": true },
+        "zIndex": 2
+      },
+      {
+        "hwnd": 987657,
+        "pid": 5500,
+        "exeName": "Spotify.exe",
+        "exePath": null,
+        "appId": null,
+        "title": "Spotify Premium",
+        "className": "Chrome_WidgetWin_1",
+        "monitorIndex": 1,
+        "rectPx": { "x": 2560, "y": 300, "w": 900, "h": 600 },
+        "rectNorm": { "x": 0.0, "y": 0.2885, "w": 0.4688, "h": 0.5769 },
+        "state": { "visible": true, "minimized": true, "maximized": false },
+        "zIndex": 1
+      }
+    ]
+  },
+  "workspace": {
+    "modeName": "AI开发模式",
+    "modeId": 3,
+    "layoutName": "ai-development.json",
+    "monitor": 0,
+    "launchedAppIds": [3, 7],
+    "managed": [
+      { "appId": 3, "appName": "VSCode", "pid": 2211, "hwnd": 987654 },
+      { "appId": 7, "appName": "Edge", "pid": 3311, "hwnd": 987655 }
+    ]
+  }
+}

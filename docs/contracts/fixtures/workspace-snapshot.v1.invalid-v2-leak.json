@@ -1,0 +1,52 @@
+{
+  "_fixture": "故意不合规：v1 里偷偷塞了 v2 才允许的历史/多版本快照字段。期望门禁以 additionalProperties 拒绝。",
+  "_expectedFailure": "forbidden-v2-key:history @ $",
+  "schemaVersion": 1,
+  "snapshotId": "ws-20260915-104233-7f3a",
+  "takenAt": 1757904153000,
+  "trigger": "enter_mode",
+  "source": {
+    "appVersion": "0.1.0",
+    "corePid": 14208,
+    "runId": "run-14208-1757904000000"
+  },
+  "monitors": [
+    {
+      "index": 0,
+      "primary": true,
+      "bounds": { "x": 0, "y": 0, "w": 2560, "h": 1440 },
+      "work": { "x": 0, "y": 0, "w": 2560, "h": 1400 }
+    }
+  ],
+  "desktop": {
+    "foregroundHwnd": 987654,
+    "windows": [
+      {
+        "hwnd": 987654,
+        "pid": 2211,
+        "exeName": "Code.exe",
+        "exePath": null,
+        "appId": 3,
+        "title": "main.rs — Visual Studio Code",
+        "className": "Chrome_WidgetWin_1",
+        "monitorIndex": 0,
+        "rectPx": { "x": 0, "y": 0, "w": 2560, "h": 1400 },
+        "rectNorm": { "x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0 },
+        "state": { "visible": true, "minimized": false, "maximized": false },
+        "zIndex": 1
+      }
+    ]
+  },
+  "workspace": {
+    "modeName": "AI开发模式",
+    "modeId": 3,
+    "layoutName": "ai-development.json",
+    "monitor": 0,
+    "launchedAppIds": [3],
+    "managed": [{ "appId": 3, "appName": "VSCode", "pid": 2211, "hwnd": 987654 }]
+  },
+  "history": [
+    { "snapshotId": "ws-20260914-090000-a1b2", "takenAt": 1757815200000 }
+  ],
+  "hwndIdentity": { "987654": "vscode-main" }
+}

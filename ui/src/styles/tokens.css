@@ -1,0 +1,165 @@
+/* ============================================================
+ * Personal Workspace · Design Token Runtime（TECH-01）
+ * ------------------------------------------------------------
+ * 分层（§四）：
+ *   Foundation（原始材料）→ Semantic（组件只用这一层）→ Legacy 桥接
+ * 规则：
+ *   - 组件不得自行定义 color/radius/shadow/spacing/typography/motion timing；
+ *   - 组件优先使用 Semantic Token（--bg-app / --surface-1 / --text-1 ...）；
+ *   - Legacy 桥接（--bg/--panel/--accent...）仅为存量样式兼容，新代码禁止使用。
+ * Default Skin 数值来自 TECH-01 §五，不得擅自扩大 radius 上限。
+ * ============================================================ */
+
+:root {
+  /* ---------- Foundation · Color（raw） ---------- */
+  --f-neutral-0: #ffffff;
+  --f-neutral-25: #f8f9fb;
+  --f-neutral-50: #f4f5f8;
+  --f-neutral-100: #f1f3f6;
+  --f-neutral-150: #ebedf1;
+  --f-neutral-200: #edeff3;
+  --f-neutral-300: #e1e4ea;
+  --f-neutral-400: #cdd2dc;
+  --f-neutral-700: #9ba2af;
+  --f-neutral-800: #737b8a;
+  --f-neutral-900: #565e6e;
+  --f-neutral-950: #14171c;
+
+  --f-brand-50: #eff3fd;
+  --f-brand-500: #4a6bdc;
+  --f-brand-600: #3a57c4;
+
+  --f-success: #2e9c6e;
+  --f-warning: #c08a1e;
+  --f-danger: #ce4a3f;
+
+  /* ---------- Foundation · Spacing（§五） ---------- */
+  --f-space-1: 4px;
+  --f-space-2: 8px;
+  --f-space-3: 12px;
+  --f-space-4: 16px;
+  --f-space-5: 20px;
+  --f-space-6: 24px;
+  --f-space-7: 32px;
+  --f-space-8: 40px;
+  --f-space-9: 48px;
+
+  /* ---------- Foundation · Radius（§五，上限不得扩大） ---------- */
+  --f-radius-1: 6px;
+  --f-radius-2: 8px;
+  --f-radius-3: 12px;
+  --f-radius-4: 16px;
+  --f-radius-5: 20px;
+
+  /* ---------- Foundation · Typography（§五） ---------- */
+  --f-font-ui: 'Segoe UI Variable', 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+
+  /* ============================================================
+   * Semantic Token —— 组件实际使用的一层
+   * ============================================================ */
+  --bg-app: var(--f-neutral-150);      /* #EBEDF1 应用底 */
+  --bg-canvas: var(--f-neutral-50);    /* #F4F5F8 画布/内容区 */
+  --surface-1: var(--f-neutral-0);     /* 卡片 */
+  --surface-2: var(--f-neutral-25);    /* 面板/次级表面 */
+  --surface-3: var(--f-neutral-100);   /* 三级表面/内嵌块 */
+  --surface-card: var(--surface-1);
+  --surface-panel: var(--surface-2);
+
+  --border-subtle: var(--f-neutral-200);
+  --border: var(--f-neutral-300);      /* border-default */
+  --border-strong: var(--f-neutral-400);
+
+  --text-1: var(--f-neutral-950);
+  --text-2: var(--f-neutral-900);
+  --text-3: var(--f-neutral-800);
+  --text-4: var(--f-neutral-700);
+  --text-primary: var(--text-1);
+  --text-secondary: var(--text-2);
+  --text-tertiary: var(--text-3);
+
+  --brand-50: var(--f-brand-50);
+  --brand-500: var(--f-brand-500);
+  --brand-600: var(--f-brand-600);
+  --brand-action: var(--brand-500);
+
+  --success: var(--f-success);
+  --warning: var(--f-warning);
+  --danger: var(--f-danger);
+
+  /* ---------- Semantic · 补齐（TECH-05-C §P0 / TECH-07-C） ----------
+   * 下面几个是原型设计语言实际用到、但此前真实应用没有对应的语义值。
+   * 它们**补进同一个 tokens.css 的 Semantic 层**（不是第二套 token 体系）：
+   * 组件只消费它们，取值口径与上面的 Foundation 一致。
+   *   --surface-overlay 浮层底（抽屉 / 弹层）—— 浅色下同卡片白
+   *   --surface-hover   悬停底（用于 .pw-btn--secondary 等）
+   *   --*-soft          状态色的浅底（状态点 / 状态 chip）
+   *   --scrim           模态遮罩（唯一允许的半透明黑；集中在此，组件不再各写一遍）
+   *   --bg-sunken       凹陷区（TECH-07-C：/run 窗口舞台画布 / 进度槽，原型 --bg-sunken）
+   */
+  --surface-overlay: var(--surface-1);
+  --surface-hover: var(--bg-canvas);
+  --success-soft: #e6f4ee;
+  --warning-soft: #fbf2dd;
+  --danger-soft: #fbe9e7;
+  --scrim: rgba(20, 23, 28, 0.42);
+  --bg-sunken: #e9ebf0;
+
+  --radius-controls: var(--f-radius-2);   /* 6–8 */
+  --radius-card: var(--f-radius-4);       /* 12–16 */
+  --radius-panel: var(--f-radius-4);      /* 16–20 内取 16 */
+  --radius-container: var(--f-radius-5);  /* 16–20 */
+
+  --shadow-card: 0 1px 3px rgba(20, 23, 28, 0.07), 0 1px 2px rgba(20, 23, 28, 0.05);
+  --shadow-floating: 0 8px 24px rgba(20, 23, 28, 0.14), 0 2px 6px rgba(20, 23, 28, 0.08);
+
+  /* ---------- Legacy 桥接（存量样式兼容，新代码禁用） ---------- */
+  --bg: var(--bg-app);
+  --panel: var(--surface-1);
+  --text: var(--text-1);
+  --text-dim: var(--text-2);
+  --accent: var(--brand-500);
+  --accent-weak: var(--brand-50);
+  --ok: var(--success);
+  --shadow: var(--shadow-card);
+}
+
+/* ============================================================
+ * 暗色主题 —— Default Skin 的暗色映射（TECH-01 §五未给出暗色值，
+ * 沿用项目既有暗色色板，经 Semantic 层生效）
+ * ============================================================ */
+[data-theme='dark'] {
+  --bg-app: #101216;
+  --bg-canvas: #0c0e12;
+  --surface-1: #1a1d23;
+  --surface-2: #20242c;
+  --surface-3: #262b34;
+
+  --border-subtle: #262a33;
+  --border: #2d323b;
+  --border-strong: #3a4150;
+
+  --text-1: #e6e8eb;
+  --text-2: #9aa1ab;
+  --text-3: #7c8492;
+  --text-4: #5b6270;
+
+  --brand-50: #1e3a5f;
+  --brand-500: #60a5fa;
+  --brand-600: #3b82f6;
+
+  --success: #4ade80;
+  --warning: #e3b341;
+  --danger: #f87171;
+
+  /* TECH-05-C：补齐项的暗色映射（与上面的浅色键一一对应） */
+  --surface-overlay: var(--surface-2);
+  --surface-hover: var(--surface-3);
+  --success-soft: #16301f;
+  --warning-soft: #332a10;
+  --danger-soft: #3a1d1a;
+  --scrim: rgba(0, 0, 0, 0.55);
+  --bg-sunken: #0f1116;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+}

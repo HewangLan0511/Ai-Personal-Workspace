@@ -1,0 +1,48 @@
+nal-workspace-ui/verify_ui08.py:132
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_ui08.py:344
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_ui08.py:345
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_widget_dock.py:123
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_widget_dock.py:136
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_widget_dock.py:157
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_widget_dock.py:258
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_widget_dock.py:259
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_win_front.py:117
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_win_front.py:130
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_win_front.py:151
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_win_front.py:259
+  [WARN] Q001 鈥?Python print 娈嬬暀锛堣剼鏈叆鍙ｉ櫎澶栵級  @ personal-workspace-ui/verify_win_front.py:260
+
+--- PASS锛?8锛?---------------------------------------------
+  [PASS] S000 鈥?鍩虹嚎鐩綍瀛樺湪锛歞ocs/agent-dev
+  [PASS] S000 鈥?鍩虹嚎鐩綍瀛樺湪锛歞ocs/reviews
+  [PASS] S000 鈥?鍩虹嚎鐩綍瀛樺湪锛欻ANDOFF.md
+  [PASS] S000 鈥?鍩虹嚎鐩綍瀛樺湪锛欰GENTS.md
+  [PASS] S000 鈥?鍩虹嚎鐩綍瀛樺湪锛歵ools/gate.py
+  [PASS] S100 鈥?[闃舵9] 瀛樺湪锛歱lugins
+  [PASS] S120 鈥?[闃舵9] plugins 涓嬪瓨鍦?['examples/*/manifest.json'] 鏂囦欢
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-fake-dummy-abcdefghijklmnopqr  @ tools/test_ai.py:180
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細secret = "sk-fake-dummy-abcdefgh  @ tools/test_ai.py:180
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-abcdefghijklmnopqrstuvwx  @ tools/verify_model_registry.py:510
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細apiKey: 'whatever-value'  @ tools/verify_model_registry.py:511
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-proj-abcdefghijklmnop  @ tools/verify_model_registry.py:512
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-proj-abcdefghijklmnop  @ tools/verify_model_registry.py:562
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-abcdefghijklmnopqrstuvwx  @ tools/verify_model_registry.py:578
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-abcdefghijklmnop  @ tools/verify_model_registry.py:769
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-bundle-verify-must-not-leak-7  @ tools/verify_sidecar_bundle.py:52
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-verify5-plaintext-must-not-be  @ tools/verify_stage5.py:78
+  [PASS] V1x 鈥?娴嬭瘯鐢ㄥ亣瀵嗛挜锛堥潪鍑嵁锛屽凡鐧昏璞佸厤锛夛細sk-mock-test-key-1234567890  @ tools/verify_stage5_stream.py:153
+  [PASS] A030 鈥?ADR-001锛歴ystem/build_sidecar.py 灞炴瀯寤鸿剼鏈紝璞佸厤  @ system/build_sidecar.py
+  [PASS] W100 鈥?ui/src/utils/logger.ts 宸茶 ui/src/ai/assistant/bridge.ts 寮曠敤锛堟帴绾垮埌浣嶏級  @ ui/src/utils/logger.ts
+  [PASS] W100 鈥?ui/src/utils/markdown.ts 宸茶 ui/src/components/AiSidebar.vue 寮曠敤锛堟帴绾垮埌浣嶏級  @ ui/src/utils/markdown.ts
+  [PASS] W100 鈥?ui/src/composables/useCurrentModel.ts 宸茶 ui/src/components/AiSidebar.vue 寮曠敤锛堟帴绾垮埌浣嶏級  @ ui/src/composables/useCurrentModel.ts
+  [PASS] W100 鈥?ui/src/composables/useToast.ts 宸茶 ui/src/components/ToastHost.vue 寮曠敤锛堟帴绾垮埌浣嶏級  @ ui/src/composables/useToast.ts
+  [PASS] W100 鈥?ui/src/composables/useWidgets.ts 宸茶 ui/src/views/DashboardView.vue 寮曠敤锛堟帴绾垮埌浣嶏級  @ ui/src/composables/useWidgets.ts
+  [PASS] B120 鈥?externalBin 浜х墿灏辩华锛歜inaries/service 鈫?service-x86_64-pc-windows-msvc.exe
+  [PASS] B131 鈥?sidecar 鍙戣浜х墿涓嶈惤鍚庝簬婧愮爜锛歝ore/binaries/service-x86_64-pc-windows-msvc.exe
+  [PASS] B132 鈥?寮€鍙戞€佹瀯寤烘畫娓?core/target/release/service.exe 涓嶈浣跨敤锛坮esolve_launcher 宸叉敼涓烘簮鐮佷紭鍏堬級锛涘缓璁垹闄や互鍏嶈瀵?
+  [PASS] B134 鈥?鎵撳寘鑴氭湰浼氭妸 ai/prompt/*.md 鎵撹繘鍗曟枃浠讹紙鍙戣鎬?AI 鍙敤锛?
+
+====================================================================
+鉁?闂ㄧ閫氳繃   FAIL=0  WARN=74  PASS=28
+璺宠繃锛氱紪璇戦棬绂侊紙鏈姞 --build锛?
+====================================================================

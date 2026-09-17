@@ -1,30 +1,10 @@
-/* Personal Workspace · 基础样式（浅色主题为默认；深色经 [data-theme='dark] 切换） */
+/* Personal Workspace · 基础样式（浅色主题为默认；深色经 [data-theme='dark'] 切换）
+ * TECH-01：视觉值的单一来源在 tokens.css（Foundation → Semantic），
+ * 本文件只消费 token，不再定义任何裸色值。旧变量名（--bg/--panel 等）为
+ * tokens.css 提供的 Legacy 桥接，仅存量样式兼容。 */
 
-:root {
-  --bg: #f5f6f8;
-  --panel: #ffffff;
-  --border: #e2e5ea;
-  --text: #24292f;
-  --text-dim: #6b7280;
-  --accent: #3b82f6;
-  --accent-weak: #dbeafe;
-  --danger: #dc2626;
-  --ok: #16a34a;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-[data-theme='dark'] {
-  --bg: #101216;
-  --panel: #1a1d23;
-  --border: #2d323b;
-  --text: #e6e8eb;
-  --text-dim: #9aa1ab;
-  --accent: #60a5fa;
-  --accent-weak: #1e3a5f;
-  --danger: #f87171;
-  --ok: #4ade80;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
+/* 旧 :root / [data-theme='dark'] 裸值块已由 tokens.css 的语义层接管
+ *（含暗色映射），Legacy 桥接会自动跟随当前主题，此处不再重复定义。 */
 
 * {
   box-sizing: border-box;
@@ -38,7 +18,7 @@ body,
 }
 
 body {
-  font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+  font-family: var(--f-font-ui);
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
@@ -74,16 +54,16 @@ select {
   padding: 6px 10px;
 }
 
-/* ---- 应用骨架（04 §2 布局） ---- */
+/* ---- 应用骨架（04 §2 布局；AI 侧栏见 08 §5） ---- */
 
 .app-shell {
   display: grid;
   grid-template-areas:
-    'topbar topbar'
-    'nav main'
-    'status status';
+    'topbar topbar topbar'
+    'nav main ai'
+    'status status status';
   grid-template-rows: 44px 1fr 28px;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   height: 100%;
 }
 
@@ -108,6 +88,7 @@ select {
   grid-area: main;
   overflow-y: auto;
   padding: 16px;
+  position: relative; /* TECH-01：页面过渡的离场页 absolute 浮出需要定位锚 */
 }
 
 .app-status {
@@ -358,9 +339,26 @@ select {
   margin-top: 2px;
 }
 
-.saved-toast {
-  color: var(--ok);
-  font-size: 13px;
+/* `.saved-toast` 已移除（TECH-03-B §二）—— SettingsView 的 saved-toast 已迁移到
+ * 统一 Toast Service（`toast.success()`），类无消费者了。
+ * 注意：`.degraded-banner` 按 PW-INTEGRATION-003 的冻结决议**不并入** Toast，原样保留。 */
+
+/* ---- Toast（TECH-03-B §二）----
+ * canonical 形态：**声明逐字取自接线前 `ModeView` 的 `.mv-toast`
+ * 与 `SoftwareView` 的 `.apps-toast`**（两者本来就完全相同），
+ * 所以这两页改用统一 Toast Service 后视觉零变化。
+ * `data-variant` 只作标记，本轮不参与着色（既有视觉不变）。 */
+.toast-canonical {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  box-shadow: var(--shadow);
+  z-index: 60;
 }
 
 .degraded-banner {
@@ -374,4 +372,459 @@ select {
   color: var(--danger);
   font-size: 12px;
   box-shadow: var(--shadow);
+}
+
+
+/* ---- AI 侧栏（08 §5） ---- */
+
+.ai-sidebar {
+  grid-area: ai;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+  max-width: 720px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+}
+
+.ai-resizer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.ai-resizer:hover,
+.ai-resizer.active {
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+.ai-rail {
+  grid-area: ai;
+  width: 32px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ai-rail:hover {
+  background: var(--accent-weak);
+}
+
+.ai-rail-text {
+  writing-mode: vertical-rl;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+.ai-head {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-head-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-modes {
+  display: flex;
+  flex: 1;
+  gap: 2px;
+}
+
+.ai-modes button {
+  flex: 1;
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: 5px;
+}
+
+.ai-modes button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.ai-icon-btn {
+  padding: 2px 7px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.ai-select {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+
+/* 当前 AI 折叠条（2026-09-13 交互重构：provider/模型收进高级） */
+.ai-advanced {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+.ai-advanced summary {
+  cursor: pointer;
+  color: var(--text-dim);
+  user-select: none;
+}
+
+.ai-model-input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+
+/* TECH-03-B §四：只读「当前模型」（来源 ModelRegistry canonical；纯展示，无交互） */
+.ai-canonical {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.ai-canonical-key {
+  flex: none;
+  color: var(--text-dim);
+}
+
+.ai-canonical-val {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-canonical-badge {
+  flex: none;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.ai-perm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: var(--accent-weak);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.ai-perm.none {
+  background: var(--bg);
+  color: var(--text-dim);
+}
+
+.ai-perm-toggle {
+  color: var(--text-dim);
+}
+
+.ai-perm-panel {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ai-perm-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ai-perm-note {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.ai-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ai-tag {
+  padding: 1px 7px;
+  border-radius: 9px;
+  background: var(--accent-weak);
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.ai-warn {
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.ai-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-empty {
+  margin: auto;
+  text-align: center;
+  color: var(--text-dim);
+}
+
+.ai-empty-title {
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.ai-empty-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 0 12px;
+}
+
+.ai-msg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ai-msg-role {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.ai-msg.user .ai-msg-body {
+  background: var(--accent-weak);
+  border-radius: 8px;
+  padding: 7px 10px;
+}
+
+.ai-msg.assistant .ai-msg-body {
+  padding: 0 2px;
+  line-height: 1.65;
+}
+
+.ai-msg-error {
+  margin-top: 5px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.ai-copy {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.ai-msg:hover .ai-copy {
+  opacity: 1;
+}
+
+.ai-cursor {
+  animation: ai-blink 1s step-end infinite;
+  color: var(--accent);
+}
+
+@keyframes ai-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.ai-foot {
+  border-top: 1px solid var(--border);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-input {
+  width: 100%;
+  resize: none;
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 9px;
+}
+
+.ai-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.ai-foot-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.ai-foot-actions button {
+  padding: 3px 12px;
+  font-size: 12px;
+}
+
+.ai-stop {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* ---- Markdown 渲染（对话流） ---- */
+
+.md-p {
+  margin: 0 0 8px;
+}
+
+.md-p:last-child {
+  margin-bottom: 0;
+}
+
+.md-h {
+  margin: 10px 0 6px;
+  font-size: 14px;
+}
+
+.md-pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 9px 11px;
+  overflow-x: auto;
+  margin: 6px 0;
+}
+
+.md-pre code {
+  font-family: Consolas, 'Cascadia Mono', monospace;
+  font-size: 12px;
+  white-space: pre;
+}
+
+.md-code {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-family: Consolas, 'Cascadia Mono', monospace;
+  font-size: 12px;
+}
+
+.md-ul,
+.md-ol {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+}
+
+.md-quote {
+  margin: 6px 0;
+  padding: 4px 10px;
+  border-left: 3px solid var(--border);
+  color: var(--text-dim);
+}
+
+.md-hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+
+/* ---- 设置页 · AI 凭据（阶段5 §2） ---- */
+
+.settings-section {
+  margin: 6px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.ai-cred-note {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.ai-key-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-key-row input[type='password'] {
+  width: 220px;
+}
+
+.ai-model-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ai-model-chip {
+  padding: 2px 8px;
+  border-radius: 9px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-family: Consolas, 'Cascadia Mono', monospace;
+  font-size: 12px;
+}
+
+.ai-key-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin: 0;
 }

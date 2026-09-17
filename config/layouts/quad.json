@@ -1,12 +1,52 @@
 {
-  "name": "quad",
+  "aiSidebar": {
+    "edge": "right",
+    "enabled": true,
+    "width": 0.2
+  },
   "description": "四宫格",
   "monitor": 0,
+  "name": "quad",
   "slots": [
-    { "app": "VSCode",   "rect": { "x": 0.0, "y": 0.0, "w": 0.5, "h": 0.5 }, "z": 1 },
-    { "app": "Chrome",   "rect": { "x": 0.5, "y": 0.0, "w": 0.5, "h": 0.5 }, "z": 2 },
-    { "app": "PDF",      "rect": { "x": 0.0, "y": 0.5, "w": 0.5, "h": 0.5 }, "z": 3 },
-    { "app": "Terminal", "rect": { "x": 0.5, "y": 0.5, "w": 0.5, "h": 0.5 }, "z": 4 }
-  ],
-  "aiSidebar": { "enabled": true, "edge": "right", "width": 0.2 }
+    {
+      "app": "VSCode",
+      "rect": {
+        "h": 0.5,
+        "w": 0.5,
+        "x": 0.0,
+        "y": 0.0
+      },
+      "z": 1
+    },
+    {
+      "app": "Chrome",
+      "rect": {
+        "h": 0.5,
+        "w": 0.5,
+        "x": 0.5,
+        "y": 0.0
+      },
+      "z": 2
+    },
+    {
+      "app": "PDF",
+      "rect": {
+        "h": 0.5,
+        "w": 0.5,
+        "x": 0.0,
+        "y": 0.5
+      },
+      "z": 3
+    },
+    {
+      "app": "Terminal",
+      "rect": {
+        "h": 0.5,
+        "w": 0.5,
+        "x": 0.5,
+        "y": 0.5
+      },
+      "z": 4
+    }
+  ]
 }

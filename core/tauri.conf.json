@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.baiyu.personalworkspace",
   "build": {
-    "beforeDevCommand": "npm --prefix ../ui run dev",
+    "beforeDevCommand": "python system/build_sidecar.py --if-needed && npm --prefix ui run dev",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npm --prefix ../ui run build && python ../system/build_sidecar.py",
+    "beforeBuildCommand": "npm --prefix ui run build && python system/build_sidecar.py --if-needed",
     "frontendDist": "../ui/dist"
   },
   "app": {
@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:* http://localhost:* ipc: http://ipc.localhost; img-src 'self' data:"
+      "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:* http://localhost:* ipc: http://ipc.localhost; img-src 'self' data:; frame-src http://pwplugin.localhost"
     }
   },
   "bundle": {

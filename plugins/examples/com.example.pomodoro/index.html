@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>番茄钟</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 10px; font-size: 13px; }
+    .clock { font-size: 30px; text-align: center; margin: 8px 0; font-variant-numeric: tabular-nums; }
+    .row { display: flex; gap: 6px; justify-content: center; }
+    button { padding: 4px 10px; cursor: pointer; }
+    .cycles { text-align: center; color: #888; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="clock" id="clock">25:00</div>
+  <div class="row">
+    <button id="toggle">开始</button>
+    <button id="reset">重置</button>
+  </div>
+  <div class="cycles" id="cycles">今日完成 0 个</div>
+  <script src="index.js"></script>
+</body>
+</html>

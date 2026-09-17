@@ -15,8 +15,8 @@
 ## 三句话版本（若你只有 10 秒）
 
 1. **项目**：Personal Workspace —— 本地优先、AI 增强、插件可扩展的个人智能工作空间。
-2. **现状**：阶段0（指令集）✅ 通过；**阶段1 已交付代码（`core/` `ui/` `system/`），经 REVIEW-002/003 判定 ❌ 驳回，正在返工**；阶段2~9 未开工。
-3. **你的下一步**：读 `HANDOFF.md` 与 `docs/reviews/LEDGER.md`（剩余驳回项）→ 修阶段1 → 自跑 `python tools/gate.py --stage 1 --build` → 「申请审核阶段 1」。
+2. **现状**：**阶段0~9 全部 ✅ 通过，项目阶段收官**（阶段9 插件系统与小组件 REVIEW-017：`verify_stage9.py` 29/29 · cargo test 86/86 · 门禁 0F/0W/22P）。后续 = 维护 / 遗留项 / 新需求。
+3. **你的下一步**：读 `HANDOFF.md` 与 `docs/reviews/LEDGER.md` 确认状态 → 接新需求时先跑基线 `python tools/gate.py --stage 9 --build`（应 0F/0W）再动代码，改完自跑门禁 + 对应 verify 脚本。插件开发看 `docs/plugin-dev-guide.md`。
 
 ## 环境提醒
 

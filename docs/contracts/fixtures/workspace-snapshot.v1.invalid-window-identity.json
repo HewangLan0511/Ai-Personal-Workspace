@@ -1,0 +1,43 @@
+{
+  "_fixture": "故意不合规：窗口缺少稳定身份（无 exeName）且 hwnd 写成 0。期望门禁以 required + minimum 拒绝。",
+  "_expectedFailure": "required:exeName @ $.desktop.windows[0]",
+  "schemaVersion": 1,
+  "snapshotId": "ws-20260915-104233-7f3a",
+  "takenAt": 1757904153000,
+  "trigger": "enter_mode",
+  "source": { "appVersion": "0.1.0", "corePid": 14208, "runId": "run-14208-1757904000000" },
+  "monitors": [
+    {
+      "index": 0,
+      "primary": true,
+      "bounds": { "x": 0, "y": 0, "w": 2560, "h": 1440 },
+      "work": { "x": 0, "y": 0, "w": 2560, "h": 1400 }
+    }
+  ],
+  "desktop": {
+    "foregroundHwnd": 0,
+    "windows": [
+      {
+        "hwnd": 0,
+        "pid": 2211,
+        "exePath": null,
+        "appId": null,
+        "title": "main.rs — Visual Studio Code",
+        "className": "Chrome_WidgetWin_1",
+        "monitorIndex": 0,
+        "rectPx": { "x": 0, "y": 0, "w": 1280, "h": 1400 },
+        "rectNorm": { "x": 0.0, "y": 0.0, "w": 0.5, "h": 1.0 },
+        "state": { "visible": true, "minimized": false, "maximized": false },
+        "zIndex": 1
+      }
+    ]
+  },
+  "workspace": {
+    "modeName": "AI开发模式",
+    "modeId": 3,
+    "layoutName": "ai-development.json",
+    "monitor": 0,
+    "launchedAppIds": [],
+    "managed": []
+  }
+}

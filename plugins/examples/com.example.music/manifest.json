@@ -1,0 +1,11 @@
+{
+  "pluginId": "com.example.music",
+  "name": "正在播放",
+  "version": "1.0.0",
+  "author": "pw-examples",
+  "description": "最小示例插件：读取 SMTC 当前曲目并控制播放（system:media + ui:widget）。",
+  "entry": "index.html",
+  "permissions": ["system:media", "ui:widget"],
+  "ui": { "type": "widget", "size": "small", "route": "index.html" },
+  "minAppVersion": "0.1.0"
+}

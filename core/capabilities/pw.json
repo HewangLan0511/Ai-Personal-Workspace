@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "pw-capability",
+  "description": "阶段9：为 main 主窗口与 desktop-widget 小组件窗口授予 core 默认权限与窗口基础操作（拖动 drag-region 需要 start-dragging；小组件自关闭按钮走 command，不经 window API）。",
+  "windows": ["main", "desktop-widget"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-scale-factor"
+  ]
+}

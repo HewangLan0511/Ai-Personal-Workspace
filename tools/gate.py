@@ -47,6 +47,9 @@ SKIP_DIRS = {
     "node_modules", "target", "dist", "build", ".git", ".workbuddy",
     "__pycache__", ".venv", "venv", ".idea", ".vscode-test", "coverage",
     ".next", "out", "tmp", "temp",
+    # 审核临时产物目录：存放 REVIEW 的原始证据与审核者的一次性诊断脚本。
+    # 它不是项目源码 —— 扫它会把"审核者自己的调试脚本"判成"项目违规"（假 PASS/假 FAIL 双向都可能）。
+    ".rev",
 }
 
 SOURCE_EXTS = {".rs", ".ts", ".tsx", ".vue", ".js", ".mjs", ".cjs", ".py", ".toml", ".json", ".sql"}
@@ -145,11 +148,24 @@ STAGES: dict[str, dict] = {
         "name": "软件管理系统",
         # ADR-001：进程启动 = Rust。原 required 里的 system/win/process.py
         # 会逼开发者去建一个"违反 ADR-001"的文件（条例自相矛盾），已移除。
-        "required": ["core/src/app_manager"],
+        # 阶段2 起把"实现落点"写实：只查目录存在查不出"目录空着"。
+        "required": [
+            "core/src/app_manager",
+            "core/src/app_manager/launcher.rs",   # ADR-001 的 Rust 侧落点
+            "core/src/app_manager/repository.rs", # apps 表读写（core 是唯一写入者）
+            "ui/src/views/SoftwareView.vue",      # 05 §5 软件库页面
+        ],
+        "requires_structure": ["ui/src/views"],
     },
     "3": {
         "name": "窗口管理系统",
-        "required": ["config/layouts"],
+        "required": [
+            "config/layouts",
+            # 阶段3 起同样把实现落点写实（只查目录存在查不出"目录空着"）：
+            "core/src/window_manager/layout.rs",  # 归一化→像素纯函数（验收项 10 的载体）
+            "core/src/window_manager/window.rs",  # 查找 / 定位 / 激活
+            "ui/src/views/LayoutView.vue",        # 07 §6 布局 UI
+        ],
         "requires_structure": ["core/src/window_manager"],
         # ADR-001 已定稿为 Rust，不再保留"若为 Python 实现则改 system/win/window.py"的歧义出口。
     },
@@ -180,7 +196,7 @@ STAGES: dict[str, dict] = {
     "9": {
         "name": "插件系统与桌面小组件",
         "required": ["plugins"],
-        "requires_files_glob": {"plugins": ["manifest.json"]},
+        "requires_files_glob": {"plugins": ["examples/*/manifest.json"]},
     },
 }
 
@@ -251,8 +267,10 @@ def check_structure(root: Path, stage: str, r: Report):
         bp = root / base
         if not bp.is_dir():
             continue
+        # 模式支持子目录路径（如 "examples/*/manifest.json"）；统一用 glob 匹配 +
+        # is_file 过滤（修复（阶段9）：原实现只扫 base 直属子文件，嵌套形态永远 FAIL）。
         found = any(
-            any(fp.match(pat) for fp in bp.glob("*") if fp.is_file())
+            any(fp.is_file() for fp in bp.glob(pat))
             for pat in patterns
         )
         if found:
@@ -354,7 +372,16 @@ SECRET_PATTERNS = [
 
 
 def check_secrets(root: Path, r: Report):
-    """安全门禁 V1：明文密钥"""
+    """安全门禁 V1：明文密钥
+
+    **假密钥的豁免**（阶段5 新增）：验收/测试脚本**必须**在源码里写一个
+    看起来像密钥的字面量 —— 否则没法断言"这个串不会出现在 DB 里"。
+    这不是泄露：它是测试输入，不是真凭据。
+
+    豁免方式刻意做得**窄**：只对 `tools/` 下（监制工具区）的文件、
+    且该行/邻近处出现测试语境标记时才放行。不放宽其它目录 ——
+    免得给真正的硬编码留后门。
+    """
     for p in iter_files(root, CODE_EXTS | {".json", ".toml", ".yaml", ".yml", ".env"}):
         path_str = rel(root, p)
         if path_str.endswith(".env.example"):
@@ -362,6 +389,13 @@ def check_secrets(root: Path, r: Report):
         text = read_text(p)
         if text is None:
             continue
+
+        # 测试脚本的假密钥豁免：只对 tools/ 生效，且文件里必须能找到测试语境标记
+        is_test_tool = path_str.startswith("tools/")
+        test_ctx = is_test_tool and bool(
+            re.search(r"(fake|dummy|mock|test[-_]?key|plaintext|假|验收)", text, re.I)
+        )
+
         for i, line in enumerate(text.splitlines(), 1):
             stripped = line.strip()
             if stripped.startswith(("//", "#", "*")):
@@ -375,6 +409,18 @@ def check_secrets(root: Path, r: Report):
                     r"(YOUR_|xxx+|xxx|TODO|PLACEHOLDER|<.*?>|\$\{|process\.env|os\.environ|keyring|credential)",
                     m.group(0), re.I)
                 if placeholder:
+                    continue
+                # 测试语境豁免（仅 tools/）—— 并显式记账，不静默跳过
+                if test_ctx and re.search(
+                    r"(fake|dummy|mock|test|plaintext|SECRET_KEY|mock-key)", line, re.I
+                ):
+                    r.add(
+                        PASS,
+                        "V1x",
+                        f"测试用假密钥（非凭据，已登记豁免）：{m.group(0)[:32]}",
+                        path_str,
+                        i,
+                    )
                     continue
                 r.add(FAIL, "V1", f"{desc}：{m.group(0)[:40]}", path_str, i)
 
@@ -477,9 +523,19 @@ def stripped_comment(line: str) -> bool:
 # 该检查把口径收窄到"能力"而非"库名"。
 PY_PROCESS_LAUNCH_PATTERN = re.compile(
     r"(subprocess\.(Popen|run|call|check_output|check_call)\s*\(|"
-    r"os\.(startfile|system|spawnl|spawnle|spawnv|spawnve|execv|execve)\s*\(|"
+    r"os\.(startfile|system|popen|spawnl|spawnle|spawnv|spawnve|execv|execve|execvp)\s*\(|"
     r"\bwin32process\b|\bwin32gui\b|\bwin32api\b|"
-    r"\bShellExecute\w*\b|\bCreateProcess\w*\b)",
+    r"\bShellExecute\w*\b|\bCreateProcess\w*\b|"
+    # REVIEW-007 B-1 补：上表只覆盖"库名"，漏掉 **ctypes 直调 Win32 的窗口/进程 API**。
+    # 那些 API 与 `subprocess.Popen` 实现的是**同一能力**（窗口控制/进程启动），
+    # 按 ADR-001「按能力禁止混用」的口径必须一并拦下。
+    #
+    # 但**不能按库名匹配**（`user32` / `shell32` / `ctypes.windll` / `HWND` 都不算违规）：
+    # 图标提取（SHGetFileInfoW / ExtractIconEx）、DPI 查询等**正当**用途同样要加载这些库 ——
+    # 按库名匹配会误伤它们，属"检查点**宽**于规则"（M-1「窄于规则」的镜像问题）。
+    # 只匹配**具体能力名**，防护力不降：`ctypes.windll.user32.SetWindowPos` 照样被命中。
+    r"\b(SetWindowPos|EnumWindows|FindWindow\w*|ShowWindow|SetForegroundWindow|"
+    r"GetForegroundWindow|AttachThreadInput|MoveWindow|BringWindowToTop)\s*\()",
     re.I,
 )
 
@@ -577,6 +633,132 @@ DRIFT_PATTERNS = [
 ]
 
 
+def check_sidecar_staleness(root: Path, r: Report):
+    """sidecar 打包产物是否**落后于 Python 源码**（阶段5 新增，L-043）。
+
+    **踩坑记录**（这个检查值不值得留，看这一条就够）：
+    `core/target/release/service.exe` 是 PyInstaller 打的**快照**，
+    改完 `ai/` / `system/` 下的 Python 代码**不会**自动重打。
+    而 core 原版 `resolve_launcher()` 以"主程序同目录有没有 service.exe"判断
+    是否安装态 —— 开发态跑 release 时 `core/target/release/` 里恰好躺着这个
+    同名快照，于是**被误判成安装态**、拉起旧二进制：
+    症状是 `/ai/*` 全部 404，看上去像"路由没写"，实际是"跑的不是这份源码"。
+
+    "跑了但跑的不是这份源码"是**静默失真**，比编译失败危险得多：
+    编译失败会拦住你，这个不会。故列为 FAIL。
+
+    判定口径（与修正后的 `resolve_launcher()` 对齐）：
+    - **开发态工作区**（存在 `system/service.py`）：源码优先，仓库脚本才是真相。
+      此时 `core/target/release/service*` 只是构建残渣，**落后不算 FAIL**
+      （它已不会被使用），但仍记账提醒清理。
+    - **打包产物**（tauri externalBin 指向的 `core/binaries/service-*`）：
+      这是安装包里真正会跑的东西，落后源码 = 发行的是旧代码，**FAIL**。
+    """
+    pkg = root / "system" / "service.py"
+    repo_script_exists = pkg.exists()
+
+    # 运行时会被 sidecar 加载的文件：`.py` 模块 + `ai/prompt/*.md` 模板。
+    # ★ 模板必须算进来（阶段5 补）：它同样是"改了就得重打"的运行期数据，
+    #   漏掉它会让"改了提示词没重打"完全静默。
+    code_dirs = [root / "system", root / "ai"]
+    newest_src = 0.0
+    newest_name = ""
+    for d in code_dirs:
+        if not d.is_dir():
+            continue
+        for p in d.rglob("*"):
+            if not p.is_file() or "__pycache__" in p.parts:
+                continue
+            if p.suffix == ".py" or (p.suffix == ".md" and "prompt" in p.parts):
+                m = p.stat().st_mtime
+                if m > newest_src:
+                    newest_src, newest_name = m, rel_path(root, p)
+
+    # 收集两类产物，口径不同，分开判
+    bundled: list[Path] = []
+    tauri = root / "core" / "tauri.conf.json"
+    if tauri.exists():
+        try:
+            conf = json.loads(read_text(tauri) or "{}")
+            for entry in (conf.get("bundle") or {}).get("externalBin") or []:
+                base = tauri.parent / entry
+                bundled.extend(sorted(base.parent.glob(f"{base.name}-*")))
+        except Exception:
+            pass
+
+    dev_litter: list[Path] = []
+    rel = root / "core" / "target" / "release"
+    if rel.is_dir():
+        dev_litter.extend(p for p in rel.glob("service*") if p.is_file())
+
+    if not bundled and not dev_litter:
+        r.checks_skipped.append("sidecar 时效检查（尚无打包产物）")
+        return
+
+    # --- 1) 发行产物：落后就 FAIL ---
+    if bundled:
+        prod = bundled[0]
+        if newest_src and prod.stat().st_mtime < newest_src:
+            r.add(
+                FAIL,
+                "B130",
+                f"sidecar 发行产物落后于源码（{rel_path(root, prod)} 旧于 {newest_name}）"
+                f"—— 安装包里跑的是旧代码。跑 python system/build_sidecar.py 重打",
+            )
+        else:
+            r.add(PASS, "B131", f"sidecar 发行产物不落后于源码：{rel_path(root, prod)}")
+    else:
+        r.checks_skipped.append("sidecar 发行产物（tauri externalBin 未配置）")
+
+    # --- 2) 开发态构建残渣：开发态下不生效，只提示清理；安装态下按发行产物算 ---
+    if dev_litter:
+        if repo_script_exists:
+            newest_litter = max(dev_litter, key=lambda p: p.stat().st_mtime)
+            r.add(
+                PASS,
+                "B132",
+                f"开发态构建残渣 {rel_path(root, newest_litter)} 不被使用"
+                f"（resolve_launcher 已改为源码优先）；建议删除以免误导",
+            )
+        else:
+            r.add(
+                WARN,
+                "B133",
+                f"无 system/service.py 但存在 {rel_path(root, dev_litter[0])}："
+                f"当前按安装态处理，请确认这是有意的",
+            )
+
+    # --- 3) 打包脚本必须带上提示词数据文件（阶段5：发行态 AI 的命门） ---
+    #
+    # PyInstaller 只自动收集"被 import 的 .py"，**不收集 `.md`**。
+    # 漏掉 `ai/prompt/` 的后果只在**发行态**出现：安装版里该目录为空，
+    # `/ai/chat` 一律报「模板不存在：consult_default」→ 发行版 AI 对话整体不可用，
+    # 而开发态（跑源码）一切正常。症状还像"路由没写"，极易误判方向。
+    # 这类"只在打包后炸"的坑无法靠开发态验收发现，故在此做静态守护。
+    build_script = root / "system" / "build_sidecar.py"
+    if build_script.is_file():
+        text = read_text(build_script) or ""
+        if "--add-data" in text and "ai/prompt" in text:
+            r.add(PASS, "B134", "打包脚本会把 ai/prompt/*.md 打进单文件（发行态 AI 可用）")
+        else:
+            r.add(
+                FAIL,
+                "B134",
+                "system/build_sidecar.py 未把 ai/prompt 数据文件打进单文件 —— "
+                "发行态 /ai/chat 会报「模板不存在」，AI 对话整体不可用。"
+                "需补 `--add-data <仓库>/ai/prompt;ai/prompt`",
+            )
+    else:
+        r.checks_skipped.append("打包脚本数据文件守护（无 system/build_sidecar.py）")
+
+
+def rel_path(root: Path, p: Path) -> str:
+    try:
+        return str(p.relative_to(root)).replace("\\", "/")
+    except ValueError:
+        return str(p)
+
+
 def check_drift(root: Path, r: Report):
     """风险用法扫描"""
     for p in iter_files(root, CODE_EXTS):
@@ -586,7 +768,14 @@ def check_drift(root: Path, r: Report):
         text = read_text(p)
         if text is None:
             continue
+        in_test_mod = False
         for i, line in enumerate(text.splitlines(), 1):
+            # Rust 测试模块里的 `unwrap()` 是**断言语义**（失败就该 panic），不是风险用法。
+            # 不排除的话，测试代码的噪音会淹掉生产代码里的真问题（阶段2 首次跑门禁即 27 条此类 WARN）。
+            if p.suffix == ".rs" and line.strip().startswith("#[cfg(test)]"):
+                in_test_mod = True
+            if in_test_mod:
+                continue
             if stripped_comment(line):
                 continue
             for pat, desc, level in DRIFT_PATTERNS:
@@ -604,18 +793,19 @@ def check_build(root: Path, r: Report):
     """
     cargo_toml = root / "core" / "Cargo.toml"
     if cargo_toml.exists():
-        if shutil.which("cargo") is None:
+        cargo = find_tool("cargo")
+        if cargo is None:
             r.add(WARN, "B102", "未检测到 cargo（Rust 工具链缺失），编译未验证 —— 见遗留项 L-004")
             r.checks_skipped.append("cargo check（Rust 工具链缺失）")
         else:
-            rc, out = run_cmd(["cargo", "check", "--quiet"], root / "core")
+            rc, out = run_cmd([cargo, "check", "--quiet"], root / "core")
             if rc == 0:
                 r.add(PASS, "B100", "cargo check 通过")
             elif rc == 127:
                 r.add(WARN, "B102", "cargo 不可用，编译未验证 —— 见遗留项 L-004")
                 r.checks_skipped.append("cargo check（Rust 工具链缺失）")
             else:
-                r.add(FAIL, "B101", f"cargo check 失败：{out.strip().splitlines()[-1] if out.strip() else '未知错误'}")
+                r.add(FAIL, "B101", f"cargo check 失败：{_last_error_line(out)}")
     else:
         r.checks_skipped.append("cargo check（无 core/Cargo.toml）")
 
@@ -625,20 +815,74 @@ def check_build(root: Path, r: Report):
         scripts = data.get("scripts", {})
         if "typecheck" not in scripts:
             r.add(WARN, "B112", "ui/package.json 缺少 typecheck 脚本（无法自动验证类型）")
-        elif shutil.which("npm") is None:
-            r.add(WARN, "B113", "未检测到 npm，前端 typecheck 未验证")
-            r.checks_skipped.append("前端 typecheck（npm 缺失）")
         else:
-            rc, out = run_cmd(["npm", "run", "typecheck", "--silent"], root / "ui")
-            if rc == 0:
-                r.add(PASS, "B110", "前端 typecheck 通过")
-            elif rc == 127:
-                r.add(WARN, "B113", "npm 不可用，前端 typecheck 未验证")
+            npm = find_tool("npm")
+            if npm is None:
+                r.add(WARN, "B113", "未检测到 npm，前端 typecheck 未验证")
                 r.checks_skipped.append("前端 typecheck（npm 缺失）")
             else:
-                r.add(FAIL, "B111", f"前端 typecheck 失败：{out.strip().splitlines()[-1] if out.strip() else '未知错误'}")
+                rc, out = run_cmd([npm, "run", "typecheck", "--silent"], root / "ui")
+                if rc == 0:
+                    r.add(PASS, "B110", "前端 typecheck 通过")
+                elif rc == 127:
+                    r.add(WARN, "B113", "npm 不可用，前端 typecheck 未验证")
+                    r.checks_skipped.append("前端 typecheck（npm 缺失）")
+                else:
+                    r.add(FAIL, "B111", f"前端 typecheck 失败：{_last_error_line(out)}")
     else:
         r.checks_skipped.append("前端 typecheck（无 ui/package.json）")
+
+
+def _last_error_line(out: str) -> str:
+    """从编译输出中挑一行最能说明问题的（优先 error[...] / error: 行）。
+
+    REVIEW-005：原实现只取**最后一行**，而 cargo 失败时最后一行往往是
+    "error: could not compile ... due to N previous errors"，
+    真正的错误原因被丢掉，报告里看见的是一句废话。
+    """
+    lines = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    for ln in lines:
+        if ln.startswith("error["):
+            return ln
+    for ln in lines:
+        if ln.startswith("error"):
+            return ln
+    return lines[-1] if lines else "未知错误"
+
+
+# tauri.conf.json 的 `bundle.externalBin` 是**编译期**资源：
+# tauri-build 的 build script 会校验文件存在，缺失则 `cargo check` 直接失败。
+# REVIEW-005 实测踩到（`resource path binaries\service-x86_64-...exe doesn't exist`）——
+# 这类失败本可以在**编译前**静态拦住，不必烧掉一次完整编译。
+def check_tauri_resources(root: Path, r: Report):
+    conf = root / "core" / "tauri.conf.json"
+    if not conf.exists():
+        r.checks_skipped.append("Tauri 资源检查（无 core/tauri.conf.json）")
+        return
+    try:
+        data = json.loads(read_text(conf) or "{}")
+    except json.JSONDecodeError as e:
+        r.add(FAIL, "B122", f"tauri.conf.json 不是合法 JSON：{e}")
+        return
+
+    bundle = data.get("bundle") or {}
+    if bundle.get("active") is False:
+        r.add(WARN, "B123", "bundle.active=false —— 阶段1 验收项 7「能出安装包」会不成立")
+
+    for entry in bundle.get("externalBin") or []:
+        # externalBin 的路径相对 **tauri.conf.json 所在目录**（= core/），不是项目根。
+        base = conf.parent / entry
+        parent, stem = base.parent, base.name
+        found = sorted(p.name for p in parent.glob(f"{stem}-*")) if parent.is_dir() else []
+        if found:
+            r.add(PASS, "B120", f"externalBin 产物就绪：{entry} → {found[0]}")
+        else:
+            r.add(
+                FAIL,
+                "B121",
+                f"externalBin 声明的 sidecar 产物缺失：core/{entry}-<target-triple>[.exe]"
+                f"（先跑 python system/build_sidecar.py，否则 tauri-build 会编译失败）",
+            )
 
 
 def run_cmd(cmd: list[str], cwd: Path):
@@ -652,6 +896,33 @@ def run_cmd(cmd: list[str], cwd: Path):
         return 124, "命令超时"
     except Exception as e:  # pragma: no cover
         return 99, str(e)
+
+
+# rustup 默认把工具链装在 `~/.cargo/bin`，但**不保证**该目录进了 PATH：
+# 非交互式 shell / IDE 子进程 / CI 上常常没有。
+# REVIEW-004 的 B102（"工具链缺失"）就是这么被误报成 WARN 的——
+# 机器上明明装了 cargo，门禁却说没有。这与 M-2 是同一类**信号失真**：
+# 「探测失败」被当成了「能力不存在」。
+_HOME_BIN_DIRS = {
+    "cargo": (".cargo/bin",),
+    "rustc": (".cargo/bin",),
+    "rustup": (".cargo/bin",),
+}
+
+
+def find_tool(name: str) -> str | None:
+    """先查 PATH，再查 standard install 位置。返回可直接执行的全路径。"""
+    found = shutil.which(name)
+    if found:
+        return found
+    home = Path.home()
+    for rel in _HOME_BIN_DIRS.get(name, ()):
+        base = home / rel / name
+        for ext in (".exe", ".cmd", ".bat", ""):
+            cand = Path(str(base) + ext)
+            if cand.is_file():
+                return str(cand)
+    return None
 
 
 # ---------------------------------------------------------------- 输出
@@ -723,6 +994,8 @@ def main():
     check_adr001(root, r)
     check_orphans(root, r)
     check_drift(root, r)
+    check_tauri_resources(root, r)
+    check_sidecar_staleness(root, r)
     if args.build:
         check_build(root, r)
     else:

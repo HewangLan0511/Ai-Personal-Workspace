@@ -6,8 +6,9 @@
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use crate::db::Db;
+use crate::app_manager::{AppsRepo, RunningApps};
 use crate::db::ConfigService;
+use crate::db::Db;
 use crate::event_bus::EventBus;
 
 /// Python sidecar 的动态端口（启动后由 sidecar 上报，写入 config 表供各端读取）。
@@ -21,6 +22,22 @@ pub struct AppState {
     pub config: ConfigService,
     pub bus: EventBus,
     pub sidecar: SidecarState,
+    /// 软件注册表读写（阶段2）。core 是 `apps` 表的**唯一写入者**（02 §2.4）。
+    pub apps: AppsRepo,
+    /// 当前运行的软件（阶段2 §3：按 pid 轮询存活）。
+    pub running: RunningApps,
+    /// 数据目录。图标缓存等派生资源置于其下（05 §技术要点）。
+    pub data_dir: PathBuf,
+    /// 当前模式应用会话（阶段4）：供**取消**与**进度查询**使用。
+    /// 同一时刻只允许一个应用流程（06 §2 的"可取消"需要一个明确的取消目标）。
+    pub mode_session: Mutex<Option<std::sync::Arc<crate::scheduler::ModeSession>>>,
+    /// 模式运行记录（阶段4 §4）：当前模式、**模式拉起的软件**、切换快照。
+    pub modes_run: crate::scheduler::RunRecord,
+    /// 设备中心状态（阶段8 §B）：指标环形缓冲 + CPU 采样基线 + 进程扫描器。
+    pub device: crate::device::DeviceState,
+    /// Tauri AppHandle（阶段9）：小组件窗口的创建/查询需要它。
+    /// initialize 时为 None（AppState 先于 Tauri Builder 构建），setup 里注入。
+    pub app: Mutex<Option<tauri::AppHandle>>,
 }
 
 impl AppState {
@@ -33,6 +50,7 @@ impl AppState {
         db.initialize()?; // 首次启动：migration + 默认配置种子（契约 3.1 / 3.5）
         let bus = EventBus::new(256);
         let config = ConfigService::new(db.clone(), bus.clone());
+        let apps = AppsRepo::new(db.clone());
 
         let state = Self {
             db,
@@ -42,13 +60,25 @@ impl AppState {
                 port: Mutex::new(None),
                 healthy: Mutex::new(false),
             },
+            apps,
+            running: RunningApps::new(),
+            data_dir,
+            mode_session: Mutex::new(None),
+            modes_run: crate::scheduler::RunRecord::default(),
+            device: crate::device::DeviceState::new(),
+            app: Mutex::new(None),
         };
         Ok(state)
     }
 
+    /// 图标缓存目录（05 §技术要点：`<data_dir>/icons/<hash>.png`）。
+    pub fn icons_dir(&self) -> PathBuf {
+        self.data_dir.join("icons")
+    }
+
     /// 数据目录：`%APPDATA%/PersonalWorkspace`（不硬编码用户路径）。
     /// 优先级：环境变量 `PW_DATA_DIR` > `dirs::data_dir` > 当前目录下 `pw-data`。
-    fn resolve_data_dir() -> anyhow::Result<PathBuf> {
+    pub fn resolve_data_dir() -> anyhow::Result<PathBuf> {
         if let Some(dir) = std::env::var_os("PW_DATA_DIR") {
             return Ok(PathBuf::from(dir));
         }

@@ -1,0 +1,369 @@
+[
+ {
+  "id": "S1_cinema",
+  "detail": {
+   "layoutCalls": 1,
+   "trace": 6,
+   "gate": "resolved"
+  },
+  "page": {
+   "wallMs": 872,
+   "longtasks": [],
+   "mutAdded": 7,
+   "mutRemoved": 3,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 52
+  },
+  "cdp": {
+   "LayoutCount": 4,
+   "RecalcStyleCount": 17,
+   "TaskDuration": 0.07,
+   "ScriptDuration": 0.0,
+   "Nodes": 280
+  },
+  "error": null
+ },
+ {
+  "id": "S2_page_transition_x4",
+  "detail": {
+   "navs": [
+    "/dashboard",
+    "/software",
+    "/life",
+    "/plugins"
+   ],
+   "pending": false
+  },
+  "page": {
+   "wallMs": 2057,
+   "longtasks": [],
+   "mutAdded": 16,
+   "mutRemoved": 8,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 123
+  },
+  "cdp": {
+   "LayoutCount": 10,
+   "RecalcStyleCount": 49,
+   "TaskDuration": 0.09,
+   "ScriptDuration": 0.0,
+   "Nodes": 288
+  },
+  "error": null
+ },
+ {
+  "id": "S3a_drag_ai_sidebar",
+  "detail": {
+   "width_before": 360,
+   "width_after": 480,
+   "drag_steps": 12
+  },
+  "page": {
+   "wallMs": 1178,
+   "longtasks": [],
+   "mutAdded": 0,
+   "mutRemoved": 0,
+   "geoReads": 4,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 71
+  },
+  "cdp": {
+   "LayoutCount": 12,
+   "RecalcStyleCount": 26,
+   "TaskDuration": 0.03,
+   "ScriptDuration": 0.0,
+   "Nodes": 0
+  },
+  "error": null
+ },
+ {
+  "id": "S3b_reorder_x10",
+  "detail": {
+   "reorders": 10
+  },
+  "page": {
+   "wallMs": 946,
+   "longtasks": [],
+   "mutAdded": 10,
+   "mutRemoved": 10,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 56
+  },
+  "cdp": {
+   "LayoutCount": 10,
+   "RecalcStyleCount": 20,
+   "TaskDuration": 0.03,
+   "ScriptDuration": 0.0,
+   "Nodes": 10
+  },
+  "error": null
+ },
+ {
+  "id": "S4_settings_theme_x6",
+  "detail": {
+   "toggles": 6,
+   "themes": [
+    "dark",
+    "light",
+    "dark",
+    "light",
+    "dark",
+    "light"
+   ]
+  },
+  "page": {
+   "wallMs": 1960,
+   "longtasks": [],
+   "mutAdded": 4,
+   "mutRemoved": 4,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 118
+  },
+  "cdp": {
+   "LayoutCount": 17,
+   "RecalcStyleCount": 72,
+   "TaskDuration": 0.14,
+   "ScriptDuration": 0.01,
+   "Nodes": 275
+  },
+  "error": null
+ },
+ {
+  "id": "S5_plugins_empty_state",
+  "detail": {
+   "installed_rows": 0,
+   "note": "无后端，插件列表为空态"
+  },
+  "page": {
+   "wallMs": 1109,
+   "longtasks": [],
+   "mutAdded": 4,
+   "mutRemoved": 2,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 67
+  },
+  "cdp": {
+   "LayoutCount": 4,
+   "RecalcStyleCount": 20,
+   "TaskDuration": 0.03,
+   "ScriptDuration": 0.0,
+   "Nodes": 75
+  },
+  "error": null
+ },
+ {
+  "id": "S6a_resize_storm",
+  "detail": {
+   "resizes": 6
+  },
+  "page": {
+   "wallMs": 1648,
+   "longtasks": [],
+   "mutAdded": 14,
+   "mutRemoved": 5,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 99
+  },
+  "cdp": {
+   "LayoutCount": 14,
+   "RecalcStyleCount": 24,
+   "TaskDuration": 0.05,
+   "ScriptDuration": 0.0,
+   "Nodes": 281
+  },
+  "error": null
+ },
+ {
+  "id": "S6b_cinema_interrupt",
+  "detail": {
+   "layoutCalls": 1,
+   "convergeMs": 0,
+   "phase": "stable"
+  },
+  "page": {
+   "wallMs": 326,
+   "longtasks": [],
+   "mutAdded": 0,
+   "mutRemoved": 0,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 19
+  },
+  "cdp": {
+   "LayoutCount": 0,
+   "RecalcStyleCount": 0,
+   "TaskDuration": 0.0,
+   "ScriptDuration": 0.0,
+   "Nodes": 0
+  },
+  "error": null
+ },
+ {
+  "id": "S7_rapid_ops",
+  "detail": {
+   "filter_toggles": 20,
+   "navs": 6
+  },
+  "page": {
+   "wallMs": 2546,
+   "longtasks": [],
+   "mutAdded": 1087,
+   "mutRemoved": 1057,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 153
+  },
+  "cdp": {
+   "LayoutCount": 33,
+   "RecalcStyleCount": 70,
+   "TaskDuration": 0.13,
+   "ScriptDuration": 0.01,
+   "Nodes": 3914
+  },
+  "error": null
+ },
+ {
+  "id": "S8_toast",
+  "detail": {
+   "toast": null
+  },
+  "page": {
+   "wallMs": 859,
+   "longtasks": [],
+   "mutAdded": 6,
+   "mutRemoved": 8,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 51
+  },
+  "cdp": {
+   "LayoutCount": 3,
+   "RecalcStyleCount": 18,
+   "TaskDuration": 0.03,
+   "ScriptDuration": 0.0,
+   "Nodes": 85
+  },
+  "error": null
+ },
+ {
+  "id": "S9_ai_sidebar_toggle",
+  "detail": {
+   "cycles": 3
+  },
+  "page": {
+   "wallMs": 2206,
+   "longtasks": [],
+   "mutAdded": 6,
+   "mutRemoved": 6,
+   "geoReads": 0,
+   "rafGaps": 0,
+   "rafMaxGap": 0,
+   "rafFrames": 133
+  },
+  "cdp": {
+   "LayoutCount": 9,
+   "RecalcStyleCount": 9,
+   "TaskDuration": 0.04,
+   "ScriptDuration": 0.0,
+   "Nodes": 222
+  },
+  "error": null
+ },
+ {
+  "id": "S10_guard_compare",
+  "per_level": {
+   "standard": {
+    "id": "S10_standard",
+    "detail": {
+     "level": "standard",
+     "toggles": 10
+    },
+    "page": {
+     "wallMs": 678,
+     "longtasks": [],
+     "mutAdded": 520,
+     "mutRemoved": 520,
+     "geoReads": 0,
+     "rafGaps": 0,
+     "rafMaxGap": 0,
+     "rafFrames": 41
+    },
+    "cdp": {
+     "LayoutCount": 10,
+     "RecalcStyleCount": 19,
+     "TaskDuration": 0.04,
+     "ScriptDuration": 0.0,
+     "Nodes": 1520
+    },
+    "error": null
+   },
+   "reduced": {
+    "id": "S10_reduced",
+    "detail": {
+     "level": "reduced",
+     "toggles": 10
+    },
+    "page": {
+     "wallMs": 683,
+     "longtasks": [],
+     "mutAdded": 520,
+     "mutRemoved": 520,
+     "geoReads": 0,
+     "rafGaps": 0,
+     "rafMaxGap": 0,
+     "rafFrames": 41
+    },
+    "cdp": {
+     "LayoutCount": 10,
+     "RecalcStyleCount": 21,
+     "TaskDuration": 0.04,
+     "ScriptDuration": 0.0,
+     "Nodes": 1822
+    },
+    "error": null
+   },
+   "off": {
+    "id": "S10_off",
+    "detail": {
+     "level": "off",
+     "toggles": 10
+    },
+    "page": {
+     "wallMs": 689,
+     "longtasks": [],
+     "mutAdded": 520,
+     "mutRemoved": 520,
+     "geoReads": 0,
+     "rafGaps": 0,
+     "rafMaxGap": 0,
+     "rafFrames": 42
+    },
+    "cdp": {
+     "LayoutCount": 10,
+     "RecalcStyleCount": 20,
+     "TaskDuration": 0.04,
+     "ScriptDuration": 0.0,
+     "Nodes": 1822
+    },
+    "error": null
+   }
+  },
+  "error": null
+ }
+]

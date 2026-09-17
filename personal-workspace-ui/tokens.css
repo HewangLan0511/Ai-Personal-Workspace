@@ -1,0 +1,359 @@
+/* ============================================================================
+   Personal Workspace — Design Tokens v1.0
+   ----------------------------------------------------------------------------
+   唯一事实来源。所有页面、组件只允许消费 Token，禁止硬编码色值 / 尺寸。
+   默认主题：浅色（Light）。暗色主题通过 [data-theme="dark"] 覆盖映射。
+
+   命名约定：
+     --bg-*        窗口层 / 画布层底色（永远不作为内容卡片底色）
+     --surface-*   承载内容的层级（1 = 卡片，2 = 卡片内分区，3 = 控件底）
+     --border-*    描边，按强度分三级
+     --text-*      文本，按信息层级分四级
+     --brand-*     主色梯度 50→700
+     --space-*     间距（4 的倍数）
+     --r-*         圆角
+     --shadow-*    阴影（极其克制，共 4 级）
+     --ease-* / --dur-*  动效
+   ========================================================================= */
+
+:root {
+  /* ---------------------------------------------------------------- Color -- */
+
+  /* 窗口层：桌面感的底。绝不用纯白，也绝不用纯黑 */
+  --bg-app:          #EBEDF1;
+  --bg-app-hover:    #E4E7EC;
+  --bg-canvas:       #F4F5F8;   /* 工作台面板内底色，承载白色卡片 */
+  --bg-sunken:       #E9EBF0;   /* 凹陷区：窗口编排画布 / 进度槽 */
+
+  /* 内容层 */
+  --surface-1:       #FFFFFF;
+  --surface-2:       #F8F9FB;
+  --surface-3:       #F1F3F6;
+  --surface-hover:   #F5F6F9;
+  --surface-inset:   #EDEFF3;
+
+  /* 浮层：Modal / Drawer / Popover / Toast（唯一允许用大阴影的地方） */
+  --surface-overlay: #FFFFFF;
+  --scrim:           rgba(20, 23, 28, 0.32);
+
+  /* 描边 */
+  --border-subtle:   #EDEFF3;
+  --border:          #E1E4EA;
+  --border-strong:   #CDD2DC;
+  --border-focus:    #6E8BE6;
+
+  /* 主色：低饱和蓝，克制到可以大面积使用也不刺眼 */
+  --brand-50:        #EFF3FD;
+  --brand-100:       #DFE7FB;
+  --brand-200:       #C4D2F7;
+  --brand-300:       #9DB3F0;
+  --brand-400:       #6F8CE6;
+  --brand-500:       #4A6BDC;   /* Primary */
+  --brand-600:       #3A57C4;   /* Primary Hover */
+  --brand-700:       #2E45A0;   /* Primary Active / 文字用深色 */
+  --brand-contrast:  #FFFFFF;
+
+  /* 语义状态：仅必要时出现，饱和度压到最低 */
+  --success:         #2E9C6E;
+  --success-soft:    #E7F5EF;
+  --success-text:    #1F7351;
+  --warning:         #C08A1E;
+  --warning-soft:    #FAF2E0;
+  --warning-text:    #8A6116;
+  --danger:          #CE4A3F;
+  --danger-soft:     #FBECEA;
+  --danger-text:     #A03329;
+  --info:            var(--brand-500);
+  --info-soft:       var(--brand-50);
+
+  /* 文本：四级信息层级 */
+  --text-1:          #14171C;   /* 标题 / 主要信息      17.4:1 */
+  --text-2:          #565E6E;   /* 正文 / 次要信息       7.2:1 */
+  --text-3:          #737B8A;   /* 说明 / 元数据         4.9:1 */
+  --text-4:          #9BA2AF;   /* 占位 / 禁用（不承载信息） */
+  --text-inverse:    #FFFFFF;
+  --text-on-brand:   #FFFFFF;
+
+  /* 应用图标底色（没有真实图标时使用的兜底层，成对出现） */
+  --app-tint-1:      #E8EEFB; --app-ink-1: #3A57C4;
+  --app-tint-2:      #E7F5EF; --app-ink-2: #1F7351;
+  --app-tint-3:      #FAF2E0; --app-ink-3: #8A6116;
+  --app-tint-4:      #F3EDFB; --app-ink-4: #5B3FA8;
+  --app-tint-5:      #FBECEA; --app-ink-5: #A03329;
+  --app-tint-6:      #E9F3F7; --app-ink-6: #1F6279;
+
+  /* ------------------------------------------------------------ Typography -- */
+
+  /* 桌面端刻意使用系统 UI 字体：原生感 > 个性。Display 走 Segoe UI Variable
+     Display cut（字腔更紧），正文走 Text cut，数字统一 tabular。 */
+  --font-ui:      "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+                  "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei UI",
+                  "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI Variable Text", "Segoe UI",
+                  system-ui, "PingFang SC", "Microsoft YaHei UI", sans-serif;
+  --font-mono:    "Cascadia Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semi:    600;
+
+  /* Display —— 仅用于首页问候语 / 空状态主标题 */
+  --fs-display:      26px;  --lh-display: 34px;  --ls-display: -0.022em;
+  /* Page Title —— 每个页面只有一个 */
+  --fs-page:         20px;  --lh-page:    28px;  --ls-page:    -0.014em;
+  /* Section Title */
+  --fs-section:      15px;  --lh-section: 22px;  --ls-section: -0.006em;
+  /* Card Title */
+  --fs-card:         14px;  --lh-card:    20px;  --ls-card:    -0.003em;
+  /* Body —— 桌面端基准 14px */
+  --fs-body:         14px;  --lh-body:    22px;
+  --fs-body-sm:      13px;  --lh-body-sm: 20px;
+  /* Caption —— 元数据 / 辅助说明 */
+  --fs-caption:      12px;  --lh-caption: 18px;
+  /* Label —— 字段名 / 分组小标题，全大写拉丁 */
+  --fs-label:        11px;  --lh-label:   16px;  --ls-label: 0.06em;
+  /* 数字展示（时长、百分比、时钟） */
+  --fs-num-lg:       22px;  --lh-num-lg:  28px;  --ls-num-lg: -0.01em;
+
+  /* ---------------------------------------------------------------- Space -- */
+
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* 语义间距（页面级节奏，不要随手用 --space-* 拼） */
+  --gap-inline:   8px;   /* 行内图标与文字 */
+  --gap-stack:    12px;  /* 卡片内部堆叠 */
+  --gap-card:     20px;  /* 卡片与卡片 */
+  --gap-section:  32px;  /* 模块与模块 */
+  --pad-card:     20px;  /* 卡片内边距（小卡） */
+  --pad-card-lg:  24px;  /* 卡片内边距（大卡） */
+  --pad-page-x:   32px;  /* 内容区左右留白 */
+  --pad-page-t:   28px;  /* 内容区顶部留白 */
+
+  /* --------------------------------------------------------------- Radius -- */
+
+  --r-xs:   4px;   /* 徽章 / 极小元素 */
+  --r-sm:   6px;   /* 小控件：勾选框、tag、图标按钮 */
+  --r-md:   8px;   /* 控件：按钮、输入框、列表项 */
+  --r-lg:   12px;  /* 卡片（小） */
+  --r-xl:   16px;  /* 卡片（大） */
+  --r-2xl:  20px;  /* 大型容器：工作台面板、模态 */
+  --r-full: 999px;
+
+  /* --------------------------------------------------------------- Shadow -- */
+
+  --shadow-xs: 0 1px 2px rgba(18, 22, 33, 0.04);
+  --shadow-sm: 0 1px 2px rgba(18, 22, 33, 0.05), 0 1px 1px rgba(18, 22, 33, 0.03);
+  --shadow-md: 0 4px 12px -2px rgba(18, 22, 33, 0.07), 0 2px 4px -2px rgba(18, 22, 33, 0.05);
+  --shadow-lg: 0 16px 40px -8px rgba(18, 22, 33, 0.14), 0 4px 12px -4px rgba(18, 22, 33, 0.06);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  /* --------------------------------------------------------------- Motion -- */
+
+  --ease-out:   cubic-bezier(0.22, 0.61, 0.36, 1);   /* 进入 / 展开 */
+  --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);        /* 位移 / 布局 */
+  --dur-micro:  120ms;   /* hover、按下、颜色变化 */
+  --dur-fast:   160ms;   /* 卡片 hover、开关 */
+  --dur-base:   220ms;   /* 页面切换、抽屉、AI 面板 */
+  --dur-slow:   300ms;   /* 侧边栏折叠、模态 */
+  /* 禁止：回弹 / 弹性缓动、粒子、大幅飞入、缩放超过 1.02 */
+
+  /* ------------------------------------------------------------- Geometry -- */
+
+  --titlebar-h:      44px;
+  --sidebar-w:       236px;
+  --sidebar-w-mini:  64px;
+  --topbar-h:        56px;
+  --appbar-h:        46px;   /* 工作空间内的软件栏 */
+  --ai-panel-w:      360px;  /* 允许 320 ~ 380 */
+  --content-max:     1120px; /* 阅读型页面正文最大宽度 */
+  --panel-inset:     10px;   /* 工作台面板相对窗口的内缩，产生"桌面上的面板"感 */
+
+  --z-drawer: 60;
+  --z-modal:  70;
+  --z-toast:  80;
+  --z-tip:    90;
+}
+
+/* ============================== Dark Theme ============================== */
+[data-theme="dark"] {
+  --bg-app:          #0D0F12;
+  --bg-app-hover:    #171A1F;
+  --bg-canvas:       #14171B;
+  --bg-sunken:       #0F1216;
+
+  --surface-1:       #1A1E24;
+  --surface-2:       #1F242B;
+  --surface-3:       #232830;
+  --surface-hover:   #212630;
+  --surface-inset:   #131619;
+
+  --surface-overlay: #1C2128;
+  --scrim:           rgba(0, 0, 0, 0.55);
+
+  --border-subtle:   #23282F;
+  --border:          #2C323A;
+  --border-strong:   #3B424C;
+
+  --brand-50:        #1B2340;
+  --brand-100:       #223055;
+  --brand-200:       #2E3F6E;
+  --brand-300:       #4E68AE;
+  --brand-400:       #6F8CE6;
+  --brand-500:       #7E99EC;
+  --brand-600:       #93AAEF;
+  --brand-700:       #B3C3F5;
+  --brand-contrast:  #10131A;
+
+  --success:         #4FB98C;  --success-soft: #16302A;  --success-text: #7FD1AC;
+  --warning:         #D3A748;  --warning-soft: #302816;  --warning-text: #E2C283;
+  --danger:          #E0705F;  --danger-soft:  #33211F;  --danger-text:  #EE9C8F;
+
+  --text-1:          #E9EBEF;
+  --text-2:          #A7AEB9;
+  --text-3:          #868E9B;
+  --text-4:          #6A717C;
+  --text-inverse:    #14171C;
+  --text-on-brand:   #10131A;
+
+  --app-tint-1: #22305A; --app-ink-1: #A8BCF5;
+  --app-tint-2: #16302A; --app-ink-2: #7FD1AC;
+  --app-tint-3: #302816; --app-ink-3: #E2C283;
+  --app-tint-4: #2A2140; --app-ink-4: #C0ACEF;
+  --app-tint-5: #33211F; --app-ink-5: #EE9C8F;
+  --app-tint-6: #16303A; --app-ink-6: #8FC9DE;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 1px 1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, 0.65), 0 4px 12px -4px rgba(0, 0, 0, 0.4);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ==========================================================================
+   MOTION TOKENS（v0.2 · 已锁定决策 D1/D2/D3）
+   ★ 两个独立维度，禁止相乘：
+     · --mt-dur-*                        Duration  —— 只决定「动多久」
+     · --mt-intensity + --mt-dist/scale/fade   Intensity —— 只决定「动多少」
+     Skin 只改 --mt-intensity 就能整体换风格，不会连带把节奏改乱（D2）。
+   ★ 降级是「变量覆盖」，不是把所有时长 !important 归零 —— 后者会把 loading 循环、
+     进度条这类功能性动画一起打死（D2）。
+   ========================================================================== */
+:root{
+  /* ---- 维度一：Duration 节奏（基线取自 UI-01 规格） ---- */
+  --mt-dur-press:        80ms;   /* 按下 60–90 */
+  --mt-dur-hover:       140ms;   /* hover 120–160 */
+  --mt-dur-drag:        100ms;   /* grab 80–120 */
+  --mt-dur-reorder:     160ms;   /* 邻居让位 120–180 */
+  --mt-dur-drop:        160ms;   /* drop snap 120–180 */
+  --mt-dur-highlight:   460ms;   /* 落位成功高亮 */
+  --mt-dur-scene-out:    80ms;   /* 页面离场 */
+  --mt-dur-scene-in:    140ms;   /* 页面入场（合计 160–220） */
+  --mt-dur-window:      200ms;   /* Cinema 窗口落位 160–220 */
+  --mt-dur-toast-in:    180ms;   /* Toast 进 160–200 */
+  --mt-dur-toast-out:   120ms;   /* Toast 出 100–140 */
+  --mt-dur-ctx:         100ms;   /* 右键菜单 80–120 */
+  --mt-dur-drawer:      240ms;   /* 抽屉 220–280 */
+  --mt-dur-modal-bg:    140ms;   /* 遮罩 120–160 */
+  --mt-dur-modal:       180ms;   /* 弹窗 160–200 */
+  --mt-dur-ai:          260ms;   /* AI 展开 240–300 */
+  --mt-dur-ai-out:      200ms;   /* AI 收起 180–240 */
+  --mt-dur-nav:         260ms;   /* 主侧栏展开 240–300 */
+  --mt-dur-nav-out:     200ms;   /* 主侧栏收起 180–240 */
+  /* 拖到最小值后"停顿多久才折叠"。交互节奏而非装饰动画，
+     故不随 reduced / off 降级 —— 降级后误触折叠更难受。 */
+  --mt-dur-dwell:       320ms;
+  --mt-dur-perm:        140ms;   /* 权限条 100–160 */
+  --mt-dur-entrance:    200ms;   /* 首入 Hero 180–220 */
+  --mt-dur-entrance-ws: 220ms;   /* 首入 Workspace 180–240 */
+  --mt-dur-entrance-2:  180ms;   /* 首入 Secondary 160–200 */
+  --mt-stagger:          24ms;   /* 组内错峰 20–30 */
+  --mt-dur-ambient:     600ms;   /* 仅 loading 循环 */
+
+  /* 兼容旧名：历史组件仍在用 --dur-* / --ease-*，统一映射，避免两套事实来源 */
+  --dur-micro: var(--mt-dur-hover);
+  --dur-fast:  var(--mt-dur-hover);
+  --dur-base:  var(--mt-dur-modal);
+  --dur-slow:  var(--mt-dur-drawer);
+  --mt-ease-out:      var(--ease-out);
+  --mt-ease-in:       cubic-bezier(.4, 0, 1, 1);
+  --mt-ease-inout:    var(--ease-inout);
+  --mt-ease-emphasis: cubic-bezier(.05, .7, .1, 1);
+
+  /* ---- 维度二：Intensity 幅度 ---- */
+  --mt-intensity: 1;   /* 默认 1；Skin 改它即可整体换风格 */
+  --mt-drift:     1;   /* 位移总开关 */
+  --mt-scale-on:  1;   /* 缩放总开关 */
+  --mt-blur:      0;   /* 毛玻璃伴随，默认关 */
+
+  --mt-dist-hover:  calc(1px  * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-page:   calc(4px  * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-float:  calc(2px  * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-toast:  calc(6px  * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-modal:  calc(4px  * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-panel:  calc(24px * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-window: calc(8px  * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-item:   calc(8px  * var(--mt-intensity) * var(--mt-drift));
+
+  --mt-scale-press:  calc(1 - .015 * var(--mt-intensity) * var(--mt-scale-on)); /* .985 */
+  --mt-scale-float:  calc(1 - .020 * var(--mt-intensity) * var(--mt-scale-on)); /* .98  */
+  --mt-scale-window: calc(1 - .010 * var(--mt-intensity) * var(--mt-scale-on)); /* .99  */
+
+  --mt-fade-from:   clamp(0, calc(1 - .95 * var(--mt-intensity)), 1);
+  --mt-fade-window: clamp(0, calc(1 - .30 * var(--mt-intensity)), 1); /* .7 */
+  --mt-fade-dim:    clamp(0, calc(1 - .60 * var(--mt-intensity)), 1); /* .4 */
+
+  /* Cinema 交互门限（D3）：0–240ms 主体，240ms 后即可交互，240–560ms 后台稳定 */
+  --mt-cinema-interactive-gate: 240ms;
+}
+
+/* ---- 降级三档：变量覆盖，不动语义 ----
+   Reduced：去掉大位移 / 明显缩放 / 装饰循环；保留 Focus / State / Progress / Success / Error
+   Off    ：关闭非必要动画，但**不关闭交互状态本身**（hover / press / 焦点 / 选中都还在） */
+[data-motion="reduced"]{
+  --mt-intensity: .35; --mt-drift: 0; --mt-scale-on: 0; --mt-stagger: 0ms;
+  --mt-dur-press: 40ms;  --mt-dur-hover: 80ms;  --mt-dur-drag: 60ms;  --mt-dur-reorder: 80ms;
+  --mt-dur-drop: 80ms;   --mt-dur-highlight: 240ms;
+  --mt-dur-scene-out: 40ms; --mt-dur-scene-in: 80ms; --mt-dur-window: 100ms;
+  --mt-dur-toast-in: 100ms; --mt-dur-toast-out: 80ms; --mt-dur-ctx: 60ms;
+  --mt-dur-drawer: 120ms;   --mt-dur-modal-bg: 80ms;  --mt-dur-modal: 100ms;
+  --mt-dur-ai: 140ms; --mt-dur-ai-out: 120ms; --mt-dur-perm: 80ms;
+  --mt-dur-nav: 140ms; --mt-dur-nav-out: 120ms;
+  --mt-dur-entrance: 100ms; --mt-dur-entrance-ws: 100ms; --mt-dur-entrance-2: 80ms;
+}
+[data-motion="off"]{
+  --mt-intensity: 0; --mt-drift: 0; --mt-scale-on: 0; --mt-stagger: 0ms;
+  --mt-dur-press: 0ms; --mt-dur-hover: 0ms; --mt-dur-drag: 0ms; --mt-dur-reorder: 0ms;
+  --mt-dur-drop: 0ms;  --mt-dur-highlight: 0ms;
+  --mt-dur-scene-out: 0ms; --mt-dur-scene-in: 0ms; --mt-dur-window: 0ms;
+  --mt-dur-toast-in: 0ms;  --mt-dur-toast-out: 0ms; --mt-dur-ctx: 0ms;
+  --mt-dur-drawer: 0ms;    --mt-dur-modal-bg: 0ms;  --mt-dur-modal: 0ms;
+  --mt-dur-ai: 0ms; --mt-dur-ai-out: 0ms; --mt-dur-perm: 0ms;
+  --mt-dur-nav: 0ms; --mt-dur-nav-out: 0ms;
+  --mt-dur-entrance: 0ms; --mt-dur-entrance-ws: 0ms; --mt-dur-entrance-2: 0ms;
+}
+/* loading 循环是功能性动画：前两档保留，reduced / off 直接静止 */
+[data-motion="reduced"] .skel,
+[data-motion="reduced"] .spinner,
+[data-motion="off"] .skel,
+[data-motion="off"] .spinner{ animation: none !important; }
+
+/* 系统偏好默认跟随；只有用户在本应用内显式选了「完整」才覆盖系统 */
+@media (prefers-reduced-motion: reduce){
+  :root:not([data-motion="standard"]){
+    --mt-intensity: .35; --mt-drift: 0; --mt-scale-on: 0; --mt-stagger: 0ms;
+    --mt-dur-scene-out: 40ms; --mt-dur-scene-in: 80ms; --mt-dur-window: 100ms;
+    --mt-dur-drawer: 120ms;   --mt-dur-modal: 100ms;   --mt-dur-ai: 140ms;
+    --mt-dur-entrance: 100ms; --mt-dur-entrance-ws: 100ms; --mt-dur-entrance-2: 80ms;
+  }
+  :root:not([data-motion="standard"]) .skel,
+  :root:not([data-motion="standard"]) .spinner{ animation: none !important; }
+}

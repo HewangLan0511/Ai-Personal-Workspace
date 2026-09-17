@@ -9,6 +9,14 @@
  * 但红线 V7 禁止 UI 直接读 SQLite，UI 无从得知该端口；写死固定端口又与
  * 04 §5「不要用固定端口」冲突。Tauri command 通道绕开了端口本身 ——
  * 与 `/api/v1` 等价（契约 3.4 允许双通道），故以此为准。
+ *
+ * ⚠️ HTTP 通道的适用范围（实测边界，勿误解）：
+ * core 的内部 HTTP API **不发送 CORS 头**（有意为之 —— 否则用户浏览器里
+ * 任意网页都能读写本机数据）。因此：
+ *   - 非浏览器客户端（curl / Python sidecar / 自动化脚本）：HTTP 通道可用；
+ *   - **浏览器页面**（vite dev 直开）：跨源 fetch 会被浏览器拦下，
+ *     实际生效的是 configService 的 **localStorage 降级**，而非 HTTP。
+ * UI 在浏览器里"能跑"靠的是降级层，不是 HTTP 通道 —— 二者别混淆。
  */
 
 import { invoke } from '@tauri-apps/api/core'

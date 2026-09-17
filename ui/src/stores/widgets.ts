@@ -23,6 +23,22 @@ const DEFAULTS: Widget[] = [
 type WidgetSize = Widget['size']
 
 /**
+ * 配置写入串行化。
+ *
+ * 为什么需要：`recordUse` 每点一次都会各发一次 `put`，而 `put` 内部可能走 invoke
+ * 也可能走 HTTP 降级，**完成顺序不保证** —— 后发的写有可能先落，于是旧快照覆盖新快照。
+ * 这不是理论担忧：CDP 探针实测观察到落库值演变 `{"weather":2} → {"weather":6} → {"weather":10}`
+ * （本应直接是 10），收敛靠的是"最后一次恰好最后到"，而非机制保证。
+ * 串行化后按发起顺序落，**最后发起的写必然是最终值**。
+ */
+let writeQueue: Promise<void> = Promise.resolve()
+
+function enqueueWrite(task: () => Promise<void>): Promise<void> {
+  writeQueue = writeQueue.then(task, task)
+  return writeQueue
+}
+
+/**
  * 尺寸判定（04 §3「高频大、低频小」+「priority 高 → 展示大」双规则合一）：
  * - usage ≥ 10 → large；≥ 3 → medium；
  * - 数据不足时以 priority 为**下限**参考（priority ≥ 90 至少 medium），避免
@@ -70,13 +86,13 @@ export const useWidgetStore = defineStore('widgets', {
       this.loaded = true
     },
     async persist() {
-      await configApi.put(KEY, this.widgets)
+      await enqueueWrite(() => configApi.put(KEY, this.widgets))
     },
     async persistLock() {
-      await configApi.put(KEY_LOCK, this.layoutLocked)
+      await enqueueWrite(() => configApi.put(KEY_LOCK, this.layoutLocked))
     },
     async persistUsage() {
-      await configApi.put(KEY_USAGE, this.usage)
+      await enqueueWrite(() => configApi.put(KEY_USAGE, this.usage))
     },
     /** 记录一次使用（04 §3「记录每个 Widget 的点击/使用次数 → 存 config 表」） */
     async recordUse(id: string) {

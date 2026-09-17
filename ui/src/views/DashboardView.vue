@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 
 import WidgetCard from '@/components/WidgetCard.vue'
+import WorkspaceStatus from '@/components/WorkspaceStatus.vue'
 import { useWidgets } from '@/composables/useWidgets'
 import { useWidgetStore } from '@/stores/widgets'
 import { widgetRegistry } from '@/widgets'
@@ -34,6 +35,11 @@ async function onUnlock() {
         </button>
       </div>
     </header>
+
+    <!-- TECH-05-C §P0-3：工作空间状态系统（UI-05-B）。
+         数据全部来自 workspaceRuntime 门面；不启动真实软件、不控制窗口、不做真实恢复。
+         它只加一个兄弟区块，不改动下面的组件管理 / 组件网格的节点身份（S2）。 -->
+    <WorkspaceStatus />
 
     <!-- 组件管理：04 §3 enabled 字段的用户入口（REVIEW-003 L-016） -->
     <section v-if="manageOpen" class="widget-manage">

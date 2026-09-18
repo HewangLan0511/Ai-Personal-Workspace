@@ -21,55 +21,71 @@
  * - **前缀 `pw-`**：与既有共享类 `pw-clickable` / `pw-motion-essential`
  *   同一命名约定，避免与各页面自己的 scoped 类名相互污染。
  *
- * ## 字号为什么不走 token
- * 真实应用的 token 体系里从未有字号档位（tokens.css 只有 `--f-font-ui`），
- * 既有 base.css 与各 view 也一律写 px。为不制造"两套字号口径"，此处沿用
- * 既有约定写 px，并把档位收敛成下面这一张注释表（不再有第二处定义）：
- *   页面标题 20/600 · 区块标题 16/600 · 卡片标题 15/600
- *   正文 14 · 小字 13 · 说明 12 · 标签 11
+ * ## 字号/间距/圆角：一律引用设计稿 token（2026-09-18 对齐）
+ * 本文件加载在 `base.css` **之后** —— 同族声明会**盖住**设计稿的 `.card` / `.btn` / `.chip` /
+ * `.input` / `.avatar` / `.row-item` / `.drawer` / `.t-page` … 所以两边取值必须逐条一致。
+ * 原先这里写自家标度（字号 px 字面量、`--f-space-*`、`--radius-controls`、`--shadow-floating`），
+ * 与设计稿至少有 10 处真实漂移（section 16px vs `--fs-section` 15px、card 15px vs `--fs-card` 14px、
+ * avatar 用 `--brand-50/600` 而非 `--brand-100/700`、`.pw-btn--lg` 15px vs `--fs-card` 14px、
+ * drawer `z-index:41` vs `--z-drawer:60`、缺 transition / 缺 `text-transform` / 缺 `drawerIn` …）。
+ * 现已全部改为消费设计稿 token；`tools/_force_design_check.py` 的 D1d 系列守护"别名不被改回去"。
  * ============================================================ */
 
-/* ---------------------------------------------------------- 排版（.pw-t-*） */
+/* ---------------------------------------------------------- 排版（.pw-t-*）
+ *
+ * ⚠️ 与设计稿 `.t-*` 是**同一套档位**，取值必须逐条一致（primitives.css 加载在 base.css 之后）。
+ * 2026-09-18 对齐：字号/行高/字距一律引用设计稿 token，不再写 px 字面量（原先
+ * `--fs-section` 设计 15px 而这里写 16px、`--fs-card` 设计 14px 而这里写 15px，
+ * 且全部缺 `line-height` 与 `letter-spacing`，`.pw-t-label` 还漏了 `text-transform`）。 */
 
 .pw-t-page {
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: var(--fs-page);
+  line-height: var(--lh-page);
+  letter-spacing: var(--ls-page);
   font-weight: 600;
-  letter-spacing: -0.01em;
   color: var(--text-1);
 }
 
 .pw-t-section {
-  font-size: 16px;
+  font-size: var(--fs-section);
+  line-height: var(--lh-section);
+  letter-spacing: var(--ls-section);
   font-weight: 600;
   color: var(--text-1);
 }
 
 .pw-t-card {
-  font-size: 15px;
+  font-size: var(--fs-card);
+  line-height: var(--lh-card);
+  letter-spacing: var(--ls-card);
   font-weight: 600;
   color: var(--text-1);
 }
 
 .pw-t-sm {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
+  line-height: var(--lh-body-sm);
   color: var(--text-1);
 }
 
 .pw-t-cap {
-  font-size: 12px;
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
   color: var(--text-3);
 }
 
 .pw-t-label {
-  font-size: 11px;
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--ls-label);
   font-weight: 600;
-  letter-spacing: 0.08em;
   color: var(--text-4);
+  text-transform: uppercase;
 }
 
 .pw-mono {
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
 }
 
 .pw-c2 {
@@ -81,8 +97,8 @@
 .pw-row {
   display: flex;
   align-items: center;
-  gap: var(--f-space-2);
-  min-width: 0;
+  gap: var(--gap-inline);
+  min-width: 0; /* 工程加固：设计稿 .row 无此条，仅用于防溢出，不影响取值 */
 }
 
 .pw-row--wrap {
@@ -96,7 +112,7 @@
 .pw-stack {
   display: flex;
   flex-direction: column;
-  gap: var(--f-space-3);
+  gap: var(--space-3);
   min-width: 0;
 }
 
@@ -109,27 +125,46 @@
   flex: 1;
 }
 
-/* ---------------------------------------------------------- Button（.pw-btn） */
+/* ---------------------------------------------------------- Button（.pw-btn）
+ *
+ * ⚠️ 取值 = 设计稿 `.btn` 字面等价（原语层加载在后，会盖住设计稿）。
+ * 2026-09-18 对齐：去掉自加的 `border: 1px solid transparent`（设计只在 `.btn--secondary`
+ * 上给边框，基类多一条透明边框会挤掉 1px 内距）；补上设计的 4 属性 `transition`
+ * 与 `:active` 缩放；字号/字距改用设计 token（原先 `.pw-btn--lg` 写 15px，
+ * 设计 `.btn--lg` 是 `--fs-card`=14px）。 */
 
 .pw-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--f-space-2);
+  gap: var(--space-2);
   height: 34px;
-  padding: 0 var(--f-space-4);
-  border-radius: var(--radius-controls);
-  border: 1px solid transparent;
+  padding: 0 var(--space-4);
+  border-radius: var(--r-md);
   background: var(--surface-3);
   color: var(--text-1);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   font-weight: 600;
+  letter-spacing: -0.003em;
   white-space: nowrap;
   cursor: pointer;
+  /* 设计稿 `.btn` **无边框**（只有 `--secondary` 带 `1px solid var(--border)`）。
+     本文件加载在 base.css 之后，若不显式置 0，就会继承 base.css 工程版重置的
+     `border: 1px solid var(--border)` ⇒ 每个按钮多一圈灰边（`--primary` 尤其明显）。
+     `--secondary` 自己会声明 border，故这里置 0 不影响它。 */
+  border: 0;
+  transition: background var(--dur-micro) var(--ease-out),
+    color var(--dur-micro) var(--ease-out),
+    box-shadow var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
 }
 
 .pw-btn:hover:not(:disabled) {
   background: var(--border);
+}
+
+.pw-btn:active:not(:disabled) {
+  transform: scale(0.985);
 }
 
 .pw-btn:disabled,
@@ -140,30 +175,33 @@
 
 .pw-btn--sm {
   height: 28px;
-  padding: 0 var(--f-space-3);
-  font-size: 12px;
+  padding: 0 var(--space-3);
+  font-size: var(--fs-caption);
 }
 
 .pw-btn--lg {
   height: 40px;
-  padding: 0 var(--f-space-5);
-  font-size: 15px;
+  padding: 0 var(--space-5);
+  font-size: var(--fs-card);
 }
 
 .pw-btn--primary {
   background: var(--brand-500);
-  border-color: var(--brand-500);
-  color: #fff;
+  color: var(--text-on-brand);
 }
 
 .pw-btn--primary:hover:not(:disabled) {
   background: var(--brand-600);
-  border-color: var(--brand-600);
+}
+
+.pw-btn--primary:active:not(:disabled) {
+  background: var(--brand-700);
 }
 
 .pw-btn--secondary {
   background: var(--surface-1);
-  border-color: var(--border);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
   color: var(--text-1);
 }
 
@@ -184,19 +222,20 @@
 
 .pw-btn--danger {
   background: var(--danger-soft);
-  border-color: transparent;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
+/* 设计稿 `.btn--danger:hover` 逐字值（无对应 token） */
 .pw-btn--danger:hover:not(:disabled) {
-  border-color: var(--danger);
+  background: #f6ded9;
 }
 
-/* 图标按钮（返回 / 关闭）：与 .pw-btn 同族，方形无文字 */
+/* 图标按钮：语义 = 设计稿 `.icon-btn`（30×30 透明态），不是 `.btn--icon-only`（34px 带底） */
 .pw-btn--icon {
   width: 30px;
   height: 30px;
   padding: 0;
+  border-radius: var(--r-sm);
   background: transparent;
   color: var(--text-3);
 }
@@ -213,12 +252,11 @@
   align-items: center;
   gap: 6px;
   height: 26px;
-  padding: 0 var(--f-space-3);
-  border-radius: 999px;
-  border: 1px solid transparent;
+  padding: 0 var(--space-3);
+  border-radius: var(--r-full);
   background: var(--surface-3);
   color: var(--text-2);
-  font-size: 12px;
+  font-size: var(--fs-caption);
   white-space: nowrap;
 }
 
@@ -228,16 +266,16 @@
 
 .pw-chip--brand {
   background: var(--brand-50);
-  color: var(--brand-600);
+  color: var(--brand-700);
 }
 
 .pw-chip--outline {
   background: transparent;
-  border-color: var(--border);
+  border: 1px solid var(--border);
 }
 
 .pw-chip--removable {
-  padding-right: var(--f-space-1);
+  padding-right: var(--space-1);
 }
 
 .pw-chip__x {
@@ -245,11 +283,11 @@
   place-items: center;
   width: 20px;
   height: 20px;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: transparent;
   border: none;
   color: var(--text-3);
-  font-size: 11px;
+  font-size: var(--fs-label);
   line-height: 1;
   cursor: pointer;
 }
@@ -280,17 +318,30 @@
   background: var(--text-4);
 }
 
-/* ---------------------------------------------------------- Card（.pw-card） */
+/* ---------------------------------------------------------- Card（.pw-card）
+ *
+ * ⚠️ 本组是设计稿 `.card` 的**取值别名**，不是第二套视觉。
+ * `main.ts` 的加载顺序是 tokens → motion-tokens → base.css → **primitives.css**，
+ * 所以这里的每一条声明都会**盖住**设计稿 `.card` 的同名声明 —— 两个文件的取值必须逐条一致。
+ * 由 `tools/_force_design_check.py` 的 **D1d**（`.pw-card` 与 `.card` 计算值一致）机器守护。
+ *
+ * 2026-09-18 对齐：几何一律引用**设计稿 token**（`--pad-card` / `--pad-card-lg` / `--r-xl`），
+ * 不再用工程自有的 `--f-space-*` 标度（`--space-4`=16px ≠ 设计 `--pad-card`=20px，
+ * 会让所有用 PwCard 的页面卡片内距比设计稿紧 4px；`--space-5`=20px ≠ `--pad-card-lg`=24px）。 */
 
 .pw-card {
   background: var(--surface-1);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  padding: var(--f-space-4);
+  border-radius: var(--r-xl);
+  padding: var(--pad-card);
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 
 .pw-card--lg {
-  padding: var(--f-space-5);
+  padding: var(--pad-card-lg);
+  border-radius: var(--r-xl);
 }
 
 .pw-card--ghost {
@@ -299,15 +350,16 @@
 }
 
 .pw-card--hoverable:hover {
+  box-shadow: var(--shadow-md);
   border-color: var(--border);
-  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
 }
 
 /* 竖排卡片：模型卡 / 档案扩展块 */
 .pw-card--stack {
   display: flex;
   flex-direction: column;
-  gap: var(--f-space-2);
+  gap: var(--space-2);
   text-align: left;
 }
 
@@ -316,32 +368,37 @@
 .pw-field {
   display: flex;
   flex-direction: column;
-  gap: var(--f-space-2);
+  gap: var(--space-2);
 }
 
 .pw-field > label {
-  font-size: 12px;
+  font-size: var(--fs-caption);
   color: var(--text-3);
 }
 
 .pw-input {
   display: flex;
   align-items: center;
-  gap: var(--f-space-2);
+  gap: var(--space-2);
   height: 34px;
-  padding: 0 var(--f-space-3);
+  padding: 0 var(--space-3);
   background: var(--surface-3);
   border: 1px solid transparent;
-  border-radius: var(--radius-controls);
+  border-radius: var(--r-md);
+  color: var(--text-1);
+  transition: background var(--dur-micro) var(--ease-out),
+    border-color var(--dur-micro) var(--ease-out),
+    box-shadow var(--dur-micro) var(--ease-out);
 }
 
 .pw-input:hover {
-  background: var(--surface-hover);
+  background: var(--surface-inset);
 }
 
 .pw-input:focus-within {
   background: var(--surface-1);
-  border-color: var(--brand-500);
+  border-color: var(--brand-400);
+  box-shadow: 0 0 0 3px var(--brand-50);
 }
 
 .pw-input > input,
@@ -353,7 +410,7 @@
   outline: 0;
   padding: 0;
   border-radius: 0;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   color: var(--text-1);
 }
 
@@ -370,14 +427,14 @@
 
 .pw-input--lg {
   height: 40px;
-  padding: 0 var(--f-space-4);
+  padding: 0 var(--space-4);
 }
 
 .pw-input--multi {
   height: auto;
   min-height: 64px;
   align-items: flex-start;
-  padding: 8px var(--f-space-3);
+  padding: 8px var(--space-3);
 }
 
 /* ---------------------------------------------------------- Avatar */
@@ -385,13 +442,13 @@
 .pw-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--r-full);
   display: grid;
   place-items: center;
-  background: var(--brand-50);
-  color: var(--brand-600);
+  background: var(--brand-100);
+  color: var(--brand-700);
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   flex: 0 0 auto;
 }
 
@@ -406,15 +463,20 @@
 .pw-row-item {
   display: flex;
   align-items: center;
-  gap: var(--f-space-3);
+  gap: var(--space-3);
   width: 100%;
-  padding: var(--f-space-3) var(--f-space-4);
+  padding: var(--space-3) var(--space-4);
   border: none;
-  border-radius: var(--f-radius-3);
+  border-radius: var(--r-lg);
   background: transparent;
   color: var(--text-1);
   text-align: left;
   cursor: pointer;
+  transition: background var(--dur-micro) var(--ease-out);
+}
+
+.pw-row-item + .pw-row-item {
+  margin-top: 2px;
 }
 
 .pw-row-item:hover {
@@ -427,8 +489,8 @@
 }
 
 .pw-row-item .pw-row-item__title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--fs-card);
+  font-weight: 500;
 }
 
 /* ---------------------------------------------------------- Drawer + Scrim */
@@ -437,7 +499,8 @@
   position: fixed;
   inset: 0;
   background: var(--scrim);
-  z-index: 40;
+  z-index: var(--z-modal);
+  animation: fadeIn var(--mt-dur-modal-bg) var(--mt-ease-out);
 }
 
 .pw-drawer {
@@ -447,19 +510,20 @@
   bottom: 0;
   width: 420px;
   max-width: 92vw;
-  z-index: 41;
+  z-index: var(--z-drawer);
   display: flex;
   flex-direction: column;
   background: var(--surface-overlay);
   border-left: 1px solid var(--border);
-  box-shadow: var(--shadow-floating);
+  box-shadow: var(--shadow-lg);
+  animation: drawerIn var(--mt-dur-drawer) var(--mt-ease-out);
 }
 
 .pw-drawer__head {
   display: flex;
   align-items: center;
-  gap: var(--f-space-3);
-  padding: var(--f-space-4) var(--f-space-5);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -467,14 +531,14 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--f-space-5);
+  padding: var(--space-5);
 }
 
 .pw-drawer__foot {
   display: flex;
   align-items: center;
-  gap: var(--f-space-2);
-  padding: var(--f-space-4) var(--f-space-5);
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -506,16 +570,18 @@
 
 .pw-grid {
   display: grid;
-  gap: var(--f-space-3);
+  gap: var(--gap-card);
 }
 
+/* 模型网格 = 设计稿 `.model-grid`（注意：gap 是 --space-3=12px，**不是** `.grid` 的 --gap-card=20px） */
 .pw-grid--models {
   grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: var(--space-3);
 }
 
 .pw-grid--avatars {
   grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-  gap: var(--f-space-2);
+  gap: var(--space-2);
 }
 
 .pw-avatar-pick {
@@ -524,11 +590,13 @@
   height: 64px;
   padding: 0;
   border: 1px solid var(--border);
-  border-radius: var(--f-radius-3);
+  border-radius: var(--r-lg);
   background: var(--surface-1);
   color: var(--text-1);
   font-size: 24px;
   cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out),
+    background var(--dur-micro) var(--ease-out);
 }
 
 .pw-avatar-pick:hover {
@@ -536,6 +604,6 @@
 }
 
 .pw-avatar-pick.on {
-  border-color: var(--brand-500);
+  border-color: var(--brand-400);
   background: var(--brand-50);
 }

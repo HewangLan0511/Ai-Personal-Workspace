@@ -10,6 +10,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 
 import { learningApi, projectApi, type Project, type ProjectInput } from '@/api/learningService'
 import { modeApi, type WorkMode } from '@/api/modeService'
+import PwIcon from '@/components/PwIcon.vue'
 import { useLearningStore } from '@/stores/learning'
 import { logger } from '@/utils/logger'
 
@@ -173,59 +174,69 @@ const STATUS_LABEL: Record<Project['status'], string> = {
 
 <template>
   <section class="page">
-    <header class="page-bar">
-      <h2>项目管理</h2>
-      <div class="page-bar-actions">
-        <span class="stage-note">可绑定工作模式、关联学习目标</span>
-        <button type="button" @click="openNew">新建项目</button>
+    <div class="page-head">
+      <div class="grow">
+        <h2 class="t-page">项目管理</h2>
+        <div class="t-cap" style="margin-top: 2px">可绑定工作模式、关联学习目标 · 共 {{ list.length }} 个项目</div>
       </div>
-    </header>
+      <button class="btn btn--secondary btn--sm" type="button" @click="openNew">
+        <PwIcon name="plus" :size="15" /> 新建项目
+      </button>
+    </div>
 
-    <p v-if="error" class="hint warn">{{ error }}</p>
+    <p v-if="error" class="t-cap" style="color: var(--danger)">{{ error }}</p>
 
     <form v-if="showForm" class="project-form" @submit.prevent="submit">
-      <input v-model="form.name" placeholder="项目名称（必填）" />
-      <input v-model="form.role" placeholder="角色，如 主要负责人" />
-      <input v-model="form.summary" placeholder="一句话简介" />
-      <input v-model="form.techStack" placeholder="技术栈（逗号分隔）" />
-      <input v-model="form.startDate" placeholder="开始日期，如 2026-09-01" />
-      <input v-model="form.endDate" placeholder="结束日期（可选）" />
-      <input v-model="form.directory" placeholder="关联目录（可选）" />
-      <select v-model="form.status">
+      <label class="input grow"><input v-model="form.name" placeholder="项目名称（必填）" /></label>
+      <label class="input grow"><input v-model="form.role" placeholder="角色，如 主要负责人" /></label>
+      <label class="input grow"><input v-model="form.summary" placeholder="一句话简介" /></label>
+      <label class="input grow"><input v-model="form.techStack" placeholder="技术栈（逗号分隔）" /></label>
+      <label class="input"><input v-model="form.startDate" placeholder="开始日期，如 2026-09-01" /></label>
+      <label class="input"><input v-model="form.endDate" placeholder="结束日期（可选）" /></label>
+      <label class="input grow"><input v-model="form.directory" placeholder="关联目录（可选）" /></label>
+      <select v-model="form.status" class="select">
         <option value="ongoing">进行中</option>
         <option value="paused">已暂停</option>
         <option value="done">已完成</option>
       </select>
-      <select v-model="form.modeName">
+      <select v-model="form.modeName" class="select">
         <option value="">不绑定工作模式</option>
         <option v-for="m in modes" :key="m.id" :value="m.name">{{ m.name }}</option>
       </select>
-      <select v-model="form.goalId">
+      <select v-model="form.goalId" class="select">
         <option value="">不关联学习目标</option>
         <option v-for="g in goals" :key="g.id" :value="g.id">{{ g.title }}</option>
       </select>
-      <span class="form-actions">
-        <button type="submit" :disabled="busy">{{ editingId === null ? '创建' : '保存' }}</button>
-        <button type="button" @click="showForm = false">取消</button>
+      <span class="form-actions" style="display: flex; gap: var(--space-2)">
+        <button class="btn btn--primary btn--sm" type="submit" :disabled="busy">{{ editingId === null ? '创建' : '保存' }}</button>
+        <button class="btn btn--ghost btn--sm" type="button" @click="showForm = false">取消</button>
       </span>
     </form>
 
-    <div v-if="list.length === 0" class="empty-state">
-      <p>还没有项目。</p>
-      <p class="stage-note">建一个项目并绑定工作模式后，进入该模式时就会显示当前项目。</p>
+    <div v-if="list.length === 0" class="empty">
+      <div class="illus"><PwIcon name="folder" :size="28" /></div>
+      <div class="t-sm">还没有项目</div>
+      <div class="t-cap">建一个项目并绑定工作模式后，进入该模式时就会显示当前项目。</div>
     </div>
 
-    <div class="project-grid">
-      <article v-for="p in list" :key="p.id" class="project-card">
-        <header>
-          <h3>{{ p.name }}</h3>
-          <span class="tag" :class="`tag-${p.status}`">{{ STATUS_LABEL[p.status] }}</span>
-        </header>
-        <p v-if="p.role || p.summary" class="stage-note">
+    <div class="grid g2">
+      <article v-for="p in list" :key="p.id" class="card card--lg card--hoverable">
+        <div class="row" style="justify-content: space-between">
+          <h3 class="t-card grow">{{ p.name }}</h3>
+          <span
+            class="badge"
+            :class="p.status === 'done' ? 'badge--success' : p.status === 'paused' ? 'badge--warning' : 'badge--brand'"
+          >
+            {{ STATUS_LABEL[p.status] }}
+          </span>
+        </div>
+        <p v-if="p.role || p.summary" class="t-cap">
           <span v-if="p.role">{{ p.role }}</span>
           <span v-if="p.summary"> · {{ p.summary }}</span>
         </p>
-        <p v-if="p.techStack.length" class="tech">{{ p.techStack.join(' / ') }}</p>
+        <div v-if="p.techStack.length" class="row" style="flex-wrap: wrap; gap: 6px">
+          <span v-for="t in p.techStack" :key="t" class="chip">{{ t }}</span>
+        </div>
         <dl class="meta">
           <template v-if="p.modeName"><dt>模式</dt><dd>{{ p.modeName }}</dd></template>
           <template v-if="p.goalTitle"><dt>目标</dt><dd>{{ p.goalTitle }}</dd></template>
@@ -233,102 +244,58 @@ const STATUS_LABEL: Record<Project['status'], string> = {
           <dt>时间</dt>
           <dd>{{ p.startDate || '—' }} ~ {{ p.endDate || '至今' }}</dd>
         </dl>
-        <footer class="card-actions">
-          <button type="button" :disabled="busy" @click="setStatus(p, 'ongoing')">进行中</button>
-          <button type="button" :disabled="busy" @click="setStatus(p, 'paused')">暂停</button>
-          <button type="button" :disabled="busy" @click="setStatus(p, 'done')">完成</button>
-          <button type="button" @click="openEdit(p)">编辑</button>
-          <button type="button" class="danger" @click="remove(p)">删除</button>
-        </footer>
+        <div class="row card-actions" style="gap: var(--space-2); flex-wrap: wrap">
+          <button class="btn btn--secondary btn--sm" type="button" :disabled="busy" @click="setStatus(p, 'ongoing')">进行中</button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="busy" @click="setStatus(p, 'paused')">暂停</button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="busy" @click="setStatus(p, 'done')">完成</button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="openEdit(p)">编辑</button>
+          <button class="btn btn--danger btn--sm" type="button" @click="remove(p)">删除</button>
+        </div>
       </article>
     </div>
   </section>
 </template>
 
 <style scoped>
-.page-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.page-bar-actions,
-.form-actions,
-.card-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+/* UI-FUSION-FULL：页内布局自带，视觉原语（card / badge / chip / button / input / empty）
+ * 一律来自 base.css 的设计稿组件层。此处零裸色值。 */
+
 .project-form {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0 20px;
-  padding: 12px;
-  border: 1px dashed var(--pw-border, #e0e0e0);
-  border-radius: 8px;
+  gap: var(--gap-inline);
+  align-items: center;
+  margin: 0 0 var(--gap-card);
+  padding: var(--space-4);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
 }
-.project-form input {
+
+.project-form .input {
   min-width: 180px;
 }
-.project-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
+
+.card-actions {
+  margin-top: var(--space-4);
 }
-.project-card {
-  border: 1px solid var(--pw-border, #e0e0e0);
-  border-radius: 8px;
-  padding: 12px;
-}
-.project-card header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-.project-card h3 {
-  font-size: 15px;
-  margin: 0;
-}
-.tech {
-  font-size: 12px;
-  opacity: 0.8;
-  margin: 4px 0;
-}
+
+/* 元信息行（dl 表单化，键值两列） */
 .meta {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 8px;
-  font-size: 12px;
-  margin: 6px 0 10px;
+  gap: 2px var(--gap-inline);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  margin: var(--space-3) 0 var(--space-1);
 }
+
 .meta dt {
-  opacity: 0.6;
+  color: var(--text-3);
 }
+
 .meta dd {
   margin: 0;
   word-break: break-all;
-}
-.tag {
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 10px;
-  border: 1px solid currentColor;
-}
-.tag-ongoing {
-  color: #1a73e8;
-}
-.tag-paused {
-  color: #b06000;
-}
-.tag-done {
-  color: #188038;
-}
-.hint.warn {
-  color: #b06000;
-}
-.danger {
-  color: #c5221f;
+  color: var(--text-2);
 }
 </style>

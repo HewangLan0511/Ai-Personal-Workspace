@@ -1,0 +1,24 @@
+{
+  "installer": {
+    "path": "C:\\Users\\baiyu\\Desktop\\Personal Workspace\\core\\target\\release\\bundle\\nsis\\Personal Workspace_0.1.0_x64-setup.exe",
+    "size": 15826579,
+    "mtime": "2026-09-18 10:36:42"
+  },
+  "built": {
+    "path": "C:\\Users\\baiyu\\Desktop\\Personal Workspace\\core\\target\\release\\personal-workspace-core.exe",
+    "size": 14647808,
+    "mtime": "2026-09-18 10:36:42"
+  },
+  "before": {
+    "path": "D:\\Personal Workspace\\personal-workspace-core.exe",
+    "size": 14296064,
+    "mtime": "2026-09-18 09:36:36"
+  },
+  "installer_exit": 0,
+  "after": {
+    "path": "D:\\Personal Workspace\\personal-workspace-core.exe",
+    "size": 14647808,
+    "mtime": "2026-09-18 10:36:28"
+  },
+  "refreshed": true
+}

@@ -862,16 +862,21 @@ def t10_p0_anchors() -> None:
                      ensure_ascii=False))
 
     # 路由与视图基线未被本轮改动（新增页面 = 越界）
+    # 基线演进记录：TECH-05-C 增 `/models`；TECH-07 增 `/run`（运行页 · 影院版）；
+    #   UI-FUSION 动效对接 增 `/motion`（动效规范页：**不进主导航**，入口 = 设置 · 外观
+    #   的「动效规范」那一行 —— 设计稿 ROUTES.showcase 页头明写"主 IA 不动，入口放设置"，
+    #   故它不改变主信息架构，只是外观设置的落地页；与 /dev/* 验证固件不同，它是产品页）。
     router = read_src("router/index.ts")
     routes = re.findall(r"path:\s*'([^']*)'", router)
     baseline_routes = ['/', '/dashboard', '/software', '/ai', '/learning', '/project', '/mode', '/layout',
-                       '/profile', '/life', '/device', '/plugins', '/settings', '/models',
+                       '/profile', '/life', '/device', '/plugins', '/settings', '/models', '/run', '/motion',
                        '/dev/motion', '/dev/workspace']
     views = sorted(p.name for p in (SRC / "views").glob("*.vue"))
     baseline_views = ["AiView.vue", "DashboardView.vue", "DesktopWidgetView.vue", "DevMotionHarness.vue",
                       "DevWorkspaceHarness.vue", "DeviceView.vue", "LayoutView.vue", "LearningView.vue",
-                      "LifeView.vue", "ModeView.vue", "ModelsView.vue", "PluginsView.vue", "ProfileView.vue",
-                      "ProjectView.vue", "SettingsView.vue", "SoftwareView.vue"]
+                      "LifeView.vue", "ModeView.vue", "ModelsView.vue", "MotionSpecView.vue",
+                      "PluginsView.vue", "ProfileView.vue",
+                      "ProjectView.vue", "RunView.vue", "SettingsView.vue", "SoftwareView.vue"]
     check("T10b 本轮**零新增页面/路由**（只把既有 /ai 从占位改成真实页面）",
           routes == baseline_routes and views == baseline_views,
           json.dumps({"路由差异": sorted(set(routes) ^ set(baseline_routes)),

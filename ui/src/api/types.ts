@@ -12,7 +12,12 @@ export interface Widget {
 
 /** 设置页模型（04 §4） */
 export interface Settings {
-  theme: 'light' | 'dark'
+  /**
+   * 主题：设计稿「设置 · 外观」是三档分段控件（浅色 / 深色 / 跟随系统）。
+   * `system` 是**意图**，落盘到 `data-theme` 的永远是解析后的 `light|dark`
+   * （设计稿 `setTheme()` 同款：`real = system ? matchMedia(...) : v`）。
+   */
+  theme: 'light' | 'dark' | 'system'
   autostart: boolean
   defaultProvider: string
   dataDir: string

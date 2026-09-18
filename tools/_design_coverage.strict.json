@@ -1,0 +1,680 @@
+{
+  "mode": "strict",
+  "markup_class_total": 267,
+  "landed": [
+    "t-cap",
+    "btn",
+    "row",
+    "t-sm",
+    "btn--secondary",
+    "btn--sm",
+    "chip",
+    "card",
+    "t-section",
+    "icon-btn",
+    "btn--primary",
+    "c2",
+    "sm",
+    "input",
+    "field",
+    "t-card",
+    "lg",
+    "t-page",
+    "btn--ghost",
+    "switch",
+    "stack",
+    "mono",
+    "spacer",
+    "grid",
+    "app",
+    "card--lg",
+    "scrim",
+    "on",
+    "card--ghost",
+    "page-head",
+    "seg",
+    "drawer",
+    "drawer-head",
+    "drawer-body",
+    "drawer-foot",
+    "badge",
+    "t-label",
+    "chip--brand",
+    "nm",
+    "progress",
+    "main",
+    "ico",
+    "t-num",
+    "sec",
+    "sec-head",
+    "row-item",
+    "title",
+    "checkbox",
+    "thin",
+    "tint4",
+    "btn--lg",
+    "msg",
+    "bubble",
+    "badge-emoji",
+    "btn--danger",
+    "wide",
+    "g2",
+    "dot",
+    "chip--outline",
+    "app-square",
+    "sep",
+    "num",
+    "rs-dot",
+    "rs-item",
+    "rs-k",
+    "badge--success",
+    "avatar",
+    "t",
+    "nav-item",
+    "lbl",
+    "map",
+    "n",
+    "tick",
+    "search",
+    "p",
+    "live",
+    "spinner",
+    "select",
+    "card--dashed",
+    "avatar-pick",
+    "arrange-row",
+    "nowplaying",
+    "meta",
+    "ttl",
+    "art",
+    "nav-group",
+    "ai-perm",
+    "me",
+    "ai-suggest",
+    "new-card",
+    "wstep",
+    "pick-grid",
+    "pick",
+    "em",
+    "d",
+    "app-pick",
+    "tm",
+    "app-row",
+    "grip",
+    "ai-fab",
+    "modal",
+    "tabs",
+    "timeline",
+    "tl-item",
+    "node",
+    "badge--warning",
+    "spark",
+    "badge--danger",
+    "life-card",
+    "titlebar",
+    "tb-mark",
+    "tb-logo",
+    "tb-title",
+    "tb-sep",
+    "tb-context",
+    "tb-spacer",
+    "win-btns",
+    "danger",
+    "widget-col",
+    "ai-dock",
+    "wscroll",
+    "wcard",
+    "wgrip",
+    "widget-add",
+    "ctx-sep",
+    "ctx-head",
+    "ctx-item",
+    "kbd",
+    "idle",
+    "bar",
+    "ctrl",
+    "minimap",
+    "nav-group-title",
+    "nav-foot",
+    "device-line",
+    "txt",
+    "dock-rail",
+    "rail-btn",
+    "rail-label",
+    "rail-mode",
+    "dock-panel",
+    "ai-head",
+    "plain",
+    "ai-input",
+    "greet",
+    "greet-main",
+    "hero",
+    "apps",
+    "grid-recent",
+    "home-split",
+    "tint1",
+    "ws-card",
+    "size-",
+    "hd",
+    "ws-grid",
+    "wizard",
+    "wsteps",
+    "wline",
+    "detect",
+    "model-card",
+    "mc-foot",
+    "model-grid",
+    "hover-only",
+    "run-head",
+    "run-status",
+    "appbar",
+    "apptab",
+    "stage",
+    "stage-grid",
+    "win",
+    "win-bar",
+    "win-role",
+    "win-body",
+    "rz",
+    "rz-",
+    "win-handle",
+    "stage-hint",
+    "rs-apps",
+    "rs-app",
+    "rs-st",
+    "run-prep",
+    "rp-steps",
+    "rp-step",
+    "ai-grid",
+    "ai-sessions",
+    "ai-session-list",
+    "ai-session",
+    "ai-chat",
+    "ai-chat-head",
+    "ai-msgs",
+    "badge--brand",
+    "card--hoverable",
+    "chip--removable",
+    "avatar-grid",
+    "avatar-pick--up",
+    "span2",
+    "life-grid",
+    "tint6",
+    "g4",
+    "metric",
+    "k",
+    "v",
+    "tile",
+    "xl",
+    "set-layout",
+    "subnav",
+    "set-body",
+    "demo",
+    "c",
+    "m",
+    "h",
+    "t-body",
+    "ok",
+    "empty",
+    "illus",
+    "error",
+    "modal-head",
+    "modal-foot",
+    "ctx-menu"
+  ],
+  "missing": [
+    {
+      "class": "comp-block",
+      "count": 11
+    },
+    {
+      "class": "comp-name",
+      "count": 7
+    },
+    {
+      "class": "skel",
+      "count": 7
+    },
+    {
+      "class": "skinlab-win-row",
+      "count": 6
+    },
+    {
+      "class": "tint",
+      "count": 5
+    },
+    {
+      "class": "ind",
+      "count": 5
+    },
+    {
+      "class": "c1",
+      "count": 4
+    },
+    {
+      "class": "g3",
+      "count": 4
+    },
+    {
+      "class": "tint2",
+      "count": 3
+    },
+    {
+      "class": "w70",
+      "count": 3
+    },
+    {
+      "class": "w85",
+      "count": 3
+    },
+    {
+      "class": "ind2",
+      "count": 3
+    },
+    {
+      "class": "skinlab-swg",
+      "count": 3
+    },
+    {
+      "class": "tip",
+      "count": 2
+    },
+    {
+      "class": "tip-body",
+      "count": 2
+    },
+    {
+      "class": "sort-hint",
+      "count": 2
+    },
+    {
+      "class": "wf-mode",
+      "count": 2
+    },
+    {
+      "class": "mock-main",
+      "count": 2
+    },
+    {
+      "class": "w40",
+      "count": 2
+    },
+    {
+      "class": "w55",
+      "count": 2
+    },
+    {
+      "class": "c3",
+      "count": 2
+    },
+    {
+      "class": "mt-stage",
+      "count": 2
+    },
+    {
+      "class": "mt-box",
+      "count": 2
+    },
+    {
+      "class": "skinlab-win",
+      "count": 2
+    },
+    {
+      "class": "skinlab-win-bar",
+      "count": 2
+    },
+    {
+      "class": "skinlab-dot",
+      "count": 2
+    },
+    {
+      "class": "radio",
+      "count": 2
+    },
+    {
+      "class": "toast-host",
+      "count": 1
+    },
+    {
+      "class": "ws-home",
+      "count": 1
+    },
+    {
+      "class": "wf-row",
+      "count": 1
+    },
+    {
+      "class": "wf-mode--new",
+      "count": 1
+    },
+    {
+      "class": "mock-code",
+      "count": 1
+    },
+    {
+      "class": "mock-side",
+      "count": 1
+    },
+    {
+      "class": "w30",
+      "count": 1
+    },
+    {
+      "class": "mock-browser",
+      "count": 1
+    },
+    {
+      "class": "mock-url",
+      "count": 1
+    },
+    {
+      "class": "mock-block",
+      "count": 1
+    },
+    {
+      "class": "mock-term",
+      "count": 1
+    },
+    {
+      "class": "mt-row",
+      "count": 1
+    },
+    {
+      "class": "skinlab-sw",
+      "count": 1
+    },
+    {
+      "class": "skinlab-swatches",
+      "count": 1
+    },
+    {
+      "class": "skin-sandbox",
+      "count": 1
+    },
+    {
+      "class": "skinlab-ws",
+      "count": 1
+    },
+    {
+      "class": "spec-grid",
+      "count": 1
+    },
+    {
+      "class": "swatch",
+      "count": 1
+    },
+    {
+      "class": "t-display",
+      "count": 1
+    },
+    {
+      "class": "btn--brand-ghost",
+      "count": 1
+    },
+    {
+      "class": "ill",
+      "count": 1
+    }
+  ],
+  "missing_prod": [
+    {
+      "class": "skel",
+      "count": 7
+    },
+    {
+      "class": "tint",
+      "count": 5
+    },
+    {
+      "class": "ind",
+      "count": 5
+    },
+    {
+      "class": "c1",
+      "count": 4
+    },
+    {
+      "class": "g3",
+      "count": 4
+    },
+    {
+      "class": "tint2",
+      "count": 3
+    },
+    {
+      "class": "w70",
+      "count": 3
+    },
+    {
+      "class": "w85",
+      "count": 3
+    },
+    {
+      "class": "ind2",
+      "count": 3
+    },
+    {
+      "class": "tip",
+      "count": 2
+    },
+    {
+      "class": "tip-body",
+      "count": 2
+    },
+    {
+      "class": "sort-hint",
+      "count": 2
+    },
+    {
+      "class": "wf-mode",
+      "count": 2
+    },
+    {
+      "class": "w40",
+      "count": 2
+    },
+    {
+      "class": "w55",
+      "count": 2
+    },
+    {
+      "class": "c3",
+      "count": 2
+    },
+    {
+      "class": "radio",
+      "count": 2
+    },
+    {
+      "class": "toast-host",
+      "count": 1
+    },
+    {
+      "class": "ws-home",
+      "count": 1
+    },
+    {
+      "class": "wf-row",
+      "count": 1
+    },
+    {
+      "class": "wf-mode--new",
+      "count": 1
+    },
+    {
+      "class": "w30",
+      "count": 1
+    },
+    {
+      "class": "t-display",
+      "count": 1
+    },
+    {
+      "class": "btn--brand-ghost",
+      "count": 1
+    },
+    {
+      "class": "ill",
+      "count": 1
+    }
+  ],
+  "missing_dev": [
+    {
+      "class": "comp-block",
+      "count": 11
+    },
+    {
+      "class": "comp-name",
+      "count": 7
+    },
+    {
+      "class": "skinlab-win-row",
+      "count": 6
+    },
+    {
+      "class": "skinlab-swg",
+      "count": 3
+    },
+    {
+      "class": "mock-main",
+      "count": 2
+    },
+    {
+      "class": "mt-stage",
+      "count": 2
+    },
+    {
+      "class": "mt-box",
+      "count": 2
+    },
+    {
+      "class": "skinlab-win",
+      "count": 2
+    },
+    {
+      "class": "skinlab-win-bar",
+      "count": 2
+    },
+    {
+      "class": "skinlab-dot",
+      "count": 2
+    },
+    {
+      "class": "mock-code",
+      "count": 1
+    },
+    {
+      "class": "mock-side",
+      "count": 1
+    },
+    {
+      "class": "mock-browser",
+      "count": 1
+    },
+    {
+      "class": "mock-url",
+      "count": 1
+    },
+    {
+      "class": "mock-block",
+      "count": 1
+    },
+    {
+      "class": "mock-term",
+      "count": 1
+    },
+    {
+      "class": "mt-row",
+      "count": 1
+    },
+    {
+      "class": "skinlab-sw",
+      "count": 1
+    },
+    {
+      "class": "skinlab-swatches",
+      "count": 1
+    },
+    {
+      "class": "skin-sandbox",
+      "count": 1
+    },
+    {
+      "class": "skinlab-ws",
+      "count": 1
+    },
+    {
+      "class": "spec-grid",
+      "count": 1
+    },
+    {
+      "class": "swatch",
+      "count": 1
+    }
+  ],
+  "css_only_missing": [
+    "arming",
+    "btn--icon-only",
+    "card--flat",
+    "carried",
+    "carrying",
+    "cinema-entering",
+    "cinema-stabilizing",
+    "collapsing",
+    "crest",
+    "dock-appear",
+    "dock-body",
+    "dock-perm",
+    "drop-target",
+    "enter-up",
+    "err-shake",
+    "hide-sidebar",
+    "insert",
+    "is-disabled",
+    "is-dragging",
+    "is-resizing",
+    "just-expanded",
+    "just-swap",
+    "mock-ai",
+    "mono-num",
+    "mt-ai",
+    "mt-cinema",
+    "mt-ctx",
+    "mt-drawer",
+    "mt-hover",
+    "mt-modal",
+    "mt-press",
+    "mt-slide",
+    "mt-toast",
+    "ok-flash",
+    "progress-fill",
+    "pull",
+    "rz-e",
+    "rz-n",
+    "rz-ne",
+    "rz-nw",
+    "rz-s",
+    "rz-se",
+    "rz-sw",
+    "rz-w",
+    "scene-in",
+    "scene-out",
+    "size-l",
+    "size-m",
+    "size-s",
+    "snap-ghost",
+    "stat",
+    "swap",
+    "swapping",
+    "t2",
+    "t3",
+    "t4",
+    "t5",
+    "tint3",
+    "tint5",
+    "view-enter",
+    "win-size"
+  ],
+  "coverage_pct": 82.02,
+  "markup_ref_coverage_pct": 90.27
+}

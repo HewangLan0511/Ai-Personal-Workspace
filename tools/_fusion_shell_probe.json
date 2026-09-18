@@ -1,0 +1,340 @@
+{
+  "base_url": "http://127.0.0.1:52647",
+  "target": "http://127.0.0.1:52647/dashboard",
+  "state": {
+    "ready": true,
+    "shellClass": "app-shell shell",
+    "shellDataRs": "full",
+    "shellDataCw": "md",
+    "token": {
+      "sidebar": 236,
+      "widget": 224,
+      "ai": 360,
+      "r2xl": "20px",
+      "bgApp": 0
+    },
+    "sidebar": {
+      "w": 236,
+      "h": 775,
+      "display": "flex",
+      "radius": "0px",
+      "bg": "rgb(248, 249, 251)"
+    },
+    "content": {
+      "w": 598,
+      "h": 775,
+      "display": "flex",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    "widgetCol": {
+      "w": 224,
+      "h": 775,
+      "display": "flex",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    "aiDock": {
+      "w": 360,
+      "h": 775,
+      "display": "flex",
+      "radius": "0px",
+      "bg": "rgb(255, 255, 255)"
+    },
+    "panelBox": {
+      "w": 1420,
+      "h": 777,
+      "display": "flex",
+      "radius": "20px",
+      "bg": "rgb(244, 245, 248)"
+    },
+    "panelKids": [
+      "app-nav sidebar",
+      "app-content content",
+      "app-widget widget-col",
+      "ai-dock"
+    ],
+    "handles": {
+      "nav": true,
+      "widget": true,
+      "ai": true
+    },
+    "navItem": {
+      "w": 219,
+      "h": 34,
+      "display": "flex",
+      "radius": "8px",
+      "bg": "rgb(255, 255, 255)"
+    },
+    "navActive": true,
+    "navFoot": true,
+    "navListWrapper": false,
+    "navFoldBtn": false,
+    "wscroll": true,
+    "wcardCount": 3,
+    "wcardIds": [
+      "weather",
+      "todo",
+      "music"
+    ],
+    "wgripCount": 3,
+    "wcardTexts": [
+      "天气 28° 多云 武汉",
+      "待办 改完 train.py 的数据加载 回复论文审稿意见 整理本周笔记",
+      "正在播放 夜空中最亮的星"
+    ],
+    "addBtn": "添加组件",
+    "dockPanel": {
+      "w": 360,
+      "h": 775,
+      "display": "flex",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    "dockRail": {
+      "w": 0,
+      "h": 0,
+      "display": "none",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    "railBtn": true,
+    "railLabel": "AI 助手",
+    "aiSegs": [
+      "聊天",
+      "工作空间助手"
+    ],
+    "navHrefs": [
+      "/dashboard",
+      "/mode",
+      "/software",
+      "/learning",
+      "/project",
+      "/life",
+      "/ai",
+      "/device",
+      "/profile",
+      "/plugins",
+      "/settings"
+    ]
+  },
+  "results": [
+    {
+      "name": "A0 .shell 渲染",
+      "ok": true,
+      "detail": "app-shell shell"
+    },
+    {
+      "name": "A1 壳层双类名 app-shell + shell",
+      "ok": true,
+      "detail": "['app-shell', 'shell']"
+    },
+    {
+      "name": "A2 四区顺序 = sidebar|content|widget-col|ai-dock",
+      "ok": true,
+      "detail": "[\"app-nav sidebar\", \"app-content content\", \"app-widget widget-col\", \"ai-dock\"]"
+    },
+    {
+      "name": "A3 三个手柄节点齐备",
+      "ok": true,
+      "detail": "{\"nav\": true, \"widget\": true, \"ai\": true}"
+    },
+    {
+      "name": "A4 widget-col 内部 = .wscroll（滚动在里层）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A5 挂件 = 设计稿 3 个默认开启项",
+      "ok": true,
+      "detail": "[\"weather\", \"todo\", \"music\"]"
+    },
+    {
+      "name": "A6 每张挂件卡都有 .wgrip",
+      "ok": true,
+      "detail": "3 / 3"
+    },
+    {
+      "name": "A7 「＋ 添加组件」按钮存在",
+      "ok": true,
+      "detail": "'添加组件'"
+    },
+    {
+      "name": "A8 侧栏已去 .nav-list 包裹层（分组直属 .sidebar）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A9 侧栏已去折叠按钮（设计稿：拖边界是唯一途径）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A10 .nav-foot 存在（设置 + 设备行）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A11 `.nav-item.active` 激活态生效",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A12 ai-dock 内部 = .dock-rail + .dock-panel",
+      "ok": true,
+      "detail": "railLabel='AI 助手'"
+    },
+    {
+      "name": "A13 模式切换用设计稿 .seg（聊天 / 工作空间助手）",
+      "ok": true,
+      "detail": "[\"聊天\", \"工作空间助手\"]"
+    },
+    {
+      "name": "D1 天气卡正文 = 28° / 多云 / 武汉",
+      "ok": true,
+      "detail": "天气 28° 多云 武汉"
+    },
+    {
+      "name": "D2 待办卡正文含三条待办",
+      "ok": true,
+      "detail": "待办 改完 train.py 的数据加载 回复论文审稿意见 整理本周笔记"
+    },
+    {
+      "name": "D3 正在播放卡正文 = 夜空中最亮的星",
+      "ok": true,
+      "detail": "正在播放 夜空中最亮的星"
+    },
+    {
+      "name": "B1 侧栏宽 = --sidebar-w 解析值",
+      "ok": true,
+      "detail": "实测 236 vs token 236"
+    },
+    {
+      "name": "B2 组件区宽 = --widget-w 解析值",
+      "ok": true,
+      "detail": "实测 224 vs token 224"
+    },
+    {
+      "name": "B3 AI 栏宽 = --ai-panel-w 解析值",
+      "ok": true,
+      "detail": "实测 360 vs token 360"
+    },
+    {
+      "name": "B4 面板圆角 = --r-2xl",
+      "ok": true,
+      "detail": "实测 20px vs token 20px"
+    },
+    {
+      "name": "B5 壳层底色 = --bg-app（不是默认白）",
+      "ok": true,
+      "detail": "rgb(244, 245, 248)"
+    },
+    {
+      "name": "B6 面板是 .shell 的子节点且横向 flex",
+      "ok": true,
+      "detail": "panel 宽 1420"
+    },
+    {
+      "name": "B7 导航项高度 = 34px（设计稿 .nav-item）",
+      "ok": true,
+      "detail": "34"
+    },
+    {
+      "name": "C1 1560 宽 = data-rs:full（≥1500 才恢复满档）",
+      "ok": true,
+      "detail": "{\"rs\": \"full\", \"cw\": \"md\", \"sw\": 236, \"ww\": 224, \"aw\": 360, \"dockPanel\": \"flex\", \"dockRail\": \"none\", \"aiCls\": \"ai-dock\"}"
+    },
+    {
+      "name": "C2 data-cw 内容分档已下发",
+      "ok": true,
+      "detail": "md"
+    },
+    {
+      "name": "C3 full 档：dock-panel 显示 / dock-rail 隐藏",
+      "ok": true,
+      "detail": "{\"rs\": \"full\", \"cw\": \"md\", \"sw\": 236, \"ww\": 224, \"aw\": 360, \"dockPanel\": \"flex\", \"dockRail\": \"none\", \"aiCls\": \"ai-dock\"}"
+    },
+    {
+      "name": "C4 拖 .rsh--nav 向右 → 侧栏变宽",
+      "ok": true,
+      "detail": "236 → 296（token 236px → 296px）"
+    },
+    {
+      "name": "C5 拖拽把新宽度写回 --sidebar-w（几何与 token 同步）",
+      "ok": true,
+      "detail": "236px → 296px"
+    },
+    {
+      "name": "C6 拖到最小值以下并蓄力 → 导航折叠（.shell.mini）",
+      "ok": true,
+      "detail": "{\"mini\": true, \"w\": 64, \"tok\": \"160px\"}"
+    },
+    {
+      "name": "C7 mini 态宽度 = --sidebar-w-mini（64px）",
+      "ok": true,
+      "detail": "64"
+    },
+    {
+      "name": "C8 mini 态向右拖 → 重新展开（滞回上阈值 expandAt 生效）",
+      "ok": true,
+      "detail": "{\"mini\": false, \"w\": 198, \"tok\": \"198px\"}"
+    },
+    {
+      "name": "C9 双击手柄 → 宽度重置回 RESIZE_CONF.def（236）",
+      "ok": true,
+      "detail": "w=236 token=236px"
+    },
+    {
+      "name": "C10 980 宽 → data-rs:compact 且组件区让路（宽 0）",
+      "ok": true,
+      "detail": "{\"rs\": \"compact\", \"cw\": \"sm\", \"sw\": 180, \"ww\": 0, \"aw\": 260, \"dockPanel\": \"none\", \"dockRail\": \"flex\", \"aiCls\": \"ai-dock\"}"
+    },
+    {
+      "name": "C11 compact 档侧栏被夹到 180px（min(--sidebar-w,180)）",
+      "ok": true,
+      "detail": "180"
+    },
+    {
+      "name": "C12 700 宽 → data-rs:collapsed 且 AI 收成 48px 竖条",
+      "ok": true,
+      "detail": "{\"rs\": \"collapsed\", \"cw\": \"sm\", \"sw\": 236, \"ww\": 0, \"aw\": 48, \"dockPanel\": \"none\", \"dockRail\": \"flex\", \"aiCls\": \"ai-dock\"}"
+    },
+    {
+      "name": "C13 collapsed 档：dock-panel 隐藏 / dock-rail 显示",
+      "ok": true,
+      "detail": "{\"rs\": \"collapsed\", \"cw\": \"sm\", \"sw\": 236, \"ww\": 0, \"aw\": 48, \"dockPanel\": \"none\", \"dockRail\": \"flex\", \"aiCls\": \"ai-dock\"}"
+    },
+    {
+      "name": "C14 480 宽 → data-rs:fallback（极限兜底档）",
+      "ok": true,
+      "detail": "{\"rs\": \"fallback\", \"cw\": \"sm\", \"sw\": 236, \"ww\": 0, \"aw\": 48, \"dockPanel\": \"none\", \"dockRail\": \"flex\", \"aiCls\": \"ai-dock\"}"
+    },
+    {
+      "name": "C15 回到 1600 → data-rs 恢复 full（滞回不是单向锁死）",
+      "ok": true,
+      "detail": "{\"rs\": \"full\", \"cw\": null, \"sw\": 236, \"ww\": 202, \"aw\": 360, \"dockPanel\": \"flex\", \"dockRail\": \"none\", \"aiCls\": \"ai-dock\"}"
+    },
+    {
+      "name": "C16 rail 按钮是 toggle（点一次收起、再点一次展开）",
+      "ok": true,
+      "detail": "'ai-dock' → 'ai-dock collapsed' → 'ai-dock'"
+    },
+    {
+      "name": "B8 面板左右内缩 = --panel-inset（窗口即纸面）",
+      "ok": true,
+      "detail": "{\"inset\": \"10px\", \"marginLeft\": \"10px\", \"panelW\": 1580, \"winW\": 1600}"
+    },
+    {
+      "name": "C17 干净会话下 700 宽 → 窗口分档自动折叠导航（.shell.mini + 64px）",
+      "ok": true,
+      "detail": "{\"rs\": \"collapsed\", \"cw\": \"sm\", \"sw\": 64, \"ww\": 0, \"aw\": 48, \"dockPanel\": \"none\", \"dockRail\": \"flex\", \"aiCls\": \"ai-dock\"}"
+    },
+    {
+      "name": "C18 .shell.className 含 mini（折叠走的是设计稿状态类，不是私有类）",
+      "ok": true,
+      "detail": "'app-shell shell mini'"
+    }
+  ],
+  "passed": 43,
+  "total": 43
+}

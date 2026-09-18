@@ -12,10 +12,19 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 
 import { NativeOnlyError, type AppItem, type InstalledApp } from '@/api/appsService'
+import PwIcon from '@/components/PwIcon.vue'
 import { toast, type ToastVariant } from '@/composables/useToast'
+import { usePageEntrance } from '@/motion'
 import { useAppsStore } from '@/stores/apps'
 
 const store = useAppsStore()
+
+/**
+ * 页面元素进出场（`data-enter` → `.enter-up` 错峰）：页头 / 工具条 / 应用区
+ * 三块按同一套 token 与步长公式抬起。列表页每次进入都播（内容会变）。
+ */
+const rootEl = ref<HTMLElement | null>(null)
+usePageEntrance(rootEl, { key: 'software' })
 
 /** `iconPath → dataURL`（图标经 core 读出转 base64；webview 不能直接加载本地路径） */
 const icons = reactive<Record<string, string>>({})
@@ -193,8 +202,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section class="software-view">
-    <header class="apps-toolbar">
+  <section ref="rootEl" class="software-view">
+    <!-- UI-FUSION-REAL：原型 page-head（标题+副标+操作区） -->
+    <div class="page-head" data-enter="hero">
+      <div class="pw-grow">
+        <div class="pw-t-page">我的软件</div>
+        <div class="pw-t-cap">按分组管理软件，点击直接启动 · 高频软件在首页有专属位置</div>
+      </div>
+    </div>
+    <header class="apps-toolbar" data-enter="sec">
       <input
         v-model="store.search"
         class="app-search"
@@ -212,7 +228,7 @@ onUnmounted(() => {
       <button type="button" class="primary" @click="openAdd">添加软件</button>
     </header>
 
-    <div class="apps-body">
+    <div class="apps-body" data-enter="ws">
       <aside class="apps-side">
         <button
           type="button"
@@ -246,7 +262,7 @@ onUnmounted(() => {
           <article
             v-for="item in store.items"
             :key="item.id"
-            class="app-card"
+            class="app-card app-square"
             :class="{ running: store.isRunning(item.id) }"
             :data-app-id="item.id"
           >
@@ -254,8 +270,8 @@ onUnmounted(() => {
               <img v-if="item.icon && icons[item.icon]" :src="icons[item.icon]" :alt="item.name" />
               <span v-else class="app-icon-fallback">{{ item.name.slice(0, 1) }}</span>
             </div>
-            <div class="app-name" :title="item.path">{{ item.name }}</div>
-            <div class="app-meta">
+            <div class="app-name nm" :title="item.path">{{ item.name }}</div>
+            <div class="app-meta tm">
               {{ item.category || '未分类' }} · 启动 {{ item.launch_count }} 次
             </div>
             <div class="app-actions">
@@ -270,32 +286,37 @@ onUnmounted(() => {
           </article>
         </div>
 
-        <table v-else class="apps-table">
-          <thead>
-            <tr>
-              <th>名称</th>
-              <th>路径</th>
-              <th>类型</th>
-              <th>启动次数</th>
-              <th>最后使用</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in store.items" :key="item.id" :data-app-id="item.id">
-              <td class="app-name">{{ item.name }}</td>
-              <td class="app-path" :title="item.path">{{ item.path }}</td>
-              <td>{{ item.category || '未分类' }}</td>
-              <td>{{ item.launch_count }}</td>
-              <td>{{ item.last_used_at || '—' }}</td>
-              <td>
-                <button type="button" class="app-launch" :disabled="store.isRunning(item.id)" @click="onLaunch(item)">
-                  {{ store.isRunning(item.id) ? '运行中' : '启动' }}
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- 列表视图：设计稿 `page:apps` 的 `.app-row` 行（图标 + .nm + hover-only 操作组）。
+             路径不再单列（设计稿没有表格），改挂在行 title 上，鼠标悬停可看完整路径。 -->
+        <div v-else class="apps-list">
+          <div
+            v-for="item in store.items"
+            :key="item.id"
+            class="app-row"
+            :class="{ running: store.isRunning(item.id) }"
+            :data-app-id="item.id"
+            :title="item.path"
+          >
+            <div class="app-icon sm">
+              <img v-if="item.icon && icons[item.icon]" :src="icons[item.icon]" :alt="item.name" />
+              <span v-else class="app-icon-fallback">{{ item.name.slice(0, 1) }}</span>
+            </div>
+            <span class="nm">{{ item.name }}</span>
+            <span class="t-cap">
+              {{ item.category || '未分类' }} · 启动 {{ item.launch_count }} 次 ·
+              {{ item.last_used_at || '—' }}
+            </span>
+            <span class="hover-only row">
+              <button type="button" class="app-launch" :disabled="store.isRunning(item.id)" @click="onLaunch(item)">
+                {{ store.isRunning(item.id) ? '运行中' : '启动' }}
+              </button>
+              <button type="button" class="app-pin" @click="store.togglePin(item)">
+                {{ item.pinned ? '取消置顶' : '置顶' }}
+              </button>
+              <button type="button" class="app-remove" @click="onRemove(item)">移除</button>
+            </span>
+          </div>
+        </div>
       </main>
     </div>
 
@@ -335,15 +356,18 @@ onUnmounted(() => {
         <div v-else class="apps-modal-body">
           <div class="apps-scan-bar">
             <button type="button" class="primary app-scan-start" :disabled="busy" @click="onScan">开始扫描</button>
-            <input v-model="scanKeyword" type="search" placeholder="过滤…" />
+            <label class="input search wide">
+              <span style="color: var(--text-3)"><PwIcon name="search" :size="16" /></span>
+              <input v-model="scanKeyword" type="search" placeholder="过滤…" />
+            </label>
             <span class="apps-scan-count">已选 {{ pickedCount }}</span>
           </div>
           <ul v-if="scanItems.length" class="apps-scan-list">
             <li v-for="x in visibleScan" :key="x.name + x.path">
-              <label>
+              <label class="app-row">
                 <input v-model="picked[x.name]" type="checkbox" :disabled="!x.path" />
-                <span class="apps-scan-name">{{ x.name }}</span>
-                <span class="apps-scan-path">{{ x.path || '（无启动路径）' }}</span>
+                <span class="apps-scan-name nm">{{ x.name }}</span>
+                <span class="apps-scan-path t-cap">{{ x.path || '（无启动路径）' }}</span>
               </label>
             </li>
           </ul>
@@ -412,20 +436,30 @@ onUnmounted(() => {
   gap: 12px;
 }
 
+/* 网格卡 = 设计稿 `.app-square`（`fn:openAddApp`/`page:apps` 归位）。
+   display/排版/gap/padding/radius 一律由设计稿给（见 CONTEXT-PACK §1.2 纪律：
+   本地块与设计选择器同权 (0,2,0)，抄一遍会让源序决定胜负）；
+   这里只留设计稿没有的「纸面板底 + 边框 + 投影」。 */
 .app-card {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
   box-shadow: var(--shadow);
 }
 
 .app-card.running {
   border-color: var(--ok);
+}
+
+/* 列表视图行（设计稿 `.app-row`）：图标用设计稿的 sm 档（32px） */
+.apps-list .app-icon img {
+  width: 32px;
+  height: 32px;
+}
+
+.apps-list .app-icon-fallback {
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
 }
 
 .app-icon img {
@@ -453,18 +487,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.app-meta,
-.app-path {
-  color: var(--text-dim);
-  font-size: 12px;
-}
-
-.app-path {
-  max-width: 320px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* `.app-meta` 已归位到设计稿 `.app-square .tm`（同权冲突，删本地块让设计稿胜） */
 
 .app-actions {
   display: flex;
@@ -473,17 +496,7 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-.apps-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.apps-table th,
-.apps-table td {
-  text-align: left;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--border);
-}
+/* 列表视图已换成设计稿 `.app-row`（表格不再是设计稿语言，整块移除） */
 
 .apps-empty {
   display: flex;
@@ -571,16 +584,10 @@ onUnmounted(() => {
   overflow: auto;
 }
 
-.apps-scan-list label {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 4px 2px;
-}
+/* 扫描行已归位到设计稿 `.app-row`（flex/gap/padding/radius/hover 由设计稿给） */
 
 .apps-scan-path {
-  color: var(--text-dim);
-  font-size: 12px;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

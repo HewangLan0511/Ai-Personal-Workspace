@@ -1,0 +1,12 @@
+{
+  "exe": "C:/Users/baiyu/Desktop/Personal Workspace/core/target/release/personal-workspace-core.exe",
+  "tag": "inst",
+  "data_dir": "C:\\Users\\baiyu\\AppData\\Local\\Temp\\pw-force-inst-eu13lpuk",
+  "steps": [],
+  "target": {
+    "url": "about:blank",
+    "title": ""
+  },
+  "error": "ConnectionResetError: [WinError 10054] 远程主机强迫关闭了一个现有的连接。",
+  "proc_pid": 30632
+}

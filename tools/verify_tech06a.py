@@ -526,14 +526,19 @@ def t7_no_new_storage() -> None:
 def t8_no_new_page() -> None:
     router = read_src("router/index.ts")
     routes = re.findall(r"path:\s*'([^']*)'", router)
+    # 2026-09-18 动效对接批次有意新增一条 `/motion`（动效规范页 · 不进主导航）+
+    # 对应视图 MotionSpecView.vue；依据 = 设计稿 ROUTES.showcase 页头原文
+    # 「不进主导航，入口放在设置 · 外观」。与 TECH-06-A 的模型域**无关**：
+    # 这里只把基线补齐，判据（"没有多余的新增"）不放松。
     baseline_routes = ['/', '/dashboard', '/software', '/ai', '/learning', '/project', '/mode', '/layout',
-                       '/profile', '/life', '/device', '/plugins', '/settings', '/models',
-                       '/dev/motion', '/dev/workspace']
+                       '/profile', '/life', '/device', '/plugins', '/settings', '/models', '/run',
+                       '/motion', '/dev/motion', '/dev/workspace']
     views = sorted(p.name for p in (SRC / "views").glob("*.vue"))
     baseline_views = ["AiView.vue", "DashboardView.vue", "DesktopWidgetView.vue", "DevMotionHarness.vue",
                       "DevWorkspaceHarness.vue", "DeviceView.vue", "LayoutView.vue", "LearningView.vue",
-                      "LifeView.vue", "ModeView.vue", "ModelsView.vue", "PluginsView.vue", "ProfileView.vue",
-                      "ProjectView.vue", "SettingsView.vue", "SoftwareView.vue"]
+                      "LifeView.vue", "ModeView.vue", "ModelsView.vue", "MotionSpecView.vue",
+                      "PluginsView.vue", "ProfileView.vue",
+                      "ProjectView.vue", "RunView.vue", "SettingsView.vue", "SoftwareView.vue"]
     check("T8 本轮**零新增页面 / 路由**（只把既有 /models 的状态语义改真）",
           routes == baseline_routes and views == baseline_views,
           json.dumps({"路由差异": sorted(set(routes) ^ set(baseline_routes)),

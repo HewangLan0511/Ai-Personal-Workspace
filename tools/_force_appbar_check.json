@@ -1,0 +1,383 @@
+{
+  "pages": [
+    {
+      "path": "/dashboard",
+      "titlebar": {
+        "h": 46,
+        "bg": "rgb(235, 237, 241)",
+        "gap": "12px",
+        "borderBottom": "0px",
+        "pad": "0px 8px 0px 16px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1280,
+          "h": 46,
+          "bottom": 46
+        }
+      },
+      "topbar": {
+        "h": 46,
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "rect": {
+          "x": 16,
+          "y": 0,
+          "w": 1256,
+          "h": 46,
+          "bottom": 46
+        }
+      },
+      "modebar": {
+        "h": 28,
+        "y": 9,
+        "bottom": 37,
+        "bg": "rgba(0, 0, 0, 0)",
+        "borderBottom": "0px",
+        "minHeight": "0px",
+        "fontSize": "12px",
+        "scoped": true,
+        "rect": {
+          "x": 306,
+          "y": 9,
+          "w": 171,
+          "h": 28,
+          "bottom": 37
+        }
+      },
+      "modebarSelectH": 28,
+      "mainBg": "rgb(244, 245, 248)",
+      "tbTitle": {
+        "fs": "13px",
+        "fw": "600",
+        "text": "Personal Workspace"
+      },
+      "tbContext": "我的电脑·首页",
+      "tbBtn": {
+        "h": 28,
+        "border": "1px",
+        "bg": "rgba(0, 0, 0, 0)"
+      },
+      "actions": [
+        {
+          "tag": "button",
+          "text": "深色",
+          "href": null
+        },
+        {
+          "tag": "button",
+          "text": "最小化",
+          "href": null
+        },
+        {
+          "tag": "a",
+          "text": "设置",
+          "href": "/settings"
+        }
+      ],
+      "topbarText": "Personal Workspace 我的电脑 · 首页 模式 未进入 快速切换… ⚠ 降级模式 深色 最小化 设置",
+      "settingsLink": true,
+      "spacerW": 549,
+      "actionsRightGap": 8,
+      "singleRow": true,
+      "fullWidthBars": [
+        {
+          "cls": "app-titlebar",
+          "h": 46,
+          "w": 1280
+        },
+        {
+          "cls": "app-nav",
+          "h": 728,
+          "w": 236
+        },
+        {
+          "cls": "app-main",
+          "h": 728,
+          "w": 684
+        },
+        {
+          "cls": "ai-sidebar",
+          "h": 728,
+          "w": 360
+        },
+        {
+          "cls": "app-status",
+          "h": 26,
+          "w": 1280
+        }
+      ],
+      "route": "/dashboard"
+    },
+    {
+      "path": "/life",
+      "titlebar": {
+        "h": 46,
+        "bg": "rgb(235, 237, 241)",
+        "gap": "12px",
+        "borderBottom": "0px",
+        "pad": "0px 8px 0px 16px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1280,
+          "h": 46,
+          "bottom": 46
+        }
+      },
+      "topbar": {
+        "h": 46,
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "rect": {
+          "x": 16,
+          "y": 0,
+          "w": 1256,
+          "h": 46,
+          "bottom": 46
+        }
+      },
+      "modebar": {
+        "h": 28,
+        "y": 9,
+        "bottom": 37,
+        "bg": "rgba(0, 0, 0, 0)",
+        "borderBottom": "0px",
+        "minHeight": "0px",
+        "fontSize": "12px",
+        "scoped": true,
+        "rect": {
+          "x": 306,
+          "y": 9,
+          "w": 171,
+          "h": 28,
+          "bottom": 37
+        }
+      },
+      "modebarSelectH": 28,
+      "mainBg": "rgb(244, 245, 248)",
+      "tbTitle": {
+        "fs": "13px",
+        "fw": "600",
+        "text": "Personal Workspace"
+      },
+      "tbContext": "我的电脑·生活",
+      "tbBtn": {
+        "h": 28,
+        "border": "1px",
+        "bg": "rgba(0, 0, 0, 0)"
+      },
+      "actions": [
+        {
+          "tag": "button",
+          "text": "深色",
+          "href": null
+        },
+        {
+          "tag": "button",
+          "text": "最小化",
+          "href": null
+        },
+        {
+          "tag": "a",
+          "text": "设置",
+          "href": "/settings"
+        }
+      ],
+      "topbarText": "Personal Workspace 我的电脑 · 生活 模式 未进入 快速切换… ⚠ 降级模式 深色 最小化 设置",
+      "settingsLink": true,
+      "spacerW": 549,
+      "actionsRightGap": 8,
+      "singleRow": true,
+      "fullWidthBars": [
+        {
+          "cls": "app-titlebar",
+          "h": 46,
+          "w": 1280
+        },
+        {
+          "cls": "app-nav",
+          "h": 728,
+          "w": 236
+        },
+        {
+          "cls": "app-main",
+          "h": 728,
+          "w": 684
+        },
+        {
+          "cls": "ai-sidebar",
+          "h": 728,
+          "w": 360
+        },
+        {
+          "cls": "app-status",
+          "h": 26,
+          "w": 1280
+        }
+      ],
+      "route": "/life"
+    },
+    {
+      "path": "/settings",
+      "titlebar": {
+        "h": 46,
+        "bg": "rgb(235, 237, 241)",
+        "gap": "12px",
+        "borderBottom": "0px",
+        "pad": "0px 8px 0px 16px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1280,
+          "h": 46,
+          "bottom": 46
+        }
+      },
+      "topbar": {
+        "h": 46,
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "rect": {
+          "x": 16,
+          "y": 0,
+          "w": 1256,
+          "h": 46,
+          "bottom": 46
+        }
+      },
+      "modebar": {
+        "h": 28,
+        "y": 9,
+        "bottom": 37,
+        "bg": "rgba(0, 0, 0, 0)",
+        "borderBottom": "0px",
+        "minHeight": "0px",
+        "fontSize": "12px",
+        "scoped": true,
+        "rect": {
+          "x": 306,
+          "y": 9,
+          "w": 171,
+          "h": 28,
+          "bottom": 37
+        }
+      },
+      "modebarSelectH": 28,
+      "mainBg": "rgb(244, 245, 248)",
+      "tbTitle": {
+        "fs": "13px",
+        "fw": "600",
+        "text": "Personal Workspace"
+      },
+      "tbContext": "我的电脑·设置",
+      "tbBtn": {
+        "h": 28,
+        "border": "1px",
+        "bg": "rgba(0, 0, 0, 0)"
+      },
+      "actions": [
+        {
+          "tag": "button",
+          "text": "深色",
+          "href": null
+        },
+        {
+          "tag": "button",
+          "text": "最小化",
+          "href": null
+        },
+        {
+          "tag": "a",
+          "text": "设置",
+          "href": "/settings"
+        }
+      ],
+      "topbarText": "Personal Workspace 我的电脑 · 设置 模式 未进入 快速切换… ⚠ 降级模式 深色 最小化 设置",
+      "settingsLink": true,
+      "spacerW": 549,
+      "actionsRightGap": 8,
+      "singleRow": true,
+      "fullWidthBars": [
+        {
+          "cls": "app-titlebar",
+          "h": 46,
+          "w": 1280
+        },
+        {
+          "cls": "app-nav",
+          "h": 728,
+          "w": 236
+        },
+        {
+          "cls": "app-main",
+          "h": 728,
+          "w": 684
+        },
+        {
+          "cls": "ai-sidebar",
+          "h": 728,
+          "w": 360
+        },
+        {
+          "cls": "app-status",
+          "h": 26,
+          "w": 1280
+        }
+      ],
+      "route": "/settings"
+    }
+  ],
+  "started": "2026-09-18 00:43:22",
+  "narrow": {
+    "vw": 1024,
+    "titlebarClientW": 1024,
+    "titlebarScrollW": 1024,
+    "overflow": 0,
+    "actions": [
+      {
+        "text": "深色",
+        "x": 870,
+        "right": 912,
+        "w": 42
+      },
+      {
+        "text": "最小化",
+        "x": 916,
+        "right": 970,
+        "w": 54
+      },
+      {
+        "text": "设置",
+        "x": 974,
+        "right": 1016,
+        "w": 42
+      }
+    ],
+    "actionsInsideViewport": true,
+    "spacerW": 293
+  },
+  "dark": {
+    "titlebarBg": "rgb(16, 18, 22)",
+    "mainBg": "rgb(12, 14, 18)",
+    "titleColor": "rgb(154, 161, 171)",
+    "btnColor": "rgb(86, 94, 110)"
+  },
+  "checks": {
+    "single_row_appbar": true,
+    "appbar_h_46": true,
+    "modebar_override_transparent": true,
+    "modebar_override_no_border": true,
+    "modebar_override_minheight0": true,
+    "main_canvas_bg": true,
+    "has_settings_text": true,
+    "has_minimize_text": true,
+    "settings_route_link": true,
+    "three_actions": true,
+    "actions_right_aligned": true,
+    "narrow_no_overflow": true,
+    "narrow_actions_visible": true,
+    "dark_follows_token": true
+  },
+  "all_ok": true
+}

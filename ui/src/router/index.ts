@@ -1,5 +1,30 @@
 import { createRouter, createWebHistory, type Router } from 'vue-router'
 
+import { inTauri } from '@/api/client'
+
+/** 页面标题（原型 IA 的名称；窗口标题、document.title 与顶栏上下文都用它）。
+ *  UI-FUSION 第四轮：导出给 TopBar 的 `.tb-context` 复用（同一份事实来源，
+ *  避免"窗口标题"与"顶栏上下文"各写一张表而分叉）。 */
+export const PAGE_TITLES: Record<string, string> = {
+  dashboard: '首页',
+  mode: '工作空间',
+  software: '软件',
+  learning: '学习',
+  project: '项目',
+  life: '生活',
+  ai: 'AI 助手',
+  profile: '档案',
+  plugins: '插件',
+  device: '设备',
+  settings: '设置',
+  models: '模型中心',
+  run: '运行',
+  layout: '布局',
+  motion: '动效规范',
+}
+
+const APP_NAME = 'Personal Workspace'
+
 const routes = [
   { path: '/', redirect: '/dashboard' },
   {
@@ -80,6 +105,15 @@ const routes = [
     component: () => import('@/views/RunView.vue'),
   },
   {
+    // 动效规范（UI-FUSION 动效对接）：设计稿 `ROUTES.showcase` 页头写明
+    // 「只做展示与切换，不进主导航 —— 主 IA 不动，入口放在设置 · 外观」，
+    // 故本路由**不进侧边导航**，入口 = 设置页 · 外观 的「动效规范」那一行。
+    // 内容 = 实时演示台 + 场景清单 + 三档降级对比（设计稿 showcase + guard 合并页）。
+    path: '/motion',
+    name: 'motion',
+    component: () => import('@/views/MotionSpecView.vue'),
+  },
+  {
     // TECH-01 验证固件（dev-only，不进导航、不进产品 IA）
     path: '/dev/motion',
     name: 'dev-motion',
@@ -94,8 +128,23 @@ const routes = [
 ]
 
 export function createAppRouter(): Router {
-  return createRouter({
+  const router = createRouter({
     history: createWebHistory(),
     routes,
   })
+
+  // 窗口标题跟随当前页面（桌面应用的基本行为；同时让"App 当前停在哪一页"
+  // 成为可被外部工具读取的事实 —— 实机验收用 Win32 读窗口标题判定路由）。
+  router.afterEach((to) => {
+    const label = PAGE_TITLES[String(to.name ?? '')]
+    const title = label ? `${label} · ${APP_NAME}` : APP_NAME
+    if (typeof document !== 'undefined') document.title = title
+    if (inTauri()) {
+      void import('@tauri-apps/api/window')
+        .then(({ getCurrentWindow }) => getCurrentWindow().setTitle(title))
+        .catch(() => {})
+    }
+  })
+
+  return router
 }

@@ -17,6 +17,13 @@ import { useAppsStore } from '@/stores/apps'
 
 const apps = useAppsStore()
 
+/**
+ * 设计稿 `page:create` 的 `.detect` 块要显示「检测到当前正在使用 N 个应用」。
+ * 这里用**真实的运行态**（apps store 的 5s 轮询 `running` 表）—— 没有在跑就是 0，
+ * 绝不写死数字（C1/C6 不产生伪事实）。
+ */
+const detectApps = computed(() => apps.items.filter((a) => apps.isRunning(a.id)).map((a) => a.name))
+
 const modes = ref<WorkMode[]>([])
 const layouts = ref<LayoutRecord[]>([])
 const cur = ref<{ running: string | null; configured: unknown; launchedAppIds: number[] } | null>(null)
@@ -179,13 +186,16 @@ function closeCapture() {
 
 // ---------------------------------------------------------------- 向导
 
-/** 创建意图预设（三·工作模式 2026-09-13）：选目标 → 预勾选匹配软件，其余默认。 */
-const GOALS: { key: string; label: string; hint: string; keywords: string[] }[] = [
-  { key: 'dev', label: '项目开发', hint: '编辑器 / 终端 / 浏览器', keywords: ['code', 'idea', 'pycharm', 'terminal', 'cmd', 'powershell', 'wt', 'git', 'bash', 'devenv', 'cursor', 'sublime', 'notepad++'] },
-  { key: 'learn', label: '学习', hint: '笔记 / 浏览器 / 阅读器', keywords: ['obsidian', 'notion', 'onenote', 'word', 'sumatra', 'chrome', 'msedge', 'firefox', 'calibre'] },
-  { key: 'write', label: '写作', hint: '文档 / 输入法无忧环境', keywords: ['word', 'notepad', 'typora', 'obsidian', 'wps'] },
-  { key: 'office', label: '办公', hint: '邮件 / 表格 / 沟通', keywords: ['excel', 'outlook', 'wps', 'wechat', 'dingtalk', 'feishu', 'powerpnt'] },
-  { key: 'custom', label: '自定义', hint: '自己勾选软件', keywords: [] },
+/**
+ * 创建意图预设（三·工作模式 2026-09-13）：选目标 → 预勾选匹配软件，其余默认。
+ * `em` 是设计稿 `page:create` 的 `TYPES` 同款图标（`.pick .em`），五个一一对应。
+ */
+const GOALS: { key: string; em: string; label: string; hint: string; keywords: string[] }[] = [
+  { key: 'dev', em: '💻', label: '项目开发', hint: '编辑器 / 终端 / 浏览器', keywords: ['code', 'idea', 'pycharm', 'terminal', 'cmd', 'powershell', 'wt', 'git', 'bash', 'devenv', 'cursor', 'sublime', 'notepad++'] },
+  { key: 'learn', em: '🧠', label: '学习', hint: '笔记 / 浏览器 / 阅读器', keywords: ['obsidian', 'notion', 'onenote', 'word', 'sumatra', 'chrome', 'msedge', 'firefox', 'calibre'] },
+  { key: 'write', em: '✍️', label: '写作', hint: '文档 / 输入法无忧环境', keywords: ['word', 'notepad', 'typora', 'obsidian', 'wps'] },
+  { key: 'office', em: '📊', label: '办公', hint: '邮件 / 表格 / 沟通', keywords: ['excel', 'outlook', 'wps', 'wechat', 'dingtalk', 'feishu', 'powerpnt'] },
+  { key: 'custom', em: '🎯', label: '自定义', hint: '自己勾选软件', keywords: [] },
 ]
 
 const wiz = reactive({
@@ -441,17 +451,21 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
   <section class="mode-view">
     <!-- ============ 列表 ============ -->
     <template v-if="view === 'list'">
-      <header class="mv-toolbar">
-        <h3 class="mv-title">工作模式</h3>
-        <span v-if="cur?.running" class="mv-running">当前：{{ cur.running }}</span>
-        <span v-else-if="typeof cur?.configured === 'string' && cur.configured" class="mv-last">
-          上次使用：{{ cur.configured }}
-        </span>
-        <span class="mv-toolbar-gap"></span>
-        <button type="button" class="primary" @click="openCapture">保存当前环境为模式</button>
-        <button type="button" @click="openWizard">新建模式</button>
-        <button type="button" @click="openEditor">布局编辑器</button>
-        <button v-if="cur?.running" type="button" @click="exitMode">退出模式</button>
+      <header class="mv-toolbar page-head">
+        <div class="grow">
+          <h3 class="t-page">工作模式</h3>
+          <div class="t-cap" style="margin-top: 2px">
+            <template v-if="cur?.running">当前：{{ cur.running }}</template>
+            <template v-else-if="typeof cur?.configured === 'string' && cur.configured">
+              上次使用：{{ cur.configured }}
+            </template>
+            <template v-else>保存当前环境为模式，下次一键回到这个状态</template>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--sm" type="button" @click="openCapture">保存当前环境为模式</button>
+        <button class="btn btn--secondary btn--sm" type="button" @click="openWizard">新建模式</button>
+        <button class="btn btn--secondary btn--sm" type="button" @click="openEditor">布局编辑器</button>
+        <button v-if="cur?.running" class="btn btn--secondary btn--sm" type="button" @click="exitMode">退出模式</button>
       </header>
 
       <p v-if="modes.length === 0" class="mv-hint">
@@ -460,10 +474,18 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
 
       <p v-if="error" class="mv-error">{{ error }}</p>
 
+      <!-- 模式卡 = 设计稿 `fn:wsCard` 的 `.ws-card`（`.hd`/`.nm`/`.actions` 均为设计稿类名；
+           `.actions` 由设计稿做 hover 显隐；`.sel` = 正在运行的模式）。 -->
       <div class="mv-grid">
-        <article v-for="m in modes" :key="m.id" class="mode-card" :class="{ active: cur?.running === m.name }">
-          <header class="mode-card__head">
-            <span class="mode-card__name">{{ m.name }}</span>
+        <article
+          v-for="m in modes"
+          :key="m.id"
+          class="mode-card ws-card"
+          :class="{ sel: cur?.running === m.name }"
+        >
+          <header class="mode-card__head hd">
+            <span class="badge-emoji" style="width: 28px; height: 28px; font-size: 13px">{{ m.name.slice(0, 1) }}</span>
+            <span class="mode-card__name nm">{{ m.name }}</span>
             <span v-if="m.autoApply" class="mode-card__badge">自动</span>
           </header>
           <p class="mode-card__desc">{{ m.description || '—' }}</p>
@@ -482,12 +504,23 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
               </span>
             </div>
           </div>
-          <footer class="mode-card__actions">
+          <footer class="mode-card__actions actions">
             <button type="button" class="primary mode-enter" :disabled="busy" @click="enter(m)">一键进入</button>
             <button type="button" @click="duplicate(m)">复制</button>
             <button type="button" @click="removeMode(m)">删除</button>
           </footer>
         </article>
+
+        <!-- 新建入口 = 设计稿 `page:workspaces` 末尾的 `.new-card`（虚线卡） -->
+        <button type="button" class="new-card" data-pw="mode-new-card" @click="openWizard">
+          <span
+            style="width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--surface-3)"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5.2v13.6M5.2 12h13.6" /></svg>
+          </span>
+          <span class="t-sm" style="font-weight: 600">新建工作模式</span>
+          <span class="t-cap">选一个用途，系统帮你把环境准备好</span>
+        </button>
       </div>
 
       <!-- ============ 进度面板（F-38） ============ -->
@@ -524,6 +557,24 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
           <button type="button" @click="captureOpen = false">关闭</button>
         </header>
         <template v-if="!captureResult">
+          <!-- 「当前环境」检测块 = 设计稿 `page:create` 的 `.detect`；数字与芯片都来自真实运行态 -->
+          <div class="detect">
+            <span style="color: var(--success)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4" /><path d="m8.4 12.2 2.4 2.4 4.8-5" /></svg>
+            </span>
+            <div class="grow" style="flex: 1">
+              <div class="t-sm" style="font-weight: 600">
+                {{
+                  detectApps.length
+                    ? `检测到当前正在使用 ${detectApps.length} 个应用`
+                    : '当前没有检测到运行中的软件'
+                }}
+              </div>
+              <div class="row" style="gap: var(--space-2); margin-top: 4px">
+                <span v-for="a in detectApps" :key="a" class="chip">{{ a }}</span>
+              </div>
+            </div>
+          </div>
           <p class="mv-hint">把想用的软件都开好、摆好位置，然后给这套环境起个名字。系统会记住开了哪些软件、各自在什么位置。</p>
           <label>模式名称<input v-model="captureName" class="wiz-name" type="text" placeholder="例如：写代码" @keyup.enter="submitCapture" /></label>
           <footer class="apps-modal-foot">
@@ -552,44 +603,73 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
         <button type="button" @click="view = 'list'">取消</button>
       </header>
 
+      <!-- 步骤条 = 设计稿 `page:create` 的 `.wsteps/.wstep/.wline`（当前步 `.on`，已过 `.done`） -->
+      <div class="wsteps">
+        <div class="wstep" :class="wiz.step === 0 ? 'on' : 'done'">
+          <span class="n">{{ wiz.step > 0 ? '✓' : '1' }}</span>你准备做什么
+        </div>
+        <div class="wline"></div>
+        <div class="wstep" :class="wiz.step === 1 ? 'on' : wiz.step > 1 ? 'done' : ''">
+          <span class="n">{{ wiz.step > 1 ? '✓' : '2' }}</span>需要哪些应用
+        </div>
+        <div class="wline"></div>
+        <div class="wstep" :class="wiz.step >= 2 ? 'on' : ''">
+          <span class="n">3</span>布局与启动参数
+        </div>
+      </div>
+
       <!-- 第 0 步：选目标 -->
       <div v-if="wiz.step === 0" class="mv-form">
         <p class="mv-hint">这个模式用来做什么？系统会据此帮你挑好软件。</p>
-        <div class="wiz-goals">
+        <div class="wiz-goals pick-grid">
           <button
             v-for="g in GOALS"
             :key="g.key"
             type="button"
-            class="wiz-goal"
-            :class="{ active: wiz.goal === g.key }"
+            class="wiz-goal pick"
+            :class="{ active: wiz.goal === g.key, on: wiz.goal === g.key }"
             @click="pickGoal(g.key)"
           >
-            <span class="wiz-goal__label">{{ g.label }}</span>
-            <span class="wiz-goal__hint">{{ g.hint }}</span>
+            <span class="tick">✓</span>
+            <div class="em">{{ g.em }}</div>
+            <div class="t">{{ g.label }}</div>
+            <div class="d">{{ g.hint }}</div>
           </button>
         </div>
         <label>模式名称<input v-model="wiz.name" class="wiz-name" type="text" placeholder="例如：深度学习模式" /></label>
         <footer>
-          <button type="button" class="primary" :disabled="!wiz.goal || !wiz.name.trim()" @click="wiz.step = 1">下一步</button>
+          <button
+            type="button"
+            class="btn btn--primary btn--lg"
+            :disabled="!wiz.goal || !wiz.name.trim()"
+            @click="wiz.step = 1"
+          >下一步</button>
         </footer>
       </div>
 
       <!-- 第 1 步：确认软件 -->
       <div v-else-if="wiz.step === 1" class="mv-form">
         <p class="mv-hint">已按「{{ GOALS.find((g) => g.key === wiz.goal)?.label }}」帮你勾好了一批，增删几个就好：</p>
-        <ul class="wiz-apps">
-          <li v-for="a in apps.items" :key="a.id">
-            <label>
-              <input type="checkbox" :checked="wiz.apps.includes(a.name)" @change="toggleApp(a.name)" />
-              <span>{{ a.name }}</span>
-              <span v-if="a.category" class="wiz-cat">{{ a.category }}</span>
-            </label>
-          </li>
-        </ul>
+        <!-- 应用格 = 设计稿 `page:create` 的 `.app-pick`（`.on` + `.tick` 由设计稿画） -->
+        <div class="wiz-apps">
+          <button
+            v-for="a in apps.items"
+            :key="a.id"
+            type="button"
+            class="app-pick"
+            :class="{ on: wiz.apps.includes(a.name) }"
+            :aria-pressed="wiz.apps.includes(a.name)"
+            @click="toggleApp(a.name)"
+          >
+            <span class="tick">✓</span>
+            <span class="app sm">{{ a.name.slice(0, 1) }}</span>
+            <span class="t-sm" style="font-weight: 500">{{ a.name }}</span>
+          </button>
+        </div>
         <p v-if="apps.items.length === 0" class="mv-hint">软件库为空 —— 先到「软件」页扫描添加。</p>
         <footer>
           <button type="button" @click="wiz.step = 0">上一步</button>
-          <button type="button" class="primary" @click="wiz.step = 2">下一步</button>
+          <button type="button" class="btn btn--primary btn--lg" @click="wiz.step = 2">下一步</button>
         </footer>
       </div>
 
@@ -629,7 +709,12 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
 
         <footer>
           <button type="button" @click="wiz.step = 1">上一步</button>
-          <button type="button" class="primary wiz-submit" :disabled="busy" @click="submitWizard">创建</button>
+          <button
+            type="button"
+            class="btn btn--primary btn--lg wiz-submit"
+            :disabled="busy"
+            @click="submitWizard"
+          >创建</button>
         </footer>
       </div>
     </template>
@@ -721,33 +806,9 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
   gap: 12px;
 }
 
-.mode-card {
-  position: relative;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  box-shadow: var(--shadow);
-}
-
-.mode-card.active {
-  border-color: var(--ok);
-}
-
-.mode-card__head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.mode-card__name {
-  font-weight: 600;
-  font-size: 15px;
-}
-
+/* 卡体外观全部交给设计稿 `.ws-card`（position/背景/边框/圆角/padding/排版/gap/
+   cursor/transition + hover 抬升）—— 本地不再抄一遍（同权 0,2,0 会变成源序赌博）。
+   `.sel`（正在运行的模式）也是设计稿类：`.ws-card.sel{background:brand-50}`。 */
 .mode-card__badge {
   font-size: 11px;
   background: var(--accent-weak);
@@ -791,9 +852,8 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
   color: var(--danger);
 }
 
+/* `.actions` 的 flex/gap + hover 显隐由设计稿 `.ws-card .actions` 给；这里只留设计稿没有的顶对齐 */
 .mode-card__actions {
-  display: flex;
-  gap: 6px;
   margin-top: auto;
 }
 
@@ -893,21 +953,14 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
   justify-content: flex-end;
 }
 
+/* 应用格容器：设计稿 `page:create` 是 `repeat(4,1fr)` 的 `.grid`；这里沿用同一节奏，
+   单格外观（`.app-pick` + `.tick`）由设计稿给，本地只保留滚动上限。 */
 .wiz-apps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
   max-height: 300px;
   overflow: auto;
-}
-
-.wiz-apps label {
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 .wiz-args {
@@ -1028,34 +1081,9 @@ function applyTemplate(kind: 'quad' | 'split-v' | 'split-h' | 'three') {
   gap: 10px;
 }
 
-.wiz-goals {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 8px;
-}
-
-.wiz-goal {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: 10px 12px;
-  text-align: left;
-}
-
-.wiz-goal.active {
-  background: var(--accent-weak);
-  border-color: var(--accent);
-}
-
-.wiz-goal__label {
-  font-weight: 600;
-}
-
-.wiz-goal__hint {
-  font-size: 12px;
-  color: var(--text-dim);
-}
+/* 目标卡 = 设计稿 `page:create` 的 `.pick-grid` + `.pick`：
+   网格列数/卡内几何/选中态（`.on` + `.tick`）/`.em .t .d` 排版全部由设计稿给，
+   本地块整体删除（同权 0,2,0 抄一遍 = 让源序决定胜负，见 CONTEXT-PACK §1.2 纪律）。 */
 
 .wiz-cat {
   color: var(--text-dim);

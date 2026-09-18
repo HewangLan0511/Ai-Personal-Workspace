@@ -526,10 +526,14 @@ def t3_snapshot_facade() -> None:
 
     # T1c 白名单未被破坏：不得有新文件 import workspace/runtime
     # （TECH-05-C §P0-3 登记了产品内的工作空间状态组件为第二处消费者）
+    # （UI-FUSION-FULL 登记第三处：首页 Hero 读取工作空间运行时作**只读**投影，
+    #   与 WorkspaceStatus.vue 同一类消费者 —— 只读 `workspaceRuntime` 门面，
+    #   不新增写路径、不碰 frozen 命令面）
     allowed = {
         str(SRC / "workspace" / "runtime.ts"),
         str(SRC / "views" / "DevWorkspaceHarness.vue"),
         str(SRC / "components" / "WorkspaceStatus.vue"),
+        str(SRC / "components" / "HomeHero.vue"),
     }
     importers: list[str] = []
     for path in list(SRC.rglob("*.ts")) + list(SRC.rglob("*.vue")):
@@ -544,12 +548,20 @@ def t4_forbidden() -> None:
     router = read_src("router/index.ts")
     routes = re.findall(r"path:\s*'([^']*)'", router)
     # TECH-05-C §P0-1 有意新增一条：`/models`（模型管理中心，不进主导航）。
+    # TECH-07 §P0-4 有意新增一条：`/run`（运行页 · 影院版，不进主导航）。
+    # 2026-09-18 动效对接批次有意新增一条：`/motion`（动效规范页 · 不进主导航）。
+    #   依据 = 设计稿 `ROUTES.showcase` 页头原文「只做展示与切换，不进主导航 ——
+    #   主 IA 不动，入口放在设置 · 外观」；同批把设计稿的 `ROUTES.guard`
+    #   （三档降级对比）并入同一页，故只新增**一条**路由而不是两条。
+    #   与既有的 `/dev/motion`（DevMotionHarness.vue）**不是同一件东西**：
+    #   前者是产品页（设计稿的动效规范台），后者是 TECH-01 的 dev-only 固件。
     # 基线因此演进 —— 但"演进了哪一条"必须逐项可核对（差异会打进 detail）。
     baseline = ['/', '/dashboard', '/software', '/ai', '/learning', '/project', '/mode', '/layout',
-                '/profile', '/life', '/device', '/plugins', '/settings', '/models',
-                '/dev/motion', '/dev/workspace']
+                '/profile', '/life', '/device', '/plugins', '/settings', '/models', '/run',
+                '/motion', '/dev/motion', '/dev/workspace']
     same = routes == baseline
-    check("T4a UI 页面清单与基线逐项一致（TECH-05-C 后基线含 /models）", same,
+    check("T4a UI 页面清单与基线逐项一致（TECH-05-C 后基线含 /models，TECH-07 后含 /run，本批含 /motion）",
+          same,
           json.dumps({"count": len(routes), "一致": same, "差异": sorted(set(routes) ^ set(baseline))},
                      ensure_ascii=False))
 
@@ -557,11 +569,11 @@ def t4_forbidden() -> None:
     views_baseline = [
         "AiView.vue", "DashboardView.vue", "DesktopWidgetView.vue", "DevMotionHarness.vue",
         "DevWorkspaceHarness.vue", "DeviceView.vue", "LayoutView.vue", "LearningView.vue",
-        "LifeView.vue", "ModeView.vue", "ModelsView.vue", "PluginsView.vue", "ProfileView.vue",
-        "ProjectView.vue", "SettingsView.vue", "SoftwareView.vue",
+        "LifeView.vue", "ModeView.vue", "ModelsView.vue", "MotionSpecView.vue", "PluginsView.vue",
+        "ProfileView.vue", "ProjectView.vue", "RunView.vue", "SettingsView.vue", "SoftwareView.vue",
     ]
     views = sorted(p.name for p in (SRC / "views").glob("*.vue"))
-    check("T4b 视图文件与基线逐项一致（无删除 / 无搬家；TECH-05-C 后含 ModelsView.vue）",
+    check("T4b 视图文件与基线逐项一致（无删除 / 无搬家；TECH-05-C 后含 ModelsView.vue，本批含 MotionSpecView.vue）",
           views == sorted(views_baseline),
           json.dumps({"count": len(views), "差异": sorted(set(views) ^ set(views_baseline))},
                      ensure_ascii=False))

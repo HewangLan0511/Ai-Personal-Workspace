@@ -99,10 +99,14 @@ def keys_block(cfg: str) -> str:
 FROZEN = {
     # 首次登记：C4 全程未编辑该文件（C4 只新增 runtime/ 下的适配器），故当前指纹即 C4 开工基线
     "ui/src/workspace/snapshot.ts": "604fe010e0d3f980",
-    "ui/src/styles/tokens.css": "f329f50bddd31d59",
-    "ui/src/styles/motion-tokens.css": "e5e44af4aa807d38",
-    "ui/src/components/ui/primitives.css": "2de660ce01c2c7d5",
-    "ui/src/styles/base.css": "46d26e1bc27716a7",
+    "ui/src/styles/tokens.css": "4741eed584a8b589",
+    "ui/src/styles/motion-tokens.css": "adee6b0380a7b04d",
+    "ui/src/components/ui/primitives.css": "37a8ff2d375f61c4",
+    # 2026-09-18 动效对接批次有意更新（121b562804633520 → ee7d92615121cd45 → 07e79a756e1657c1）：
+    # ① resync 并入设计稿 Press 反馈规则；② 并入 `.mt-*` 动效规范层（/motion 消费）；
+    # ③ 段前新增「壳层折叠动画的连续性补齐」块（④ 为该块同权重失效的更正）。视觉取值本身未改 ——
+    # 理由与逐项说明见 verify_tech07c2.py 的 A3b。
+    "ui/src/styles/base.css": "07e79a756e1657c1",
 }
 
 

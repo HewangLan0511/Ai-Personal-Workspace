@@ -579,8 +579,13 @@ def t4_no_new_backend_and_ui_frozen() -> None:
     router = read_src("router/index.ts")
     routes = re.findall(r"path:\s*'([^']*)'", router)
     views = sorted(p.name for p in (SRC / "views").glob("*.vue"))
-    check("T5b 零新增页面/路由（16 路由 / 16 视图与 TECH-06-A 基线一致）",
-          len(routes) == 16 and len(views) == 16,
+    # 基线演进（逐项可核对，判据不放松）：
+    #   TECH-07 后 +1 → /run + RunView.vue；
+    #   2026-09-18 动效对接批次 +1 → /motion + MotionSpecView.vue（设计稿 ROUTES.showcase，
+    #   页头原文「不进主导航，入口放在设置 · 外观」）。
+    check("T5b 零新增页面/路由（18 路由 / 18 视图与 TECH-06-A 基线一致；"
+          "TECH-07 后含 /run + RunView.vue，动效批次后含 /motion + MotionSpecView.vue）",
+          len(routes) == 18 and len(views) == 18,
           json.dumps({"路由数": len(routes), "视图数": len(views)}, ensure_ascii=False))
 
 

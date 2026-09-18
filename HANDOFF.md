@@ -2,7 +2,10 @@
 
 > **如果你是一个刚接手本项目的 Agent，这是你该读的第一个文件。**
 > 读完本文件，你只需要再读 3 个文档就能开工。
-> 最后更新：2026-09-15 · 维护人：项目监制（肉编器001号）
+> 最后更新：2026-09-17 · 维护人：项目监制（肉编器001号）
+>
+> ⚠️ **接手"当前正在办的事"请先读 `docs/tech/CONTEXT-PACK.md`**（状态 / 下一步 / 硬约束 / 环境坑 / 可直接粘的开场白，一页装完）。
+> 本文件主讲项目制度与入口，`LEDGER.md` 讲进度，三者互补。
 
 ---
 
@@ -12,10 +15,10 @@
 |------|------|
 | 这是什么项目 | **Personal Workspace** —— 一个本地优先、AI 增强、插件可扩展的个人智能工作空间 |
 | 目标是解决什么 | 让电脑从"工具集合"变成"以任务目标为中心、自动组织软件/窗口/AI/信息"的调度中心 |
-| 现在的阶段 | **阶段0~9 全部 ✅ 通过，项目阶段全部收官**（阶段1 REVIEW-005 / 阶段2 REVIEW-008 / 阶段3 REVIEW-009 / **阶段4 ★ 核心 REVIEW-011** / **阶段5 REVIEW-013** / **阶段6 REVIEW-014** / **阶段7 REVIEW-015** / **阶段8 REVIEW-016** / **阶段9 REVIEW-017**）。<br>后续工作 = 维护 / 遗留项清理 / 白宇提出的新需求（无预设阶段指令）。 |
+| 现在的阶段 | **阶段0~9 全部 ✅ 通过**（阶段1 REVIEW-005 / 阶段2 REVIEW-008 / 阶段3 REVIEW-009 / **阶段4 ★ 核心 REVIEW-011** / **阶段5 REVIEW-013** / **阶段6 REVIEW-014** / **阶段7 REVIEW-015** / **阶段8 REVIEW-016** / **阶段9 REVIEW-017**）；<br>**V0.1 系列已收口**（TECH-01~07、PW-INTEGRATION-001~003、V0.1-FINAL、V0.1-RELEASE）；<br>**当前在办 = 「UI 视觉保真收口」**：把 `personal-workspace-ui/`（唯一视觉源）真正落到正式 App。骨架 + 动效层已接（`docs/tech/UI-FUSION-FORCE-report.md`），逐页内部结构未完。 |
 | 工作区已有 | **完整可编译可运行的代码**：`core/`（Rust 核心，Tauri 2.x：框架 / 软件库 / 窗口管理 / 工作模式引擎 / AI 转发与事件桥 / 学习成长与项目 / 个人数字档案 / 生活中心与设备中心 / **插件宿主与权限网关 / 外部 Agent 网关 / 桌面小组件**）、`ui/`（Vue3 + TS，含模式/软件/布局 + AI 侧栏 + 学习页/项目页/档案页/生活页/设备页/**插件管理页/小组件窗口**）、`plugins/`（示例插件×2：番茄钟 / 音乐）、`system/`（Python sidecar，PyInstaller 单文件）、`ai/`（Python：Provider 抽象 + 提示词 + 上下文装配）、`tools/gate.py`（门禁）、`tools/verify_stage{1..9}.py` + `verify_stage5_stream.py` + `verify_sidecar_bundle.py`（验收自动核验）、`docs/plugin-dev-guide.md`（插件开发指南）。 |
 | 谁负责审核 | 监制「肉编器001号」。**未经审核通过，不得进入下一阶段。** |
-| 你现在该做的 | 读 `docs/reviews/LEDGER.md` 确认阶段0~9 全部通过 → **无预设待办阶段**；接新需求时先跑基线（`gate.py --stage 9 --build` 应 0F/0W）再动代码；遗留项清单见 LEDGER |
+| 你现在该做的 | **读 `docs/tech/CONTEXT-PACK.md`**（当前任务 / 下一步顺序 / 硬约束 / 命令速查 / 环境坑 / 开场白）→ 再读 `docs/reviews/LEDGER.md` 确认进度 → 按 CONTEXT-PACK §1.2 的顺序推进 UI 保真。动代码前先跑基线 `gate.py --stage 9 --build`（应 0F/0W） |
 
 **当前进度唯一真相来源**：`docs/reviews/LEDGER.md`（不是任何人嘴里的进度）
 
@@ -38,24 +41,21 @@
 
 ## 1. 你现在的具体任务
 
-如果你是被叫来"继续开发"的，你的任务是：
+> **本节的"当前任务"已于 2026-09-17 更新为 UI 视觉保真收口。**
+> 下面 PW-INTEGRATION / TECH-01 等段落保留为**已冻结的历史口径**，仍是有效约束，但不是当前在办事项。
 
 ```
-当前任务 = PW-INTEGRATION 整合阶段 · 已完成 003 Contract Freeze ✅（只冻契约，零业务实现）
-          （报告 docs/reviews/PW-INTEGRATION-003-contract-freeze.md · 契约门禁
-            tools/verify_contracts.py 6/6 · schema docs/contracts/workspace-snapshot.v1.schema.json）
-          上一节点 = PW-INTEGRATION-002 Preflight（只设计）· 001 整合前架构审计（只分析）
-冻结口径 = ①Workspace Resize = 外部软件窗口（复用 windows_place，零 Core 新增命令）
-          ②Snapshot 持久化走 config 键 workspace.snapshot.last（零 migration，0009 留后）
-          ③AI Provider canonical = core config ai.provider.current（localStorage 降缓存）
-          ④"完成工作" 登记 PD-001，不实现
-下一步   = **等产品侧确认 UI-04**（UI Skill 正在做真实体验优化）。期间只做"安全区"：
-          config 三键登记 / AI current 读写投影 / 快照采集骨架 / 契约门禁纳回归 / docs。
-          UI-04 交付后按 IP1 浮层统一 → IP2 Provider 收口 → IP3 Motion → IP4 Skin → IP5 快照
-          → IP6 双通道 → IP7 安全加固 推进；IP8 只设计不编码
-接新需求时 = 先跑基线 `python tools/gate.py --stage 9 --build`（应 0F/0W）· `cargo test`(86/86) ·
-             回归四件套 `tools/verify_tech01.py`(9/9) · `verify_skin_engine.py`(12/12) ·
-             `perf_tech01_22.py`(14 窗口 0 Long Task) · `verify_contracts.py`(6/6)
+当前任务 = UI 视觉保真收口（唯一在办）
+          ├ 已接：侧栏/首页/设置/软件 四页 = 原型结构；11 条路由渲染真实内容；
+          │        原型骨架统一 + 动效层落地（4 组 keyframes，token 驱动，Guard 生效）
+          ├ 证据：docs/tech/UI-FUSION-FORCE-report.md · docs/tech/CONTEXT-PACK.md §1.1
+          └ 下一步（顺序勿跳，见 CONTEXT-PACK §1.2）：
+             ① 顶部壳层 appbar 化（ModeBar.vue 受 C6 冻结 hash 约束，动它要先改基线并记账）
+             ② LifeView/DeviceView/PluginsView/LearningView/ProjectView 内部卡片原型化
+             ③ AiView/ModelsView/ModeView 内部结构（ModeView 拖拽子元素禁加 transform 动画）
+         发版状态 = NOT RELEASED（tag v0.1 未覆盖）；等保真收口 + 白宇确认后再发
+每批收尾 = _fusion_build.py → _force_motion_check.py → Tauri 重建 → _force_refresh_install.py
+          → LEDGER 记账（改过 base.css 必须同步 5 个验收脚本里的 hash 基线）
 ```
 
 ### PW-INTEGRATION 已冻结内容（一句话）
@@ -343,6 +343,9 @@ V3 —— ✅ 全部通过（收官）
 ---
 
 ## 9. ★ 复制粘贴给新 Agent 的开场白
+
+> **当前在办事项（UI 视觉保真收口）的开场白在 `docs/tech/CONTEXT-PACK.md` §6**，直接粘那一段即可。
+> 下面这段是**通用接手开场白**（适用于新需求/新阶段，不属于 UI 保真专项）。
 
 把下面整段发给要接手的 Agent（任何模型都适用）：
 

@@ -1,0 +1,13 @@
+{
+  "exe": "C:/Users/baiyu/Desktop/Personal Workspace/core/target/release/personal-workspace-core.exe",
+  "tag": "built",
+  "data_dir": "C:\\Users\\baiyu\\AppData\\Local\\Temp\\pw-force-built-2f1khg_4",
+  "cdp_port": 52012,
+  "steps": [],
+  "attach_attempts": [
+    "attempt1: RuntimeError: CDP 未就绪（WebView2 远程调试未开启？）",
+    "attempt2: RuntimeError: CDP 未就绪（WebView2 远程调试未开启？）",
+    "attempt3: RuntimeError: CDP 未就绪（WebView2 远程调试未开启？）"
+  ],
+  "error": "无法连接 WebView2 调试端点"
+}

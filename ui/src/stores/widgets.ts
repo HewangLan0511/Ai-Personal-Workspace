@@ -128,6 +128,43 @@ export const useWidgetStore = defineStore('widgets', {
       w.enabled = !w.enabled
       await this.persist()
     },
+    /**
+     * 拖拽排序（设计稿 `openCustomize` → `enableSort('#arrangeWidgets', '.arrange-row', …)`）。
+     *
+     * 语义 = `moveItem(list, from, to)`：**先摘后插**（`from` 是拖动前下标，
+     * `to` 是拖动落点下标）—— 与 `useListSort` 的 `move` 模式回调口径一致。
+     *
+     * 与设计稿的**有意差异**：设计稿只重排 `enabled` 子序列再回填（`WIDGETS.filter(w=>w.on)`
+     * + 回填循环），但传进回调的 `from/to` 是**含停用项的全量下标** ——
+     * 两个下标空间不一致，只要有任意一个组件被关掉就会移错位。本工程改为
+     * **直接重排全量数组**：编排列表把停用项也画出来了（`.arrange-row.off`），
+     * 所以"看到的顺序"与"存的顺序"是同一个数组，下标天然自洽。
+     *
+     * 与 `moveUp/moveDown` 一样，手动排序 → 顺手锁定布局（04 §3 `layout_locked`），
+     * 否则下一次 `autoSize` 会按 priority 把顺序又冲掉。
+     */
+    async reorderWidget(from: number, to: number) {
+      const n = this.widgets.length
+      if (from === to || from < 0 || to < 0 || from >= n || to >= n) return
+      const [item] = this.widgets.splice(from, 1)
+      this.widgets.splice(to, 0, item)
+      this.layoutLocked = true
+      await this.persist()
+      await this.persistLock()
+    },
+    /**
+     * 固定布局：不再按使用频率自动覆盖尺寸与顺序（04 §3 `layout_locked`）。
+     *
+     * 与 `moveUp/moveDown` 的区别：那两个是"手动拖了一次 → 顺手锁定"的副作用入口，
+     * 本动作是**显式选择**（设置页「外观 · 首页布局 = 固定」）。两种情况观感一样
+     * （都不再自动变），但语义不能混：用户点了"固定"不该被记成"他拖过卡片"。
+     * 只写锁定键，不重排尺寸 —— 固定 = 保持现状。
+     */
+    async lockLayout() {
+      if (this.layoutLocked) return
+      this.layoutLocked = true
+      await this.persistLock()
+    },
     /** 解除锁定，恢复「按 frequency + priority 自动布局」（04 §3 的出口，避免锁死） */
     async unlockLayout() {
       this.layoutLocked = false

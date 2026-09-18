@@ -113,10 +113,17 @@ def a3_visual_baseline() -> None:
     defined = re.findall(r"(--[\w-]+)\s*:", rv)
     check("A3a RunView 零私造 token 定义", not defined, str(defined[:5] or "无"))
     frozen = {
-        "ui/src/styles/tokens.css": "f329f50bddd31d59",
-        "ui/src/styles/motion-tokens.css": "e5e44af4aa807d38",
-        "ui/src/components/ui/primitives.css": "2de660ce01c2c7d5",
-        "ui/src/styles/base.css": "46d26e1bc27716a7",
+        "ui/src/styles/tokens.css": "4741eed584a8b589",
+        "ui/src/styles/motion-tokens.css": "adee6b0380a7b04d",
+        "ui/src/components/ui/primitives.css": "37a8ff2d375f61c4",
+        # 2026-09-18 动效对接批次有意更新（121b562804633520 → ee7d92615121cd45 → 07e79a756e1657c1）：
+        # ① resync 并入设计稿的 Press 反馈规则（原被 `^button` 前缀连带排除）；
+        # ② 并入 `.mt-*` 动效规范层（/motion 为其产品消费方）；
+        # ③ 段前新增「壳层折叠动画的连续性补齐」块（`.nav-item`/`.device-line`）；
+        # ④ ③ 的更正：同权重平局会被源序反超，选择器补成 `.shell.app-shell.mini …`。
+        # 视觉取值本身未改（①② 设计稿原文，③ 终点与设计稿逐像素一致），
+        # 理由与逐项说明见 verify_tech07c2.py 的 A3b。
+        "ui/src/styles/base.css": "07e79a756e1657c1",
     }
     bad = []
     for rel, want in frozen.items():

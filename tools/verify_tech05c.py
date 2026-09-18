@@ -312,9 +312,15 @@ def t4_no_second_system() -> None:
         if re.search(r"(?m)^\s*--[A-Za-z0-9_-]+\s*:", text):
             defines.append(rel)
     # 用到的 var(--x) 必须都能找到定义
+    #
+    # ⚠️ 2026-09-18 修工具缺陷：原先用 `^\s*(--x)\s*:`（**行首锚定**）收集定义，
+    # 而 tokens.css 的排版标度段是「一行多声明」（`--fs-page: 20px;  --lh-page: 28px; …`），
+    # 于是 --lh-* / --ls-* 全家被判成"未定义"——这是**假阴性**，也掩盖了
+    # "这些 token 其实没人在用"。改为不锚行首、先剥注释，只要求"某处有 `--x:` 声明"。
     defined: set[str] = set()
     for p in list(SRC.rglob("*.css")) + list(SRC.rglob("*.vue")):
-        defined |= set(re.findall(r"(?m)^\s*(--[A-Za-z0-9_-]+)\s*:", p.read_text(encoding="utf-8")))
+        text = re.sub(r"/\*.*?\*/", "", p.read_text(encoding="utf-8"), flags=re.S)
+        defined |= set(re.findall(r"(--[A-Za-z0-9_-]+)\s*:", text))
     used: set[str] = set()
     for rel in prim_files:
         used |= set(re.findall(r"var\(\s*(--[A-Za-z0-9_-]+)", read_src(rel)))

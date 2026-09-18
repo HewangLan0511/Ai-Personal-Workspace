@@ -7,6 +7,7 @@ import { useWidgetStore } from '@/stores/widgets'
 export function useWidgets(): {
   moveUp: (id: string) => Promise<void>
   moveDown: (id: string) => Promise<void>
+  reorderWidget: (from: number, to: number) => Promise<void>
   toggleEnabled: (id: string) => Promise<void>
   recordUse: (id: string) => Promise<void>
 } {
@@ -14,6 +15,7 @@ export function useWidgets(): {
   return {
     moveUp: (id: string) => store.moveUp(id),
     moveDown: (id: string) => store.moveDown(id),
+    reorderWidget: (from: number, to: number) => store.reorderWidget(from, to),
     toggleEnabled: (id: string) => store.toggleEnabled(id),
     recordUse: (id: string) => store.recordUse(id),
   }

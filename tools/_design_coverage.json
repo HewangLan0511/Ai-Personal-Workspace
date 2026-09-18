@@ -1,0 +1,473 @@
+{
+  "mode": "default",
+  "markup_class_total": 267,
+  "landed": [
+    "t-cap",
+    "btn",
+    "row",
+    "t-sm",
+    "btn--secondary",
+    "btn--sm",
+    "chip",
+    "card",
+    "t-section",
+    "icon-btn",
+    "btn--primary",
+    "c2",
+    "sm",
+    "input",
+    "field",
+    "t-card",
+    "lg",
+    "t-page",
+    "btn--ghost",
+    "switch",
+    "stack",
+    "mono",
+    "spacer",
+    "grid",
+    "app",
+    "card--lg",
+    "scrim",
+    "on",
+    "card--ghost",
+    "page-head",
+    "seg",
+    "drawer",
+    "drawer-head",
+    "drawer-body",
+    "drawer-foot",
+    "badge",
+    "t-label",
+    "chip--brand",
+    "nm",
+    "progress",
+    "main",
+    "ico",
+    "t-num",
+    "sec",
+    "sec-head",
+    "row-item",
+    "title",
+    "skel",
+    "checkbox",
+    "thin",
+    "tint4",
+    "btn--lg",
+    "tint",
+    "msg",
+    "bubble",
+    "badge-emoji",
+    "btn--danger",
+    "wide",
+    "g2",
+    "dot",
+    "chip--outline",
+    "app-square",
+    "sep",
+    "num",
+    "rs-dot",
+    "rs-item",
+    "rs-k",
+    "c1",
+    "badge--success",
+    "avatar",
+    "g3",
+    "t",
+    "nav-item",
+    "lbl",
+    "map",
+    "n",
+    "tick",
+    "tint2",
+    "search",
+    "p",
+    "live",
+    "spinner",
+    "select",
+    "card--dashed",
+    "avatar-pick",
+    "arrange-row",
+    "nowplaying",
+    "meta",
+    "ttl",
+    "art",
+    "nav-group",
+    "ai-perm",
+    "me",
+    "ai-suggest",
+    "tip",
+    "tip-body",
+    "sort-hint",
+    "wf-mode",
+    "new-card",
+    "wstep",
+    "pick-grid",
+    "pick",
+    "em",
+    "d",
+    "app-pick",
+    "tm",
+    "app-row",
+    "grip",
+    "ai-fab",
+    "modal",
+    "tabs",
+    "timeline",
+    "tl-item",
+    "node",
+    "badge--warning",
+    "spark",
+    "badge--danger",
+    "life-card",
+    "c3",
+    "mt-stage",
+    "mt-box",
+    "radio",
+    "titlebar",
+    "tb-mark",
+    "tb-logo",
+    "tb-title",
+    "tb-sep",
+    "tb-context",
+    "tb-spacer",
+    "win-btns",
+    "danger",
+    "widget-col",
+    "ai-dock",
+    "toast-host",
+    "wscroll",
+    "wcard",
+    "wgrip",
+    "widget-add",
+    "ctx-sep",
+    "ctx-head",
+    "ctx-item",
+    "kbd",
+    "idle",
+    "bar",
+    "ctrl",
+    "minimap",
+    "nav-group-title",
+    "nav-foot",
+    "device-line",
+    "txt",
+    "dock-rail",
+    "rail-btn",
+    "rail-label",
+    "rail-mode",
+    "dock-panel",
+    "ai-head",
+    "plain",
+    "ai-input",
+    "greet",
+    "greet-main",
+    "hero",
+    "apps",
+    "grid-recent",
+    "home-split",
+    "ws-home",
+    "tint1",
+    "ws-card",
+    "size-",
+    "hd",
+    "wf-row",
+    "wf-mode--new",
+    "ws-grid",
+    "wizard",
+    "wsteps",
+    "wline",
+    "detect",
+    "model-card",
+    "mc-foot",
+    "model-grid",
+    "hover-only",
+    "run-head",
+    "run-status",
+    "appbar",
+    "apptab",
+    "stage",
+    "stage-grid",
+    "win",
+    "win-bar",
+    "win-role",
+    "win-body",
+    "rz",
+    "rz-",
+    "win-handle",
+    "stage-hint",
+    "rs-apps",
+    "rs-app",
+    "rs-st",
+    "run-prep",
+    "rp-steps",
+    "rp-step",
+    "ai-grid",
+    "ai-sessions",
+    "ai-session-list",
+    "ai-session",
+    "ai-chat",
+    "ai-chat-head",
+    "ai-msgs",
+    "badge--brand",
+    "card--hoverable",
+    "chip--removable",
+    "avatar-grid",
+    "avatar-pick--up",
+    "span2",
+    "life-grid",
+    "tint6",
+    "g4",
+    "metric",
+    "k",
+    "v",
+    "tile",
+    "xl",
+    "set-layout",
+    "subnav",
+    "set-body",
+    "mt-row",
+    "demo",
+    "c",
+    "m",
+    "h",
+    "t-display",
+    "t-body",
+    "btn--brand-ghost",
+    "ok",
+    "empty",
+    "illus",
+    "error",
+    "ill",
+    "modal-head",
+    "modal-foot",
+    "ctx-menu"
+  ],
+  "missing": [
+    {
+      "class": "comp-block",
+      "count": 11
+    },
+    {
+      "class": "comp-name",
+      "count": 7
+    },
+    {
+      "class": "skinlab-win-row",
+      "count": 6
+    },
+    {
+      "class": "ind",
+      "count": 5
+    },
+    {
+      "class": "w70",
+      "count": 3
+    },
+    {
+      "class": "w85",
+      "count": 3
+    },
+    {
+      "class": "ind2",
+      "count": 3
+    },
+    {
+      "class": "skinlab-swg",
+      "count": 3
+    },
+    {
+      "class": "mock-main",
+      "count": 2
+    },
+    {
+      "class": "w40",
+      "count": 2
+    },
+    {
+      "class": "w55",
+      "count": 2
+    },
+    {
+      "class": "skinlab-win",
+      "count": 2
+    },
+    {
+      "class": "skinlab-win-bar",
+      "count": 2
+    },
+    {
+      "class": "skinlab-dot",
+      "count": 2
+    },
+    {
+      "class": "mock-code",
+      "count": 1
+    },
+    {
+      "class": "mock-side",
+      "count": 1
+    },
+    {
+      "class": "w30",
+      "count": 1
+    },
+    {
+      "class": "mock-browser",
+      "count": 1
+    },
+    {
+      "class": "mock-url",
+      "count": 1
+    },
+    {
+      "class": "mock-block",
+      "count": 1
+    },
+    {
+      "class": "mock-term",
+      "count": 1
+    },
+    {
+      "class": "skinlab-sw",
+      "count": 1
+    },
+    {
+      "class": "skinlab-swatches",
+      "count": 1
+    },
+    {
+      "class": "skin-sandbox",
+      "count": 1
+    },
+    {
+      "class": "skinlab-ws",
+      "count": 1
+    },
+    {
+      "class": "spec-grid",
+      "count": 1
+    },
+    {
+      "class": "swatch",
+      "count": 1
+    }
+  ],
+  "missing_prod": [
+    {
+      "class": "ind",
+      "count": 5
+    },
+    {
+      "class": "w70",
+      "count": 3
+    },
+    {
+      "class": "w85",
+      "count": 3
+    },
+    {
+      "class": "ind2",
+      "count": 3
+    },
+    {
+      "class": "w40",
+      "count": 2
+    },
+    {
+      "class": "w55",
+      "count": 2
+    },
+    {
+      "class": "w30",
+      "count": 1
+    }
+  ],
+  "missing_dev": [
+    {
+      "class": "comp-block",
+      "count": 11
+    },
+    {
+      "class": "comp-name",
+      "count": 7
+    },
+    {
+      "class": "skinlab-win-row",
+      "count": 6
+    },
+    {
+      "class": "skinlab-swg",
+      "count": 3
+    },
+    {
+      "class": "mock-main",
+      "count": 2
+    },
+    {
+      "class": "skinlab-win",
+      "count": 2
+    },
+    {
+      "class": "skinlab-win-bar",
+      "count": 2
+    },
+    {
+      "class": "skinlab-dot",
+      "count": 2
+    },
+    {
+      "class": "mock-code",
+      "count": 1
+    },
+    {
+      "class": "mock-side",
+      "count": 1
+    },
+    {
+      "class": "mock-browser",
+      "count": 1
+    },
+    {
+      "class": "mock-url",
+      "count": 1
+    },
+    {
+      "class": "mock-block",
+      "count": 1
+    },
+    {
+      "class": "mock-term",
+      "count": 1
+    },
+    {
+      "class": "skinlab-sw",
+      "count": 1
+    },
+    {
+      "class": "skinlab-swatches",
+      "count": 1
+    },
+    {
+      "class": "skin-sandbox",
+      "count": 1
+    },
+    {
+      "class": "skinlab-ws",
+      "count": 1
+    },
+    {
+      "class": "spec-grid",
+      "count": 1
+    },
+    {
+      "class": "swatch",
+      "count": 1
+    }
+  ],
+  "css_only_missing": [
+    "mock-ai"
+  ],
+  "coverage_pct": 89.89,
+  "markup_ref_coverage_pct": 92.84
+}

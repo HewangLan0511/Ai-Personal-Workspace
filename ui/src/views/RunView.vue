@@ -31,6 +31,12 @@ import type { PlacementResult } from '@/workspace/runtime/actions'
 import type { SnapshotStatus } from '@/workspace/runtime/snapshot'
 import type { LayoutApplyOutcome, LayoutSaveOutcome } from '@/workspace/runtime/layout'
 import { useAiStore } from '@/stores/ai'
+// 落位闪光：设计稿 `flash()` = `.just-swap`（Motion System 既有件，零新增动画）。
+// 与列表排序共用同一处实现，避免"第二套闪光"。
+import { flash } from '@/composables/useListSort'
+// 落位过渡的时长/缓动一律走 Motion token（Skin 与 Guard 才能改档）；
+// `motionMs` 读 token 的**当前计算值**，JS 等待窗口与 CSS 永远同一个数。
+import { motionMs } from '@/motion'
 
 const router = useRouter()
 const ai = useAiStore()
@@ -68,13 +74,7 @@ const connectivity = computed(() => facts.value?.connectivity ?? 'offline')
 /** 可管理窗口总数（观察口径，来自 windows facts 本身）。 */
 const windowCount = computed(() => facts.value?.windows.length ?? 0)
 
-/** runState → 既有 pw-dot 变体（零新 token：ok=运行中 wait=启动中 off=其余）。 */
-function dotOf(runState: string): string {
-  if (runState === 'running') return 'pw-dot--ok'
-  if (runState === 'launching') return 'pw-dot--wait'
-  return 'pw-dot--off'
-}
-const runStateText: Record<string, string> = {
+/** runState → 文案（设计稿 APP_STATUS 的同义表，用事实层词汇）。 */const runStateText: Record<string, string> = {
   running: '运行中',
   launching: '启动中',
   failed: '启动失败',
@@ -153,6 +153,68 @@ function winBarText(p: {
   return bits.join(' · ')
 }
 
+// ================================================================ 设计稿状态投影
+// 以下全部是「事实 → 设计稿类名/文案」的投影，零新事实、零 mock。
+
+/** runState → 设计稿 `.rs-dot` 三态（运行中 / 等待打开 / 已关闭）。 */
+function rsDotOf(runState: string): string {
+  if (runState === 'running') return 'ok'
+  if (runState === 'launching') return 'wait'
+  return 'off'
+}
+
+/** 窗口状态 → 文案（事实层词汇，不新增语义）。 */
+const winStateText: Record<string, string> = {
+  normal: '正常',
+  maximized: '最大化',
+  minimized: '最小化',
+}
+function stateText(s: string): string {
+  return winStateText[s] ?? s
+}
+
+/** 归一化几何 → 人读百分比（布局结构弹窗用；不引入物理像素换算）。 */
+function geoText(p: { x: number; y: number; w: number; h: number }): string {
+  return `${Math.round(p.x * 100)}%,${Math.round(p.y * 100)}% · ${Math.round(p.w * 100)}%×${Math.round(p.h * 100)}%`
+}
+
+/** 受管（可拖拽）窗口数 —— 决定 `.stage.manual`（设计稿的手柄只在手动排列态出现）。 */
+const managedCount = computed(() => projections.value.filter((p) => p.mode).length)
+const stageManual = computed(() => managedCount.value > 0)
+
+/** 原型 `initStage()` 的提示条文案（离线态必须如实说"未连接"）。 */
+const hintText = computed(() => {
+  if (connectivity.value === 'offline') return '未连接 core —— 无法读取真实窗口（不显示任何占位窗口）'
+  if (!windowCount.value) return '画布空 —— 进入一个工作模式后，这里会显示它的真实窗口投影'
+  return stageManual.value
+    ? `手动调整 · 拖标题栏移动，拖边缘或角落调整大小（真实窗口 ${windowCount.value} 个）`
+    : `自动布局 · 拖动窗口标题栏即可手动调整（真实窗口 ${windowCount.value} 个）`
+})
+
+/**
+ * appbar 标签选中（原型 `state.run.tab`）：选中哪个软件，它的窗口进入设计稿
+ * `.win.sel` 态（标题栏高亮 + `.win-role` 显示"当前工作窗口"）。
+ * 匹配依据是**软件名**——窗口投影只有软件名这一条归属证据（`pidAppName`），
+ * 按 appId 匹配会得到一个永远选不中的标签。
+ */
+const activeTab = ref('')
+function selectTab(name: string): void {
+  activeTab.value = activeTab.value === name ? '' : name
+}
+function isSel(p: { app: string | null }): boolean {
+  return !!activeTab.value && p.app === activeTab.value
+}
+
+/** 布局结构弹窗（原型 run-status 的 `run-struct` 按钮）：内容全部来自窗口事实。 */
+const structOpen = ref(false)
+/** 设计稿 minimap 色片：按软件名稳定散列到 t1..t6（同一软件恒定同色，零随机）。 */
+function tintOf(name: string | null): string {
+  if (!name) return 't1'
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return `t${(h % 6) + 1}`
+}
+
 async function refresh(): Promise<void> {
   // C3：交互（拖拽/缩放）进行中跳过轮询覆盖 —— 本地预览是用户意图，事实以 commit 后为准
   if (interaction !== null) return
@@ -188,6 +250,8 @@ interface Interaction {
   stage: { left: number; top: number; w: number; h: number }
   /** 预览目标元素（命令式写 style） */
   el: HTMLElement
+  /** 是否真的发生过位移/缩放（设计稿 `drag.moved`：没动过就不闪，避免"点一下也闪"） */
+  moved: boolean
 }
 
 let interaction: Interaction | null = null
@@ -195,6 +259,109 @@ const placement = ref<PlacementResult | null>(null)
 
 function stageEl(): HTMLElement | null {
   return document.querySelector('[data-pw="run-stage"]')
+}
+
+// ================================================================ 过程反馈（设计稿 initStage）
+// 设计稿的过程反馈**零新增动画**，全部复用既有件：
+//   · `.carried`（抬起：shadow-lg + brand-300 描边 + z-index:6）—— 被拖的那个窗口
+//   · `.carrying`（其余退后：`.stage.carrying .win:not(.carried){opacity:.72}`）
+//   · `.win-size`（缩放中的 W×H HUD，右上角 mono 角标；松手加 `.out` 淡出后移除）
+//   · `.just-swap`（落位闪光，`--mt-dur-highlight`）
+// 工程差异：设计稿在 mousedown 起手就写 HUD（`hudOf(win).textContent = ...`），
+// 本工程同样在起手写一次 —— 这样"按下即见尺寸"，符合需求「按下与释放反馈」。
+
+/** 取（或建）该窗口的尺寸 HUD，并确保它不处于淡出态。 */
+function hudOf(win: HTMLElement): HTMLElement {
+  let hud = win.querySelector<HTMLElement>('.win-size')
+  if (!hud) {
+    hud = document.createElement('div')
+    hud.className = 'win-size'
+    win.appendChild(hud)
+  }
+  hud.classList.remove('out')
+  return hud
+}
+
+/** 松手/取消：HUD 淡出后移除（设计稿 `out` 后 220ms remove）。 */
+function hideHud(win: HTMLElement): void {
+  const hud = win.querySelector<HTMLElement>('.win-size')
+  if (!hud) return
+  hud.classList.add('out')
+  window.setTimeout(() => hud.remove(), 220)
+}
+
+/** 元素当前像素尺寸（HUD 文案来源，与设计稿 `Math.round(wr.width)` 同口径）。 */
+function pxSize(el: HTMLElement): { w: number; h: number } {
+  const r = el.getBoundingClientRect()
+  return { w: Math.round(r.width), h: Math.round(r.height) }
+}
+
+/**
+ * 起手反馈：抬起 + 其余退后（拖拽与缩放**共用**同一套，设计稿注释
+ * 「过程反馈与拖动统一」）。缩放态额外亮出尺寸 HUD。
+ */
+function markCarrying(el: HTMLElement, mode: 'move' | 'resize'): void {
+  el.classList.add('carried')
+  stageEl()?.classList.add('carrying')
+  if (mode === 'resize') {
+    const s = pxSize(el)
+    hudOf(el).textContent = `${s.w} × ${s.h}`
+  }
+}
+
+/**
+ * 落手反馈：撤掉抬起态（含 id 幂等），有真实位移才闪一次。
+ * 顺序有意「先撤 carried 再 flash」：flash 走的是 `.just-swap` 的 animation，
+ * 与 `.carried` 的 box-shadow 不冲突；先撤可让描边从 brand-300 回到常态再闪光。
+ */
+function markDropped(el: HTMLElement, moved: boolean): void {
+  el.classList.remove('carried')
+  stageEl()?.classList.remove('carrying')
+  hideHud(el)
+  if (moved) flash(el)
+}
+
+// ---------------------------------------------------------------- 落位对齐过渡
+// 需求「落位对齐或惯性过渡」的实现点：拖动**过程中**几何必须 1:1 跟手
+// （设计稿红线「拖动过程从未被干预」），所以过渡不能常驻 —— 只有落位收口的那一小段
+// 允许缓动：预览几何 → adapter 夹紧/吸附后的合法几何（或失败/取消时写回起始几何）。
+// 采取"限时开启"而不是改 .win 的 CSS：常驻 transition 会让跟手带延迟；
+// 限时窗口结束后立刻清掉，下一次拖拽仍是 1:1。
+const WINDOW_SETTLE_FALLBACK = 240
+
+let settlingEl: HTMLElement | null = null
+let settleTimer: number | null = null
+
+/** 关掉落位过渡窗口（幂等）：几何四条边的 transition 清空，恢复 1:1 跟手。 */
+function clearSettle(): void {
+  if (settleTimer !== null) {
+    window.clearTimeout(settleTimer)
+    settleTimer = null
+  }
+  if (settlingEl) {
+    settlingEl.style.transition = ''
+    settlingEl = null
+  }
+}
+
+/**
+ * 开启落位过渡窗口：`left/top/width/height` 挂上 `--mt-dur-window` +
+ * `--mt-ease-emphasis`（= 设计稿 winIn 同一条强调曲线，零新增时长事实）。
+ * off 档无需判档：`[data-motion='off'] *` 的 `transition-duration:0ms !important`
+ * 会把它归零，档位唯一来源仍是 Motion Guard。
+ */
+function settleGeometry(el: HTMLElement): void {
+  clearSettle()
+  const e = 'var(--mt-dur-window) var(--mt-ease-emphasis)'
+  // 必须**照抄**设计稿 `.win` 原有的 box-shadow/border-color/opacity 三条
+  // —— inline transition 是整条覆盖而不是追加，漏掉它们会把 `.carried` 抬起/落下的
+  // 阴影渐变变成瞬变（"改了动画反而更硬"是这类覆盖最常见的翻车点）。
+  const base = 'var(--dur-fast) var(--ease-out)'
+  el.style.transition =
+    `left ${e}, top ${e}, width ${e}, height ${e},` +
+    ` box-shadow ${base}, border-color ${base}, opacity ${base}`
+  settlingEl = el
+  settleTimer = window.setTimeout(clearSettle, motionMs('--mt-dur-window', WINDOW_SETTLE_FALLBACK) + 60)
 }
 
 function beginInteraction(
@@ -220,7 +387,14 @@ function beginInteraction(
     py: ev.clientY,
     stage: { left: r.left, top: r.top, w: r.width, h: r.height },
     el,
+    moved: false,
   }
+  // 起手视觉：抬起 + 其余退后（缩放态另出尺寸 HUD）。光标与设计稿一致
+  // （`move` → grabbing；`resize` → 方向光标由 `.rz-*` 的 CSS 给，不重复声明）。
+  // 先关掉落位过渡窗口：上一次落位可能还在缓动中，不清掉这次拖拽的第一帧就会「慢半拍」。
+  clearSettle()
+  markCarrying(el, mode)
+  if (mode === 'move') document.body.style.cursor = 'grabbing'
   // 指针捕获只是跟手增强（指针离开元素也能收 move）；对合成/已释放的 pointerId
   // 会抛 NotFoundError —— 捕获失败不能拖死整条交互链（move/up 监听在后面必须挂上）。
   try {
@@ -325,6 +499,17 @@ function onInteractMove(ev: PointerEvent): void {
   if (!g) return
   // 命令式预览（跟手），不经过 Vue 响应式 —— 每帧只有 style 写入
   writeGeometry(it.el, g)
+  // 有真实「帧」就算动过（设计稿 `drag.moved = true`）——决定松手是否闪一次。
+  // 注意：纯按下不动时也会收到 0 位移的 pointermove，故用位移阈值而不是"收到 move"作判据。
+  if (Math.abs(lastMove.x - it.px) > 2 || Math.abs(lastMove.y - it.py) > 2) it.moved = true
+  // 尺寸 HUD：由归一化几何 × 舞台像素算出，**不读 getBoundingClientRect**
+  // ——写 style 之后再读 rect 会强制同步布局，60fps 下代价明显（设计稿同口径）。
+  if (it.mode === 'resize') {
+    const w = Math.round(g.w * it.stage.w)
+    const h = Math.round(g.h * it.stage.h)
+    const hud = it.el.querySelector<HTMLElement>('.win-size')
+    if (hud) hud.textContent = `${w} × ${h}`
+  }
 }
 
 /**
@@ -336,6 +521,11 @@ function cancelInteraction(): void {
   interaction = null
   detachInteraction()
   if (!it) return
+  document.body.style.cursor = ''
+  // 取消（Esc / 系统手势）：预览写回起始几何 —— 撤回不闪（没有任何"落位"发生）
+  markDropped(it.el, false)
+  // 写回起始几何走落位过渡：视觉上是"滑回去"而不是"跳回去"，与落位同一条曲线
+  settleGeometry(it.el)
   writeGeometry(it.el, it.start)
 }
 
@@ -346,7 +536,15 @@ async function commitInteraction(): Promise<void> {
   if (!it) return
   const g = previewGeometry(it)
   it.el.style.zIndex = ''
+  document.body.style.cursor = ''
+  // 落手反馈：抬起态撤掉 + 其余窗口恢复 + 尺寸 HUD 淡出（有真实位移才闪）。
+  // 刻意放在 **await 之前**：反馈要跟"松手"这个动作同时发生，不能等 core 回话
+  // （IPC 往返可能几十毫秒，滞后就变成"松手后延迟闪"）。
+  markDropped(it.el, it.moved)
   if (!g) return
+  // 落位过渡窗口：下面写回的几何（夹紧/吸附/失败回写）会滑过去而不是跳过去。
+  // 成功且几何与预览一致时这段过渡不产生任何可见变化（值没变就没有过渡）。
+  settleGeometry(it.el)
   const work = workAreaPx()
   if (!work) {
     placement.value = { status: 'failed', hwnd: it.hwnd, message: '主显示器工作区不可用' }
@@ -364,6 +562,9 @@ async function commitInteraction(): Promise<void> {
   // 必须写回起始几何（Vue :style 绑定值未变时不会重绘，否则"请求几何"会
   // 滞留成"已确认几何"）—— 绝不以本地几何为准。
   if (result.status !== 'placed') writeGeometry(it.el, it.start)
+  // ⚠️ Vue `:style` 绑定只覆盖 left/top/width/height（不碰 transition），
+  // 因此上面这段过渡不会因为 refresh 触发重渲染而被打断；过渡窗口结束后
+  // `clearSettle()` 清空 inline transition，几何仍是 Vue 绑定值。
   await refresh()
 }
 
@@ -383,6 +584,32 @@ function workAreaPx(): { x: number; y: number; w: number; h: number } | null {
 const layoutBusy = ref(false)
 const layoutChip = ref('')
 const layoutDetail = ref('')
+
+// ---- 准备工作空间浮层（原型 `fn:runPrepSequence`：.run-prep/.rp-steps/.rp-step/.spinner）----
+//
+// ⚠️ 红线差异（C1/C6 不产生伪事实）：原型是 `340ms × 3` 定时器驱动的**演示**序列 ——
+// 勾是"时间到了"打上去的，跟有没有真的准备好无关。本工程反过来：**每一步的勾只认
+// 真实操作的完成信号**，没跑完就不打勾、没跑这个流程就不显示浮层。
+// 三步对应的真实操作：
+//   ① 恢复应用 → `refresh()` 拉取应用/窗口事实（不自动启动软件，见 layout.apply 的 skip 语义）
+//   ② 恢复布局 → `layout.apply()` 真实应用模式绑定布局
+//   ③ 同步状态 → 再 `refresh()` 按 facts 复核（成功与否都以事实为准）
+const PREP_STEPS = ['恢复应用', '恢复布局', '同步状态'] as const
+const prepOpen = ref(false)
+const prepDone = ref<boolean[]>([false, false, false])
+
+async function runPrepSequence(phases: Array<() => Promise<void>>): Promise<void> {
+  prepDone.value = phases.map(() => false)
+  prepOpen.value = true
+  try {
+    for (let i = 0; i < phases.length; i++) {
+      await phases[i]()
+      prepDone.value[i] = true
+    }
+  } finally {
+    prepOpen.value = false
+  }
+}
 
 async function onLayoutSave(): Promise<void> {
   if (layoutBusy.value) return
@@ -412,18 +639,51 @@ async function onLayoutApply(): Promise<void> {
   layoutBusy.value = true
   layoutChip.value = ''
   layoutDetail.value = ''
+  // 已判定未连接 → 立刻如实回复，**不进** `runPrepSequence`。
+  //
+  // 为什么（实测，不是推测）：那三步里前后各一次 `refresh()`，而 core 停止后每个 HTTP 请求
+  // 都要跑满客户端的 5s 超时（`api/client.ts` 的 `timeoutMs`），整段 ≈ 2~3 个超时窗口。
+  // 用户点完「恢复默认」要盯着 20s+ 的空 chip（外加挂着的 prep 覆盖层）才知道结果，
+  // 验收的 25s 观察窗也正好擦边 → 同一个脚本时绿时红。
+  // 这一步不新增任何判断口径：用的就是页面已有的轮询事实 `connectivity`，
+  // 文案沿用 `placementText.offline`（同一句"core 未连接"，不另造第二份措辞）。
+  if (connectivity.value === 'offline') {
+    layoutChip.value = '✕ 未连接 —— 应用未执行'
+    layoutDetail.value = placementText.offline
+    layoutBusy.value = false
+    return
+  }
+  let out: LayoutApplyOutcome | null = null
   try {
-    const out: LayoutApplyOutcome = await workspaceAdapter.layout.apply()
-    const total = out.placed + out.skipped + out.failed
-    switch (out.status) {
+    // 三步都走真实操作（顺序/含义见 `runPrepSequence` 处注释）：不复制原型的定时器序列
+    await runPrepSequence([
+      async () => {
+        await refresh()
+      },
+      async () => {
+        out = await workspaceAdapter.layout.apply()
+      },
+      async () => {
+        await refresh()
+      },
+    ])
+    // 闭包里赋值 ⇒ TS 的 CFA 会把它判成 `null`；显式收窄一次，别让类型系统误报
+    const applied = out as LayoutApplyOutcome | null
+    if (!applied) {
+      layoutChip.value = '✕ 应用失败'
+      layoutDetail.value = '布局应用未返回结果'
+      return
+    }
+    const total = applied.placed + applied.skipped + applied.failed
+    switch (applied.status) {
       case 'done':
-        layoutChip.value = `✓ 布局已应用 ${out.placed} 个窗口`
+        layoutChip.value = `✓ 布局已应用 ${applied.placed} 个窗口`
         break
       case 'partial': {
-        const skips = out.slots
+        const skips = applied.slots
           .filter((s) => s.status.startsWith('skipped'))
           .map((s) => `${s.app}:${s.status === 'skipped_not_running' ? '未运行' : '无窗口'}`)
-        layoutChip.value = `◐ 布局部分应用 ${out.placed}/${total} · 跳过 ${out.skipped}${
+        layoutChip.value = `◐ 布局部分应用 ${applied.placed}/${total} · 跳过 ${applied.skipped}${
           skips.length ? `（${skips.join('、')}）` : ''
         }`
         break
@@ -437,7 +697,7 @@ async function onLayoutApply(): Promise<void> {
       default:
         layoutChip.value = '✕ 应用失败'
     }
-    layoutDetail.value = out.detail
+    layoutDetail.value = applied.detail
   } catch (e) {
     layoutChip.value = '✕ 应用失败'
     layoutDetail.value = String((e as Error)?.message ?? e)
@@ -536,421 +796,356 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   if (timer !== null) window.clearInterval(timer)
-  detachInteraction()
+  // 用 cancelInteraction 而不是裸 detachInteraction：它同时清掉拖拽的**视觉残留**
+  // （.carried/.carrying 类、尺寸 HUD）与 `document.body` 上的 grabbing 光标 ——
+  // 组件在拖拽中途被卸载时，裸 detach 会把 grabbing 光标永久留在整个应用上。
+  cancelInteraction()
+  clearSettle()
 })
 </script>
 
 <template>
-  <div class="run-page">
-    <!-- ===== run-head（原型 run-head：返回 / 名称 / 徽章 / 布局 seg / 时钟） ===== -->
-    <header class="run-head">
-      <button class="pw-btn pw-btn--ghost" data-pw="run-back" @click="router.back()">← 返回</button>
-      <span v-if="modeMeta?.icon" class="run-emoji">{{ modeMeta.icon }}</span>
-      <h1 class="pw-t-page run-title">{{ modeName || '工作模式' }}</h1>
-      <span class="pw-chip pw-chip--brand" :class="{ 'is-live': !!modeName }" data-pw="run-live">
-        {{ modeName ? '● 工作中' : '○ 未在模式中' }}
-      </span>
-      <span class="pw-grow"></span>
-      <!-- 布局 / 排列 seg：C1 窗口控制未放开，可见但禁用（不提供假交互） -->
-      <div class="run-seg" role="group" aria-label="布局模式" data-pw="run-layout-seg">
-        <button class="run-seg__item is-active" disabled>自由</button>
-        <button class="run-seg__item" disabled>自动整理</button>
-        <button class="run-seg__item" disabled>聚焦</button>
+  <!-- 原型 `ROUTES.run`（`personal-workspace-ui` line 2794–2833）DOM 逐字对应：
+       run-head → run-status → appbar → stage（+ ai-fab）。
+       双类名：设计类（.run-head/.run-status/.appbar/.stage/.stage-grid/.win/.win-bar/
+       .win-body/.win-role/.win-handle/.rz/.stage-hint/.ai-fab/.badge-emoji/.live/.seg/
+       .minimap）承载几何（唯一来源 = base.css UI-FUSION-FULL 段）；工程钩子类
+       （run-*）与 `data-pw` 供冻结验收脚本定位。
+       图标按设计稿 `ico()` 的 24×24 path 内联（A6d 禁止 RunView import 组件）。 -->
+  <div class="run-wrap" style="display:flex;flex-direction:column;height:100%;min-height:0">
+    <!-- ===== run-head：返回 / 徽章 / 名称 / 工作中 / 布局 seg / 排列 seg / 恢复默认 / 保存布局 / 时钟 ===== -->
+    <header class="run-head" data-pw="run-head">
+      <button class="icon-btn lg" data-pw="run-back" title="返回" @click="router.back()">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.6 12h-15M10.6 18l-6-6 6-6" /></svg>
+      </button>
+      <span v-if="modeMeta?.icon" class="badge-emoji" style="width:30px;height:30px;font-size:16px">{{ modeMeta.icon }}</span>
+      <span class="nm">{{ modeName || '工作模式' }}</span>
+      <span v-if="modeName" class="live" data-pw="run-live"><span class="dot"></span>工作中</span>
+      <span v-else class="chip chip--outline" data-pw="run-live">未在模式中</span>
+      <div class="spacer"></div>
+      <!-- 布局 / 排列 seg：窗口控制尚未放开（C1 纪律：不提供假交互），样式与设计稿一致 -->
+      <div class="seg" role="group" aria-label="布局模式" data-pw="run-layout-seg">
+        <button class="on" disabled title="自由布局（窗口布局控制未放开）">自由</button>
+        <button disabled title="自动整理（窗口布局控制未放开）">自动整理</button>
+        <button disabled title="聚焦布局（窗口布局控制未放开）">聚焦</button>
       </div>
-      <div class="run-seg" role="group" aria-label="排列模式" data-pw="run-arrange-seg">
-        <button class="run-seg__item is-active" disabled>自动</button>
-        <button class="run-seg__item" disabled>手动</button>
+      <div class="seg" role="group" aria-label="排列模式" data-pw="run-arrange-seg">
+        <button :class="{ on: !stageManual }" disabled title="自动排列（窗口布局控制未放开）">自动排列</button>
+        <button :class="{ on: stageManual }" disabled title="手动调整（窗口布局控制未放开）">手动调整</button>
       </div>
       <button
-        class="pw-btn pw-btn--sm"
+        class="btn btn--ghost"
         data-pw="run-layout-apply"
         :disabled="layoutBusy"
         title="应用当前模式绑定的布局（未运行的软件跳过，不自动启动）"
         @click="onLayoutApply()"
       >恢复默认</button>
       <button
-        class="pw-btn pw-btn--sm pw-btn--primary"
+        class="btn btn--secondary"
         data-pw="run-layout-save"
         :disabled="layoutBusy"
         title="把当前受管窗口排布保存为布局（run-<模式名>-<时间戳>）"
         @click="onLayoutSave()"
       >保存布局</button>
-      <span class="run-clock pw-mono">{{ clock }}</span>
+      <span class="t-cap num" data-pw="run-clock" style="margin-left:var(--space-2)">{{ clock }}</span>
     </header>
 
-    <!-- ===== 状态栏（原型 #runStatus：任务 / 应用三态 / 布局 / 模式） ===== -->
+    <!-- ===== run-status：当前任务 / 应用三态 / 布局 / 模式 + 右侧工程 chips ===== -->
     <div class="run-status" data-pw="run-status">
-      <span class="pw-t-cap">当前任务</span>
-      <span class="pw-chip">{{ modeDesc || '未设置' }}</span>
-      <span class="run-status__sep"></span>
-      <span class="pw-t-cap">应用</span>
-      <template v-if="modeApps.length">
-        <span
-          v-for="a in modeApps"
-          :key="a.appId ?? a.name"
-          class="pw-chip"
-          data-pw="run-app-chip"
-          :title="runStateText[a.runState] ?? a.runState"
-        >
-          <span class="pw-dot" :class="dotOf(a.runState)"></span>
-          {{ a.name }}<span v-if="a.windowCount > 0" class="run-chip__count">×{{ a.windowCount }}</span>
+      <span class="rs-item">
+        <span class="rs-k">当前任务</span>
+        <span class="chip chip--brand" style="height:24px" data-pw="run-goal">
+          <svg class="ico" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4" /><circle cx="12" cy="12" r="4.4" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /></svg>
+          {{ modeDesc || '未设置工作目标' }}
         </span>
-      </template>
-      <span v-else class="pw-chip pw-chip--outline">还没有应用在运行</span>
-      <span class="run-status__sep"></span>
-      <span class="pw-t-cap">布局</span>
-      <span class="pw-chip" data-pw="run-layout-name-chip">{{ layoutName || '未绑定' }}</span>
-      <span class="run-status__sep"></span>
-      <span class="pw-t-cap">模式</span>
-      <span class="pw-chip pw-chip--outline" data-pw="run-mode-chip">{{ modeName || '—' }}</span>
-      <span class="pw-grow"></span>
-      <!-- C5 布局结果（保存/应用共用一个 chip；detail 走 title，不压扁失败原因） -->
-      <span
-        v-if="layoutChip"
-        class="pw-chip"
-        data-pw="run-layout-chip"
-        :title="layoutDetail"
-      >{{ layoutChip }}</span>
-      <!-- C3 摆位结果（§9 失败语义：placed/unbound/offline/failed，绝不假装成功） -->
-      <!-- C4 快照（最小暴露：复用既有 pw-btn / pw-chip，零新视觉语言） -->
-      <span class="pw-chip" data-pw="run-snap-chip">{{ snapshotText }}</span>
-      <button
-        class="pw-btn pw-btn--sm"
-        data-pw="run-snap-save"
-        :disabled="snapBusy"
-        @click="onSnapshotSave()"
-      >保存当前状态</button>
-      <button
-        class="pw-btn pw-btn--sm"
-        data-pw="run-snap-restore"
-        :disabled="snapBusy"
-        @click="onSnapshotRestore()"
-      >恢复上次状态</button>
-      <span
-        v-if="placement"
-        class="pw-chip"
-        data-pw="run-placement"
-        :title="placement.message ?? ''"
-      >
-        <span class="pw-dot" :class="dotOf(placement.status === 'placed' ? 'running' : 'failed')"></span>
-        {{ placementText[placement.status] ?? placement.status }}
       </span>
-      <span v-if="loadError" class="run-status__warn" data-pw="run-degraded">{{ loadError }}</span>
-    </div>
-
-    <!-- ===== 主工作区域（窗口舞台画布；C3：归属当前模式的窗口可拖拽/缩放 → windows_place） ===== -->
-    <div class="run-stage" data-pw="run-stage">
-      <p class="run-stage__hint">
-        舞台画布 · {{ connectivity === 'offline' ? '未连接' : `真实窗口投影 ${windowCount} 个` }}（摆位模式：拖拽/缩放即摆位，仅限当前模式窗口）
-      </p>
-      <div
-        v-for="p in projections"
-        :key="p.hwnd"
-        class="run-win"
-        :class="{ 'is-managed': p.mode }"
-        :style="{ left: `${(p.x * 100).toFixed(2)}%`, top: `${(p.y * 100).toFixed(2)}%`, width: `${(p.w * 100).toFixed(2)}%`, height: `${(p.h * 100).toFixed(2)}%` }"
-        :title="p.mode ? `${p.title} · 当前模式（可拖拽/缩放）` : `${p.title} · 非当前模式窗口（只读）`"
-      >
-        <span
-          class="run-win__bar"
-          :class="{ 'is-grab': p.mode }"
-          @pointerdown="p.mode && startDrag($event, p.hwnd)"
-        >{{ winBarText(p) }}</span>
-        <!-- C3 缩放手势：8 向热区（只对归属窗口渲染）；左/上侧缩放会同步移动 left/top -->
-        <template v-if="p.mode">
-          <span v-for="d in dirs" :key="d" class="run-win__rz" :class="`run-win__rz--${d}`"
-                @pointerdown="startResize($event, p.hwnd, d)"></span>
-        </template>
-      </div>
-      <div v-if="!projections.length" class="run-stage__empty">
-        <span class="pw-t-card">{{
-          connectivity === 'offline'
-            ? '未连接 core —— 无法读取真实窗口（不显示任何占位窗口）'
-            : '画布空 —— 进入一个工作模式后，这里会显示它的真实窗口投影'
-        }}</span>
-      </div>
-    </div>
-
-    <!-- ===== 底部：appbar（软件标签 + AI 入口） + minimap ===== -->
-    <footer class="run-foot">
-      <div class="run-appbar" data-pw="run-appbar">
+      <span class="rs-item rs-apps">
+        <span class="rs-k">应用</span>
         <template v-if="modeApps.length">
-          <button
+          <span
             v-for="a in modeApps"
             :key="a.appId ?? a.name"
-            class="run-tab"
-            disabled
-            :title="`${runStateText[a.runState] ?? a.runState}（窗口激活属 C3）`"
+            class="chip rs-app"
+            data-pw="run-app-chip"
+            :title="runStateText[a.runState] ?? a.runState"
           >
-            <span class="pw-dot" :class="dotOf(a.runState)"></span>
-            {{ a.name }}
-          </button>
+            <i class="rs-dot" :class="rsDotOf(a.runState)"></i>{{ a.name }}<span class="rs-st">{{ runStateText[a.runState] ?? a.runState }}</span>
+            <span v-if="a.windowCount > 0" class="run-chip__count">×{{ a.windowCount }}</span>
+          </span>
         </template>
-        <span v-else class="run-tab run-tab--ghost">软件标签页</span>
-        <span class="pw-grow"></span>
-        <button class="run-tab run-tab--ai" data-pw="run-ai-tab" @click="openAi()">AI</button>
-      </div>
-      <div class="run-minimap" data-pw="run-minimap" aria-label="窗口排布缩略图">
+        <span v-else class="chip chip--outline" style="height:24px">还没有应用在运行</span>
+      </span>
+      <span class="rs-item">
+        <span class="rs-k">布局</span>
+        <span class="chip" style="height:24px" data-pw="run-layout-name-chip">{{ layoutName || '未绑定' }}</span>
+      </span>
+      <span class="rs-item">
+        <span class="rs-k">模式</span>
+        <span class="chip" style="height:24px" data-pw="run-mode-chip">{{ modeName || '自定义' }}</span>
+      </span>
+      <span class="grow" style="flex:1"></span>
+      <!-- 布局结构（设计稿 run-struct）：内容全部来自窗口事实 -->
+      <button class="btn btn--ghost btn--sm" data-pw="run-struct" title="查看当前窗口关系" @click="structOpen = true">
+        <svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.6 6.6h3.4M3.6 12h3.4M3.6 17.4h3.4M10 6.6h10.4M10 12h10.4M10 17.4h10.4" /></svg>
+        布局结构
+      </button>
+      <!-- C5 布局结果（保存/应用共用一个 chip；detail 走 title，不压扁失败原因） -->
+      <span v-if="layoutChip" class="chip" data-pw="run-layout-chip" :title="layoutDetail">{{ layoutChip }}</span>
+      <!-- C4 快照（最小暴露：复用既有 btn / chip，零新视觉语言） -->
+      <span class="chip" data-pw="run-snap-chip">{{ snapshotText }}</span>
+      <button class="btn btn--ghost btn--sm" data-pw="run-snap-save" :disabled="snapBusy" @click="onSnapshotSave()">保存当前状态</button>
+      <button class="btn btn--ghost btn--sm" data-pw="run-snap-restore" :disabled="snapBusy" @click="onSnapshotRestore()">恢复上次状态</button>
+      <!-- C3 摆位结果（§9 失败语义：placed/unbound/offline/failed，绝不假装成功） -->
+      <span v-if="placement" class="chip" data-pw="run-placement" :title="placement.message ?? ''">
+        <i class="rs-dot" :class="placement.status === 'placed' ? 'ok' : 'off'"></i>{{ placementText[placement.status] ?? placement.status }}
+      </span>
+      <span v-if="loadError" class="run-status__warn" data-pw="run-degraded" :title="loadError">{{ loadError }}</span>
+    </div>
+
+    <!-- ===== appbar：软件标签页 + AI 入口（设计稿在 stage 之上，不是页脚） ===== -->
+    <div class="appbar" data-pw="run-appbar">
+      <template v-if="modeApps.length">
+        <button
+          v-for="a in modeApps"
+          :key="a.appId ?? a.name"
+          class="apptab"
+          :class="{ on: activeTab === a.name }"
+          data-pw="run-app-tab"
+          :title="`${runStateText[a.runState] ?? a.runState} · 点击高亮该软件的窗口`"
+          @click="selectTab(a.name)"
+        >
+          <i class="rs-dot" :class="rsDotOf(a.runState)"></i><span>{{ a.name }}</span>
+        </button>
+      </template>
+      <span v-else class="apptab" style="opacity:.5;pointer-events:none" data-pw="run-app-tab">软件标签页</span>
+      <button class="apptab" :class="{ on: !ai.collapsed }" data-pw="run-ai-tab" title="AI 助手" @click="openAi()">
+        <svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3.4 12.6 8 17.4 9.6 12.6 11.2 11 16 9.4 11.2 4.6 9.6 9.4 8z" /><path d="M18 14.4l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z" /></svg>
+        <span>AI</span>
+      </button>
+      <div class="spacer"></div>
+      <button class="icon-btn sm" disabled title="添加应用到本次会话（未放开）">
+        <svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5.2v13.6M5.2 12h13.6" /></svg>
+      </button>
+    </div>
+
+    <!-- ===== stage：窗口舞台（真实窗口投影；归属当前模式的窗口可拖拽/缩放 → windows_place） ===== -->
+    <div class="stage" :class="{ manual: stageManual }" data-pw="run-stage">
+      <div class="stage-grid">
         <div
           v-for="p in projections"
           :key="p.hwnd"
-          class="run-minimap__win"
+          class="win run-win"
+          :class="{ 'is-managed': p.mode, sel: isSel(p) }"
           :style="{ left: `${(p.x * 100).toFixed(2)}%`, top: `${(p.y * 100).toFixed(2)}%`, width: `${(p.w * 100).toFixed(2)}%`, height: `${(p.h * 100).toFixed(2)}%` }"
-        ></div>
+          :title="p.mode ? `${p.title} · 当前模式（可拖拽/缩放）` : `${p.title} · 非当前模式窗口（只读）`"
+        >
+          <!-- 双类名：`win-bar` 给设计稿几何（含 `cursor:grab`），`run-win__bar` 是冻结脚本钩子；
+               `is-grab` 同时是设计稿语义与 TECH-07-C3 D6 的"归属窗口可拖"判据。 -->
+          <div
+            class="win-bar run-win__bar"
+            :class="{ 'is-grab': p.mode }"
+            @pointerdown="p.mode && startDrag($event, p.hwnd)"
+          >
+            <span class="nm">{{ winBarText(p) }}</span>
+            <span class="win-role"></span>
+            <span class="grip">
+              <svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="6.6" r="1.3" fill="currentColor" stroke="none" /><circle cx="15" cy="6.6" r="1.3" fill="currentColor" stroke="none" /><circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="9" cy="17.4" r="1.3" fill="currentColor" stroke="none" /><circle cx="15" cy="17.4" r="1.3" fill="currentColor" stroke="none" /></svg>
+            </span>
+          </div>
+          <!-- 原型 `.win-body` 内是 mock 文案；本工程放**真实**窗口事实（标题/软件/状态/几何） -->
+          <div class="win-body">
+            <div class="wb-row"><span class="wb-k">窗口</span><span class="wb-v">{{ p.title || '未命名窗口' }}</span></div>
+            <div class="wb-row"><span class="wb-k">软件</span><span class="wb-v">{{ p.app || '未登记归属' }}</span></div>
+            <div class="wb-row"><span class="wb-k">状态</span><span class="wb-v">{{ stateText(p.state) }}</span></div>
+            <div class="wb-row"><span class="wb-k">几何</span><span class="wb-v">{{ geoText(p) }}</span></div>
+          </div>
+          <!-- C3 缩放手势：8 向热区（只对归属窗口渲染）；左/上侧缩放会同步移动 left/top。
+               双类名：`rz rz-<dir>` 是设计稿几何的来源，`run-win__rz*` 是冻结验收脚本的定位钩子
+               （TECH-07-C3 D5/D6 用 `.run-win__rz--se` / `.run-win__rz` 取元素）—— 缺一不可。 -->
+          <template v-if="p.mode">
+            <span
+              v-for="d in dirs"
+              :key="d"
+              class="rz run-win__rz"
+              :class="[`rz-${d}`, `run-win__rz--${d}`]"
+              :title="`缩放 · ${d}`"
+              @pointerdown="startResize($event, p.hwnd, d)"
+            ></span>
+          </template>
+          <div class="win-handle">
+            <svg class="ico" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="6.6" r="1.3" fill="currentColor" stroke="none" /><circle cx="15" cy="6.6" r="1.3" fill="currentColor" stroke="none" /><circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="9" cy="17.4" r="1.3" fill="currentColor" stroke="none" /><circle cx="15" cy="17.4" r="1.3" fill="currentColor" stroke="none" /></svg>
+          </div>
+        </div>
       </div>
-    </footer>
+
+      <p class="stage-hint run-stage__hint">
+        <svg class="ico" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6v16.8M3.6 12h16.8M12 3.6 9.6 6M12 3.6 14.4 6M12 20.4 9.6 18M12 20.4l2.4-2.4M3.6 12 6 9.6M3.6 12 6 14.4M20.4 12 18 9.6M20.4 12 18 14.4" /></svg>
+        <span>{{ hintText }}</span>
+      </p>
+
+      <!-- 窗口排布缩略图（设计稿 `.minimap` 语言 + `<i class="t*">` 色片；工程侧新增的常驻件，见文件头） -->
+      <div class="minimap run-minimap" data-pw="run-minimap" aria-label="窗口排布缩略图">
+        <i
+          v-for="p in projections"
+          :key="p.hwnd"
+          :class="tintOf(p.app)"
+          :style="{ left: `${(p.x * 100).toFixed(2)}%`, top: `${(p.y * 100).toFixed(2)}%`, width: `${(p.w * 100).toFixed(2)}%`, height: `${(p.h * 100).toFixed(2)}%` }"
+        ></i>
+      </div>
+
+      <!-- 设计稿 `.ai-fab`：AI 侧栏收起时的沉浸态入口 -->
+      <button v-if="ai.collapsed" class="ai-fab" data-pw="run-ai-fab" @click="openAi()">
+        <svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3.4 12.6 8 17.4 9.6 12.6 11.2 11 16 9.4 11.2 4.6 9.6 9.4 8z" /><path d="M18 14.4l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z" /></svg>
+        AI 助手
+      </button>
+    </div>
+
+    <!-- ===== 布局结构弹窗（设计稿 run-struct）：真实窗口关系，无 mock ===== -->
+    <template v-if="structOpen">
+      <div class="scrim" data-pw="run-struct-scrim" @click="structOpen = false"></div>
+      <div class="modal" role="dialog" aria-label="当前窗口关系" data-pw="run-struct-modal">
+        <div class="modal-head">
+          <div class="t-card">当前窗口关系</div>
+          <div class="t-cap" style="margin-top:4px">
+            {{
+              connectivity === 'offline'
+                ? '未连接 core —— 无窗口事实'
+                : `真实窗口 ${windowCount} 个 · 受管 ${managedCount} 个 · 模式 ${modeName || '自定义'}`
+            }}
+          </div>
+        </div>
+        <div class="modal-body">
+          <div v-for="p in projections" :key="p.hwnd" class="struct-row">
+            <i class="rs-dot" :class="p.mode ? 'ok' : 'off'"></i>
+            <span class="t-card struct-title">{{ p.title || '未命名窗口' }}</span>
+            <span class="t-cap">软件 {{ p.app || '未登记' }} · {{ stateText(p.state) }} · {{ geoText(p) }} · {{ p.mode ? '当前模式' : '只读' }}</span>
+          </div>
+          <div v-if="!projections.length" class="t-cap">没有可显示的窗口</div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn--secondary" @click="structOpen = false">关闭</button>
+        </div>
+      </div>
+    </template>
+
+    <!-- ===== 准备工作空间浮层（原型 `fn:runPrepSequence`）：`.run-prep/.rp-steps/.rp-step/.spinner`
+         几何与文案照抄设计稿；**打勾只认真实操作的完成信号**（不是定时器），见脚本区注释。 -->
+    <template v-if="prepOpen">
+      <div class="scrim" data-pw="run-prep-scrim"></div>
+      <div class="modal run-prep" role="dialog" aria-label="准备工作空间" data-pw="run-prep">
+        <span class="spinner" style="width: 22px; height: 22px; border-width: 2px"></span>
+        <div class="t-card">正在准备工作空间...</div>
+        <div class="rp-steps">
+          <div
+            v-for="(s, i) in PREP_STEPS"
+            :key="s"
+            class="rp-step"
+            :class="{ done: prepDone[i] }"
+            :data-pw="`run-prep-step-${i}`"
+          >
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <template v-if="i === 2">
+                <circle cx="12" cy="12" r="8.4" />
+                <path d="m8.4 12.2 2.4 2.4 4.8-5" />
+              </template>
+              <template v-else>
+                <path d="M19.4 12a7.4 7.4 0 1 1-2.2-5.2" />
+                <path d="M19.4 4.4v5h-5" />
+              </template>
+            </svg>
+            <span>{{ s }}</span>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <style scoped>
-/* 视觉纪律：只用 token（语义层优先），零裸色值 / 零新字体 / 零动画新曲线。 */
-.run-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--f-space-4);
-  height: 100%;
-  padding: var(--f-space-5) var(--f-space-8) var(--f-space-6);
-  background: var(--bg-canvas);
-  color: var(--text-1);
-}
+/* 设计稿未覆盖的少量工程钩子：零动画声明、零裸色值、零新 token。
+   能被设计规则命中的一律**不在这里重写**（几何唯一来源 = base.css）——
+   下面每一条都注明「设计稿没有对应规则」的理由，避免变成第二套视觉。 */
 
-.run-head {
-  display: flex;
-  align-items: center;
-  gap: var(--f-space-3);
-}
-.run-emoji {
-  font-size: var(--fs-num-lg, 22px);
-}
-.run-title {
-  margin: 0;
-}
-.run-clock {
-  color: var(--text-3);
-}
-
-.run-seg {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-controls);
-  overflow: hidden;
-}
-.run-seg__item {
-  padding: 4px var(--f-space-3);
-  font-size: var(--fs-caption, 12px);
-  background: var(--surface-2);
-  color: var(--text-2);
-  border: 0;
-  border-right: 1px solid var(--border);
-  cursor: not-allowed;
-}
-.run-seg__item:last-child {
-  border-right: 0;
-}
-.run-seg__item.is-active {
-  background: var(--brand-50);
-  color: var(--brand-600);
-  font-weight: 600;
-}
-
-.run-status {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--f-space-2);
-  padding: var(--f-space-2) var(--f-space-4);
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-}
-.run-status__sep {
-  width: 1px;
-  height: var(--f-space-4);
-  background: var(--border-subtle);
-}
-.run-status__warn {
-  color: var(--warning);
-  font-size: var(--fs-caption, 12px);
-}
-/* C2：软件 chip 的窗口计数后缀（只用既有 token，零新色）。 */
-.run-chip__count {
-  margin-left: 2px;
-  color: var(--text-3);
-  font-size: var(--fs-caption, 12px);
-}
-
-.run-stage {
-  position: relative;
-  flex: 1;
-  min-height: var(--f-space-12);
-  background: var(--bg-sunken);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-panel);
-  overflow: hidden;
-}
-.run-stage__hint {
-  position: absolute;
-  top: var(--f-space-2);
-  left: var(--f-space-3);
-  margin: 0;
-  color: var(--text-4);
-  font-size: var(--fs-label, 11px);
-  letter-spacing: 0.06em;
-}
-.run-stage__empty {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-4);
-}
-/* 真实窗口投影：几何来自 windows facts，样式是原型的卡窗语言（r-lg 卡 + 细 bar）。 */
-.run-win {
-  position: absolute;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-  opacity: 0.92;
-  overflow: hidden;
-}
-/* C3：非当前模式窗口保持只读（整卡不接指针）；归属窗口仅 bar/handle 接收事件。 */
+/* 非当前模式窗口整卡只读（设计稿没有"只读窗口"这个概念，工程侧新增） */
 .run-win:not(.is-managed) {
   pointer-events: none;
 }
-.run-win__bar.is-grab {
-  cursor: grab;
+
+/* 布局结构弹窗的行（设计稿 modal 里没有这一件，沿用 token 拼装） */
+.struct-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
 }
-.run-win__bar.is-grab:active {
-  cursor: grabbing;
+.struct-row:last-child {
+  border-bottom: 0;
 }
-/* C3 缩放热区（8 向）：内侧热区（.run-win overflow:hidden 裁外侧），hover 提示线，全部既有 token，零动画。 */
-.run-win__rz {
-  position: absolute;
-  background: transparent;
-  z-index: 2;
-}
-.run-win__rz:hover {
-  background: var(--brand-200, var(--brand-500));
-  opacity: 0.5;
-}
-.run-win__rz--n,
-.run-win__rz--s {
-  left: 6px;
-  right: 6px;
-  height: 5px;
-  cursor: ns-resize;
-}
-.run-win__rz--n {
-  top: 0;
-}
-.run-win__rz--s {
-  bottom: 0;
-}
-.run-win__rz--e,
-.run-win__rz--w {
-  top: 6px;
-  bottom: 6px;
-  width: 5px;
-  cursor: ew-resize;
-}
-.run-win__rz--e {
-  right: 0;
-}
-.run-win__rz--w {
-  left: 0;
-}
-.run-win__rz--nw,
-.run-win__rz--ne,
-.run-win__rz--sw,
-.run-win__rz--se {
-  width: 10px;
-  height: 10px;
-}
-.run-win__rz--nw {
-  top: 0;
-  left: 0;
-  cursor: nwse-resize;
-}
-.run-win__rz--ne {
-  top: 0;
-  right: 0;
-  cursor: nesw-resize;
-}
-.run-win__rz--sw {
-  bottom: 0;
-  left: 0;
-  cursor: nesw-resize;
-}
-.run-win__rz--se {
-  bottom: 0;
-  right: 0;
-  cursor: nwse-resize;
-}
-.run-win__bar {
-  display: block;
-  padding: 2px var(--f-space-2);
-  font-size: var(--fs-label, 11px);
-  color: var(--text-3);
-  background: var(--surface-3);
-  white-space: nowrap;
+.struct-title {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.run-foot {
+/* 窗口事实行（替代原型 .win-body 里的 mock 文案） */
+.wb-row {
   display: flex;
-  align-items: center;
-  gap: var(--f-space-4);
-}
-.run-appbar {
-  display: flex;
-  align-items: center;
-  gap: var(--f-space-2);
-  flex: 1;
+  gap: var(--space-2);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
   min-width: 0;
-  padding: var(--f-space-2);
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
 }
-.run-tab {
-  padding: 4px var(--f-space-3);
-  font-size: var(--fs-caption, 12px);
-  color: var(--text-2);
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-controls);
-  cursor: not-allowed;
-}
-.run-tab--ghost {
+.wb-k {
+  flex: 0 0 auto;
   color: var(--text-4);
-  border-style: dashed;
 }
-.run-tab--ai {
-  cursor: pointer;
-  background: var(--brand-50);
-  color: var(--brand-600);
-  border-color: transparent;
-  font-weight: 600;
-}
-.run-minimap {
-  position: relative;
-  width: 192px;
-  height: 108px;
-  flex: none;
-  background: var(--bg-sunken);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-controls);
+.wb-v {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--text-2);
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.run-minimap__win {
+
+/* 负载告警（设计稿无对应件：原型的状态栏是纯 mock，没有失败态） */
+.run-status__warn {
+  color: var(--warning);
+  font-size: var(--fs-caption);
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 软件 chip 的窗口计数后缀（C2 新增事实，设计稿的 rs-st 只承载三态文案） */
+.run-chip__count {
+  margin-left: 2px;
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+}
+
+/* 舞台右下角的常驻缩略图：设计稿的 .minimap 无固有尺寸（它总被父容器撑满），
+   运行页需要一个固定的角标尺寸，故只在这里定尺寸，视觉语言仍走 .minimap */
+.run-minimap {
   position: absolute;
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: 2px;
+  right: 12px;
+  bottom: 12px;
+  width: 168px;
+  height: 94px;
 }
 </style>

@@ -1,0 +1,260 @@
+{
+  "exe": "C:/Users/baiyu/Desktop/Personal Workspace/core/target/release/personal-workspace-core.exe",
+  "tag": "built",
+  "steps": [
+    {
+      "step": "首页",
+      "href": "/dashboard",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-dashboard.png"
+    },
+    {
+      "step": "工作空间",
+      "href": "/mode",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-mode.png"
+    },
+    {
+      "step": "软件",
+      "href": "/software",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-software.png"
+    },
+    {
+      "step": "学习",
+      "href": "/learning",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-learning.png"
+    },
+    {
+      "step": "项目",
+      "href": "/project",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-project.png"
+    },
+    {
+      "step": "生活",
+      "href": "/life",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": true,
+      "shot": "force-built-nav-life.png"
+    },
+    {
+      "step": "AI助手",
+      "href": "/ai",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": true,
+      "shot": "force-built-nav-ai.png"
+    },
+    {
+      "step": "档案",
+      "href": "/profile",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-profile.png"
+    },
+    {
+      "step": "插件",
+      "href": "/plugins",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-plugins.png"
+    },
+    {
+      "step": "设备",
+      "href": "/device",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-device.png"
+    },
+    {
+      "step": "设置",
+      "href": "/settings",
+      "title": "Personal Workspace",
+      "ok": false,
+      "screen_changed": false,
+      "shot": "force-built-nav-settings.png"
+    },
+    {
+      "step": "设置 → AI 与模型",
+      "tab": "AI 与模型",
+      "screen_changed": false,
+      "shot": "force-built-settings-ai.png"
+    },
+    {
+      "step": "设置 → Model Center",
+      "ok": false,
+      "error": "DOM 未找到入口"
+    }
+  ],
+  "window_candidates": [
+    {
+      "title": "Personal Workspace",
+      "cls": "Tauri Window",
+      "w": 1600,
+      "h": 1000
+    }
+  ],
+  "window": {
+    "hwnd": 8000892,
+    "title": "Personal Workspace",
+    "client": [
+      1600,
+      1000
+    ],
+    "data_dir": "C:\\Users\\baiyu\\AppData\\Local\\Temp\\pw-force-click-built-wkgtdes9"
+  },
+  "foreground": true,
+  "capture_method": "screen-grab",
+  "first_screen": {
+    "title": "Personal Workspace",
+    "shot": "force-built-01-first-screen.png"
+  },
+  "dpr_detect": {
+    "raw": 1.25,
+    "method": "config-1280x800",
+    "dpr": 1.25
+  },
+  "css_viewport": [
+    1280,
+    800
+  ],
+  "dom_viewport": [
+    1280,
+    800
+  ],
+  "dom_sidebar": {
+    "w": 236
+  },
+  "dom_nav": {
+    "/dashboard": {
+      "x": 117.5,
+      "y": 109,
+      "w": 219,
+      "h": 34,
+      "t": "首页"
+    },
+    "/mode": {
+      "x": 117.5,
+      "y": 182,
+      "w": 219,
+      "h": 34,
+      "t": "工作空间"
+    },
+    "/software": {
+      "x": 117.5,
+      "y": 216,
+      "w": 219,
+      "h": 34,
+      "t": "软件"
+    },
+    "/learning": {
+      "x": 117.5,
+      "y": 289,
+      "w": 219,
+      "h": 34,
+      "t": "学习"
+    },
+    "/project": {
+      "x": 117.5,
+      "y": 362,
+      "w": 219,
+      "h": 34,
+      "t": "项目"
+    },
+    "/life": {
+      "x": 117.5,
+      "y": 435,
+      "w": 219,
+      "h": 34,
+      "t": "生活"
+    },
+    "/ai": {
+      "x": 117.5,
+      "y": 489,
+      "w": 219,
+      "h": 34,
+      "t": "AI 助手"
+    },
+    "/device": {
+      "x": 117.5,
+      "y": 523,
+      "w": 219,
+      "h": 34,
+      "t": "设备"
+    },
+    "/profile": {
+      "x": 117.5,
+      "y": 557,
+      "w": 219,
+      "h": 34,
+      "t": "档案"
+    },
+    "/plugins": {
+      "x": 117.5,
+      "y": 591,
+      "w": 219,
+      "h": 34,
+      "t": "插件"
+    },
+    "/settings": {
+      "x": 117.5,
+      "y": 678,
+      "w": 219,
+      "h": 34,
+      "t": "设置"
+    }
+  },
+  "dom_settings": {
+    "subnav": [
+      {
+        "t": "外观",
+        "x": 396,
+        "y": 186
+      },
+      {
+        "t": "工作空间",
+        "x": 396,
+        "y": 222
+      },
+      {
+        "t": "AI 与模型",
+        "x": 396,
+        "y": 258
+      },
+      {
+        "t": "数据",
+        "x": 396,
+        "y": 294
+      },
+      {
+        "t": "关于",
+        "x": 396,
+        "y": 330
+      }
+    ],
+    "models": null,
+    "sidebar": {
+      "w": 236
+    },
+    "viewport": [
+      1280,
+      800
+    ]
+  }
+}

@@ -73,8 +73,21 @@ def check_tokens() -> None:
     check(ok_dark, "T7C-1b", f"--bg-sunken 暗色([data-theme='dark'])定义: {'OK' if ok_dark else 'MISSING'}")
 
     rv = read(RUNVIEW)
-    ok_ref = "var(--bg-sunken" in rv
-    check(ok_ref, "T7C-1c", f"RunView 引用 var(--bg-sunken): {'OK' if ok_ref else 'MISSING'}")
+    # UI-FUSION-FULL 后判据放宽到「消费方仍在，但不限定写在哪个文件」：
+    # 舞台画布底色由设计稿的 `.stage` 规则承载（base.css 的
+    # `.stage{...background:var(--bg-sunken)...}`，随设计稿整段并入），
+    # RunView 不再自带第二份 scoped 声明（那才是"第二套视觉"）。
+    # 不变的是**约束本身**：舞台底色必须是 --bg-sunken，且必须真的被消费。
+    base_css = ROOT / "ui" / "src" / "styles" / "base.css"
+    stage_rule = ""
+    if base_css.exists():
+        css_text = base_css.read_text(encoding="utf-8")
+        m = re.search(r"(?m)^\.stage\{[^}]*\}", css_text)
+        stage_rule = m.group(0) if m else ""
+    ok_ref = "var(--bg-sunken" in rv or "var(--bg-sunken" in stage_rule
+    check(ok_ref, "T7C-1c",
+          f"舞台画布引用 var(--bg-sunken): {'OK' if ok_ref else 'MISSING'}"
+          f"（RunView={('var(--bg-sunken' in rv)} / .stage 规则={bool(stage_rule) and 'var(--bg-sunken' in stage_rule}）")
 
 
 # ---------------------------------------------------- 2. 无第二套 CSS 体系
@@ -164,14 +177,24 @@ def check_ui_boundary() -> None:
     check(not tauri, "T7C-5b", f"RunView 直连 tauri invoke: {'无' if not tauri else tauri}")
 
     imports = re.findall(r"from\s+['\"]([^'\"]+)['\"]", rv_code)
+    # 白名单在 2026-09-18 动效对接批次**扩了两项**（不是放宽，是补上"框架层"）：
+    #   · `@/motion`              —— 时长/缓动/档位的唯一来源（Motion Runtime）。
+    #                                窗口拖拽的落位过渡必须走 `motionMs('--mt-dur-window')`，
+    #                                自己写死毫秒值会与 Guard/Skin 的档位脱钩（runtime.ts
+    #                                的注释里把这条列为"为什么需要 motionMs"）。
+    #   · `@/composables/…`       —— 共享行为（`useListSort.flash` = 设计稿落位闪光
+    #                                `.just-swap`）。手工复制这三行会变成"第二处闪光实现"。
+    # 两条都是**框架层**，与 T7C-5a/5b 要拦的东西（`@/api` 直连 core、`@tauri-apps/api`
+    # 裸 invoke）无关 —— 红线的原意（RunView 不直连 core）一字未放松。
     ok_src = all(
         i.startswith(".") or i.startswith("@/") and (
             i.startswith("@/workspace/runtime") or i.startswith("@/stores/ai")
+            or i.startswith("@/motion") or i.startswith("@/composables/")
         )
         for i in imports
         if not i.startswith("vue")
     )
-    check(ok_src, "T7C-5c", f"RunView import 白名单(vue/vue-router/workspace/runtime/stores/ai): {'OK' if ok_src else imports}")
+    check(ok_src, "T7C-5c", f"RunView import 白名单(vue/vue-router/workspace/runtime/stores/ai/motion/composables): {'OK' if ok_src else imports}")
 
 
 def main() -> int:

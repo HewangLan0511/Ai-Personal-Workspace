@@ -256,6 +256,53 @@ export function listSkins(): SkinDefinition[] {
 let activeSkinId: string | null = null // null = Default（无 data-skin）
 let appliedProps: string[] = [] // 本 skin 写入的内联属性，clear 时精确移除
 
+/* ---------------------------------------------------------------- 持久化
+ * skin-system.md §9.2 第 6/7 项：`localStorage("pw.skin")`，启动时恢复。
+ * 为什么不吃 Core config：本条是**设计稿指定的落点**（皮肤包自带 JSON，
+ * 选择是"本地口味"而不是工作区数据）；而且 localStorage 读写失败必须降级成
+ * "这一次不记住"，不能让皮肤层成为启动依赖（I4/F4：绝不白屏）。
+ */
+const LS_KEY = 'pw.skin'
+
+function persist(id: string | null): void {
+  try {
+    if (id === null || id === 'default') localStorage.removeItem(LS_KEY)
+    else localStorage.setItem(LS_KEY, id)
+  } catch {
+    /* 隐私模式 / 配额满：只影响"下次启动还记得吗"，不影响本次生效 */
+  }
+}
+
+function readPersisted(): string | null {
+  try {
+    return localStorage.getItem(LS_KEY)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 启动时恢复上次选的皮肤（`initMotionRuntime` 调用一次）。
+ *
+ * 任何异常路径都回到**无皮肤态**：注册表里没有这个 id（皮肤包被删/被手改坏）、
+ * `applySkin` 失败、localStorage 不可用 —— 一律清掉持久值并保持 Default。
+ * 这正是 F4「运行时的恢复动作永远是回到无皮肤态」。
+ */
+export function restoreSkin(): { id: string | null } {
+  const id = readPersisted()
+  if (!id) return { id: null }
+  if (!registry.has(id)) {
+    persist(null)
+    return { id: null }
+  }
+  const r = applySkin(id)
+  if (!r.ok) {
+    persist(null)
+    return { id: null }
+  }
+  return { id }
+}
+
 /** 强度/模糊等 → --mt-skin-* 通道；accent → --accent（语义层主题色覆盖）。 */
 function propNames(o: SkinOverrides): Array<[string, string]> {
   const props: Array<[string, string]> = []
@@ -291,6 +338,7 @@ export function applySkin(id: string): { ok: boolean; error?: string } {
     // Default：删除 data-skin 即恢复
     delete root.dataset.skin
     activeSkinId = null
+    persist(null)
     return { ok: true }
   }
 
@@ -301,6 +349,7 @@ export function applySkin(id: string): { ok: boolean; error?: string } {
   }
   root.dataset.skin = def.id
   activeSkinId = def.id
+  persist(def.id)
   return { ok: true }
 }
 

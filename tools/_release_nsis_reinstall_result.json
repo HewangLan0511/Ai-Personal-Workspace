@@ -1,0 +1,14 @@
+{
+ "mode": "nsis-reinstall",
+ "exe": "D:\\Personal Workspace\\personal-workspace-core.exe",
+ "pid": 12500,
+ "running": true,
+ "dataDirExists": true,
+ "dataDirContent": [
+  "plugins",
+  "tmp",
+  "workspace.db",
+  "workspace.db-shm",
+  "workspace.db-wal"
+ ]
+}

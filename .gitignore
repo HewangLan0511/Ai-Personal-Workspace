@@ -64,3 +64,9 @@ desktop.ini
 
 # ===== 监控工具本地报告 =====
 docs/reviews/.gate-cache/
+
+# ===== V0.1 归档（2026-09-18）=====
+# 安装包：cargo target 已清空，唯一两份 V0.1 包另存于此，留在磁盘不入库（34 MB 二进制）
+release/
+# 验收运行残留：跑 verify_*.py 时应用写出的临时布局快照，非源码
+config/layouts/run-*验证-*.json

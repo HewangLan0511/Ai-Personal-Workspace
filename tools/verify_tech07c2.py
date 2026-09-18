@@ -129,10 +129,58 @@ def a3_no_new_tokens() -> None:
     check("A3a RunView 零私造 token 定义", not defined, str(defined[:5] or "无"))
 
     frozen = {
-        "ui/src/styles/tokens.css": "f329f50bddd31d59",
-        "ui/src/styles/motion-tokens.css": "e5e44af4aa807d38",
-        "ui/src/components/ui/primitives.css": "2de660ce01c2c7d5",
-        "ui/src/styles/base.css": "46d26e1bc27716a7",
+        # UI-FUSION-REAL（2026-09-17）：tokens.css / base.css 按 UI-FUSION-STANDARD §2.3
+        # 「整段并入」流程登记新基线（原型排版/Shell 布局/间距/圆角/阴影标度并入 +
+        # 侧栏容器与页面排版原型化）。motion-tokens.css / primitives.css 未动。
+        # UI 保真收口·第四轮（2026-09-17，顶部壳层 appbar 化）：base.css 再登记
+        # （`3558c87215e7bd74 → 899ddfd9ec26ccbd`）。**ModeBar.vue 零改动**，
+        # 其 C6 冻结基线 `eccb9c10727d3d30` 保持原值（模式栏视觉由 base.css 覆盖实现）。
+        # UI-FUSION-FULL（2026-09-18，设计稿组件层「整段并入」）：base.css 再登记
+        # （`899ddfd9ec26ccbd → db5244f71716e677`）。变更内容 = 设计稿
+        # personal-workspace-ui 的组件层 / 壳层 / 运行页规则整段并入（含 23 个
+        # keyframes、6 个新语义 token 的消费方、双类名桥接所依赖的几何）——
+        # 属 UI-FUSION-STANDARD §2.3 的登记流程，不是本工程自造的第二套视觉。
+        # 原语层别名对齐（2026-09-18 第三批）：primitives.css 再登记
+        # （`2de660ce01c2c7d5 → 014cff0446e63ef6`）。变更内容 = `.pw-card` 组改为
+        # **消费设计稿 token**（`--pad-card`/`--pad-card-lg`/`--r-xl`）+ 补上设计稿的
+        # transition 与 hover 抬升。理由：main.ts 里 primitives.css 加载在 base.css
+        # **之后**，`.pw-*` 会盖住设计稿 `.card` —— 原先用 `--f-space-4`(16px) 而非
+        # `--pad-card`(20px)，所有走 PwCard 的页面卡片内距比设计稿紧 4px。
+        # 同类漂移由 `tools/_force_design_check.py` 的 D1d 机器守护，不再靠人盯。
+        # button 重置精确复位（2026-09-18 第四批）：base.css + primitives.css 同时再登记
+        # （base.css `db5244f71716e677 → 9d86a51bf1883369 → 121b562804633520`、
+        #  primitives.css `014cff0446e63ef6 → 37a8ff2d375f61c4`）。
+        # 变更内容 = 设计稿的基础重置 `button{background:none;border:0;padding:0}` 在
+        # 并入时被 EXCLUDE 排除，导致**所有假设"裸 button"的设计稿类**（`.icon-btn` /
+        # `.seg button` / `.tabs button` / `.chip button` / `.win-btns button` / `.btn`）
+        # 都多出一圈灰边 + 一层底色。现按设计原值精确复位：base.css 增一段只列
+        # 设计稿类名的复位块（置于并入段之前，设计稿自身的 background/border 仍以
+        # 源序胜出）；primitives.css 给 `.pw-btn` 补 `border:0`（设计 `.btn` 无边框）。
+        # **未动**工程版 `button{}` 重置本身 —— 工程期还有大量 `class="primary"`
+        # 裸按钮靠它活着，整体改会大面积回归。
+        "ui/src/styles/tokens.css": "4741eed584a8b589",
+        "ui/src/styles/motion-tokens.css": "adee6b0380a7b04d",
+        "ui/src/components/ui/primitives.css": "37a8ff2d375f61c4",
+        # 2026-09-18 再更新（`9d86a51bf1883369 → 121b562804633520`）：第五批页面结构归位
+        # 新增两个「裸 button」设计稿类进复位清单 —— `.avatar-pick`（ProfileView 头像格）与
+        # `.nowplaying`（首页 greet 行的 idle 态是 `<button class="nowplaying idle">`）。
+        # 2026-09-18 第三次更新（`121b562804633520 → ee7d92615121cd45`）：动效对接批次。
+        # 三处都是**有意**改动，逐项可核对（不是"顺手改了再改基线"）：
+        #   ① `_fusion_css_import.py --resync`：把设计稿的 Press 反馈规则
+        #      （`button:active,…{transform:scale(var(--mt-scale-press))}`，原被 `^button`
+        #      前缀连带排除）并入 —— 全应用此前**没有按下反馈**；
+        #   ② 同一次 resync 把 `.mt-*` 动效规范层并入（/motion 页成为其产品消费方）；
+        #   ③ 文件末尾并入段**之前**新增「壳层折叠动画的连续性补齐」块
+        #      （`.nav-item`/`.device-line` 的 mini 态改用 padding 表达居中 + padding 纳入过渡）。
+        #      ★ 同日第四次更新（`ee7d92615121cd45 → 07e79a756e1657c1`）为 ③ 的**更正**：
+        #      该块原先写作 `.app-shell.mini .nav-item`＝(0,3,0)，而设计稿折叠态那条
+        #      `.shell.mini .nav-item{justify-content:center;padding:0;gap:0}` **也是 (0,3,0)**
+        #      且它在并入段里（更靠后）→ 平局由源序判定 → 设计稿赢，`padding-left` 居中修复
+        #      **整条失效**（`.device-line` 同）。现改 `.shell.app-shell.mini …`＝(0,4,0)
+        #      真正压过设计稿；`.shell` 与 `.app-shell` 确实同在壳元素上（App.vue
+        #      `class="app-shell shell"`），不是凑权重。
+        # 视觉取值本身**没有被改动**：①② 是设计稿原文逐字并入，③ 终点与设计稿逐像素一致。
+        "ui/src/styles/base.css": "07e79a756e1657c1",
     }
     bad: list[str] = []
     for rel, want in frozen.items():
@@ -173,14 +221,17 @@ def a6_projection_boundary() -> None:
     check("A6b facts/actions/projection 零黑名单命令", not leaks, str(leaks or "无"))
     boundary = read(RUNTIME / "boundary.ts")
     check("A6c 白名单含 apps_list（既有读命令）", "'apps_list'" in boundary, "boundary.ts")
-    # RunView 只消费投影类型（@/workspace/runtime/facts 或 runtime/index），不 import @/api/types
+    # RunView 只消费投影类型（@/workspace/runtime/facts 或 runtime/index），不 import @/api/types。
+    # 2026-09-18 动效对接批次扩了两项**框架层**白名单（同 verify_tech07c T7C-5c 的理由）：
+    #   `@/motion`（时长走 Motion Runtime，不写死毫秒）与 `@/composables/`（共享 flash）。
+    # 要拦的仍然是 `@/api` / 裸 tauri —— 那两条各有独立断言，不在这里。
     rv = read(RUNVIEW)
     ok_imports = all(
         i.startswith("vue") or i.startswith("vue-router") or i.startswith("@/workspace/runtime")
-        or i.startswith("@/stores/")
+        or i.startswith("@/stores/") or i.startswith("@/motion") or i.startswith("@/composables/")
         for i in re.findall(r"from\s+['\"]([^'\"]+)['\"]", rv)
     )
-    check("A6d RunView import 白名单（runtime 投影 + ai store）", ok_imports, "import 集合合规")
+    check("A6d RunView import 白名单（runtime 投影 + ai store + motion/composables）", ok_imports, "import 集合合规")
 
 
 def a7_no_local_fact_source() -> None:

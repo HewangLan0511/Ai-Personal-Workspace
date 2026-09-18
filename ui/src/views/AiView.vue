@@ -171,7 +171,7 @@ function timeLabel(ms: number): string {
 
 <template>
   <section class="aiv" :data-pw-assistant-mode="mode" :data-pw-assistant-status="status">
-    <header class="aiv-head">
+    <header class="aiv-head page-head">
       <div class="pw-grow">
         <h2 class="pw-t-page">{{ isWorkspace ? '工作空间助手' : 'AI 助手' }}</h2>
         <p class="pw-t-cap">
@@ -183,11 +183,10 @@ function timeLabel(ms: number): string {
         </p>
       </div>
 
-      <div class="aiv-tabs">
+      <div class="tabs aiv-tabs" style="margin-bottom: 0">
         <button
           type="button"
-          class="pw-btn"
-          :class="!isWorkspace ? 'pw-btn--secondary' : 'pw-btn--ghost'"
+          :class="{ on: !isWorkspace }"
           :aria-pressed="!isWorkspace"
           data-pw-assistant-tab="consult"
           @click="setMode('consult')"
@@ -196,8 +195,7 @@ function timeLabel(ms: number): string {
         </button>
         <button
           type="button"
-          class="pw-btn"
-          :class="isWorkspace ? 'pw-btn--secondary' : 'pw-btn--ghost'"
+          :class="{ on: isWorkspace }"
           :aria-pressed="isWorkspace"
           data-pw-assistant-tab="workspace"
           @click="setMode('workspace')"
@@ -223,9 +221,9 @@ function timeLabel(ms: number): string {
       </RouterLink>
     </header>
 
-    <div class="aiv-grid">
+    <div class="aiv-grid ai-grid">
       <!-- 左：历史会话（会话状态壳的另一半） -->
-      <PwCard class="aiv-sessions">
+      <PwCard class="aiv-sessions ai-sessions">
         <div class="pw-row aiv-sessions-head">
           <span class="pw-t-cap pw-grow">历史会话</span>
           <PwButton
@@ -238,14 +236,14 @@ function timeLabel(ms: number): string {
             ＋
           </PwButton>
         </div>
-        <div class="aiv-session-list" data-pw-assistant-sessions>
+        <div class="aiv-session-list ai-session-list" data-pw-assistant-sessions>
           <p v-if="!sessions.length" class="pw-t-cap aiv-sessions-empty">还没有会话</p>
           <button
             v-for="s in sessions"
             :key="s.id"
             type="button"
-            class="aiv-session"
-            :class="{ 'is-on': s.id === ai.sessionId }"
+            class="aiv-session ai-session"
+            :class="{ 'is-on': s.id === ai.sessionId, on: s.id === ai.sessionId }"
             :data-session-id="s.id"
             :data-session-active="s.id === ai.sessionId ? '1' : '0'"
             @click="ai.switchSession(s.id)"
@@ -257,10 +255,10 @@ function timeLabel(ms: number): string {
       </PwCard>
 
       <!-- 右：对话区 -->
-      <PwCard size="lg" class="aiv-chat">
+      <PwCard size="lg" class="aiv-chat ai-chat">
         <!-- 权限边界：两种模式的显示**必须不同**（08 §5） -->
         <div
-          class="aiv-chat-head"
+          class="aiv-chat-head ai-chat-head"
           :class="{ 'is-ws': isWorkspace }"
           data-pw-assistant-permission
           :data-permission-mode="mode"
@@ -300,7 +298,7 @@ function timeLabel(ms: number): string {
         </div>
 
         <!-- 对话流 -->
-        <div class="aiv-msgs" data-pw-assistant-messages>
+        <div class="aiv-msgs ai-msgs" data-pw-assistant-messages>
           <!-- 空会话态 -->
           <div v-if="status === 'empty' || status === 'unset'" class="empty-state" data-pw-assistant-empty>
             <span class="pw-avatar pw-avatar--lg">✦</span>
@@ -315,14 +313,14 @@ function timeLabel(ms: number): string {
             <div
               v-for="m in messages"
               :key="m.id"
-              class="aiv-msg"
-              :class="m.role === 'user' ? 'is-me' : 'is-ai'"
+              class="aiv-msg msg"
+              :class="m.role === 'user' ? 'is-me me' : 'is-ai'"
               :data-msg-role="m.role"
               :data-msg-streaming="m.streaming ? '1' : '0'"
               :data-msg-error="m.error ? '1' : '0'"
             >
               <div class="pw-t-cap aiv-msg-role">{{ m.role === 'user' ? '你' : 'AI' }}</div>
-              <div class="aiv-msg-body">
+              <div class="aiv-msg-body bubble">
                 <div v-if="m.content" v-html="renderMarkdown(m.content)"></div>
                 <span v-if="m.streaming" class="aiv-cursor">▍</span>
                 <div v-if="m.error" class="aiv-msg-error">{{ m.error }}</div>
@@ -410,8 +408,21 @@ function timeLabel(ms: number): string {
 </template>
 
 <style scoped>
-/* 只做**本页版面**（网格/间距/流式高度）。所有外观值（色/圆角/边框/内距）
-   一律来自共享原语与 token —— 本页不定义任何裸色值、不新增任何动画。 */
+/* ── 版面类与设计稿的对应（双类名桥接 · 第四批）────────────────────────────
+   设计稿类名已挂在**同一批元素**上（见模板），故下列版面值**不再本地重复定义**，
+   一律由设计稿 CSS 决定（它已并入 base.css）：
+     .aiv-tabs         → .tabs          （下划线式 tab：gap:--space-5 / .on::after）
+     .aiv-grid         → .ai-grid       （264px 1fr / gap:--gap-section）
+     .aiv-sessions     → .ai-sessions   （padding:0 + overflow:hidden）
+     .aiv-session-list → .ai-session-list（gap:2px / padding:--space-2）
+     .aiv-session      → .ai-session    （内距 / 圆角 / hover / .on 高亮）
+     .aiv-chat         → .ai-chat
+     .aiv-chat-head    → .ai-chat-head
+     .aiv-msgs         → .ai-msgs
+   ⚠️ 别再把这些值抄回来：本地块会被编译成 `.x[data-v-*]`，与设计选择器
+   **同权重（0,2,0）**，平局靠源序决定 —— 构建后源序不可依赖。
+   这与第三批"原语层盖掉设计层"是同一类事故。 */
+
 .aiv {
   display: flex;
   flex-direction: column;
@@ -427,18 +438,13 @@ function timeLabel(ms: number): string {
   flex-wrap: wrap;
 }
 
-.aiv-tabs {
-  display: flex;
-  gap: 4px;
-}
-
 .aiv-model {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-controls);
+  border-radius: var(--r-md);
   background: var(--panel);
   color: inherit;
   text-decoration: none;
@@ -453,55 +459,33 @@ function timeLabel(ms: number): string {
   font-size: 13px;
 }
 
+/* `.ai-grid` 是纯网格，没有"占满剩余高度"的语义 —— 只补这一条。 */
 .aiv-grid {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 12px;
   flex: 1;
   min-height: 0;
 }
 
+/* 内距/overflow 交给 `.ai-sessions`（设计稿是 padding:0 + overflow:hidden）。 */
 .aiv-sessions {
-  display: flex;
-  flex-direction: column;
   min-height: 0;
-  padding: 12px;
 }
 
 .aiv-sessions-head {
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 8px;
+  /* 设计稿这一行是 `padding:var(--space-3) var(--space-4) var(--space-2)`
+     （因为 `.ai-sessions` 自身 padding 为 0，内距全压在这一行上）。 */
+  padding: var(--space-3) var(--space-4) var(--space-2);
 }
 
+/* `.ai-session-list` 已给 flex:1/overflow-y:auto/gap/padding；
+   只补"允许收缩"—— flex 子项默认 min-height:auto 会顶破容器。 */
 .aiv-session-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  overflow-y: auto;
   min-height: 0;
 }
 
 .aiv-sessions-empty {
   margin: 0;
-}
-
-.aiv-session {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-controls);
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-}
-
-.aiv-session.is-on {
-  border-color: var(--border);
-  background: var(--surface-hover);
 }
 
 .aiv-session-title {
@@ -515,18 +499,9 @@ function timeLabel(ms: number): string {
   flex: 0 0 auto;
 }
 
+/* `.ai-chat` 已给 display:flex/flex-direction:column/overflow；只补允许收缩。 */
 .aiv-chat {
-  display: flex;
-  flex-direction: column;
   min-height: 0;
-}
-
-.aiv-chat-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-subtle);
 }
 
 .aiv-perm-panel {
@@ -554,20 +529,22 @@ function timeLabel(ms: number): string {
   padding-top: 8px;
 }
 
+/* 内距（`--space-5 0`）与滚动交给设计稿 `.ai-msgs`。
+   这里只补"逐条竖排 + 允许收缩"；**不设 gap** —— 设计稿的条间距来自
+   `.msg` 自身的 `padding:var(--space-3) var(--space-4)`，再加 gap 就会翻倍。 */
 .aiv-msgs {
-  flex: 1;
   min-height: 120px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 0;
 }
 
 .aiv-empty-hint {
   max-width: 420px;
 }
 
+/* 气泡外观（圆角/底色/字号/最大宽）交给设计稿 `.msg .bubble`
+   （自己贴右时 `.msg.me .bubble` = brand-50 + 右下角小圆角）。
+   本页只保留设计稿没有的东西：**竖排的角色标签**（"你"/"AI"）。 */
 .aiv-msg {
   display: flex;
   flex-direction: column;
@@ -582,17 +559,6 @@ function timeLabel(ms: number): string {
 
 .aiv-msg-role {
   margin: 0;
-}
-
-.aiv-msg-body {
-  padding: 8px 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-controls);
-  background: var(--surface-hover);
-}
-
-.aiv-msg.is-me .aiv-msg-body {
-  background: var(--surface-overlay);
 }
 
 .aiv-msg-error {

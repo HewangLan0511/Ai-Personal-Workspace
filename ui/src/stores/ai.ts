@@ -501,8 +501,25 @@ export const useAiStore = defineStore('ai', {
       persist(COLLAPSED_KEY, this.collapsed ? '1' : '0')
     },
 
+    /**
+     * 显式设置收起态（拖拽折叠阈值 / 级联挤压会直接指定状态，而不是"切一下"）。
+     * `toggleCollapsed` 表达不了"确保是收起的"，用它替代会在重复调用时来回抖。
+     */
+    setCollapsed(v: boolean): void {
+      if (this.collapsed === v) return
+      this.collapsed = v
+      persist(COLLAPSED_KEY, v ? '1' : '0')
+    },
+
+    /**
+     * 设置 AI 侧栏宽度。
+     * 上下限 = 设计稿 `RESIZE_CONF.ai`（min 300 / max 560，原型 index.html），
+     * 与本模块原先的 280/720 不一致 —— 以设计稿为准收窄：
+     * 280 会把 `.ai-head` 的两段式标题挤断行，720 则超过原型给内容区留的最小尊严
+     * （`CONTENT_MIN` 680）。两处都是可复现的排版破位，不是审美偏好。
+     */
     setWidth(px: number): void {
-      const clamped = Math.max(280, Math.min(720, Math.round(px)))
+      const clamped = Math.max(300, Math.min(560, Math.round(px)))
       this.width = clamped
       persist(WIDTH_KEY, String(clamped))
     },

@@ -355,10 +355,13 @@ def t1_static() -> None:
     # TECH-05-C §P0-3 起新增一个**产品内**消费者：工作空间状态组件
     # （挂在 /dashboard 上）。本条的目的不是"只允许固件页"，而是
     # **不允许绕过门面**或散落多处各读一份状态 —— 因此消费者必须逐个登记。
+    # UI-FUSION-REAL（2026-09-17）：首页 Hero 组件 HomeHero.vue 登记为第三个产品消费者
+    # （同 WorkspaceStatus 先例：只读门面投影，零控制）。
     allowed = {
         str(SRC / "workspace" / "runtime.ts"),
         str(SRC / "views" / "DevWorkspaceHarness.vue"),
         str(SRC / "components" / "WorkspaceStatus.vue"),
+        str(SRC / "components" / "HomeHero.vue"),
     }
     importers: list[str] = []
     for path in list(SRC.rglob("*.ts")) + list(SRC.rglob("*.vue")):

@@ -36,11 +36,21 @@ import PwButton from '@/components/ui/PwButton.vue'
 import PwCard from '@/components/ui/PwCard.vue'
 import PwChip from '@/components/ui/PwChip.vue'
 import PwDrawer from '@/components/ui/PwDrawer.vue'
+import PwIcon from '@/components/PwIcon.vue'
 import { toast } from '@/composables/useToast'
+import { usePageEntrance } from '@/motion'
 import { useProfileStore } from '@/stores/profile'
 import { logger } from '@/utils/logger'
 
 const store = useProfileStore()
+
+/**
+ * 页面元素进出场（`data-enter` → `.enter-up` 错峰，同一套 token 与步长公式）。
+ * 档案页是列表页（技能/项目/时间线会变），**每次进入都播** —— 只在第一次播
+ * 等于之后都看不到（首页保留设计稿的"每会话一次"语义，见 DashboardView）。
+ */
+const rootEl = ref<HTMLElement | null>(null)
+usePageEntrance(rootEl, { key: 'profile' })
 
 // ---- 首次引导 / 基础信息编辑 ----
 const onboarding = reactive({ name: '', direction: '', motto: '' })
@@ -278,6 +288,14 @@ function setAvatarDraft(v: string): void {
   avatarDraft.value = v
 }
 
+/**
+ * 上传图片入口：与设计稿一致，属于**预留入口，尚未接入**。
+ * 点选后如实告知「接入后开放」，不伪造上传成功。
+ */
+function pickAvatarImage(): void {
+  toast.info('图片上传为预留入口，接入后开放')
+}
+
 /** 保存头像：写已登记的 config 键；失败如实提示，不假装成功。 */
 async function saveAvatar(): Promise<void> {
   const next = avatarDraft.value
@@ -487,8 +505,8 @@ const TYPE_LABEL: Record<string, string> = {
 </script>
 
 <template>
-  <section class="page">
-    <header class="page-bar profile-head">
+  <section ref="rootEl" class="page">
+    <header class="page-head profile-head" data-enter="hero">
       <div class="pw-grow">
         <div class="pw-row profile-head-title">
           <h2 class="pw-t-page">个人数字档案</h2>
@@ -536,7 +554,7 @@ const TYPE_LABEL: Record<string, string> = {
     </form>
 
     <!-- 待确认建议（10 §5 硬关口） -->
-    <div v-if="suggestions.length > 0" class="suggestion-panel">
+    <div v-if="suggestions.length > 0" class="suggestion-panel" data-enter="sec">
       <header class="suggestion-head">
         <span><b>{{ suggestions.length }}</b> 条待确认的档案变化 —— 确认后才会写入档案</span>
         <button
@@ -634,7 +652,7 @@ const TYPE_LABEL: Record<string, string> = {
             >
               {{ t }}
             </PwChip>
-            <span class="pw-chip profile-tag-input">
+            <span class="pw-chip chip profile-tag-input">
               <input
                 v-model="tagInput"
                 placeholder="添加标签"
@@ -678,9 +696,9 @@ const TYPE_LABEL: Record<string, string> = {
     </PwCard>
 
     <!-- 中部：技能树 | 项目经历 -->
-    <div class="middle">
-      <section class="panel">
-        <header class="panel-head">
+    <div class="middle" data-enter="ws">
+      <section class="profile-panel">
+        <header class="profile-panel-head">
           <h3>技能树</h3>
         </header>
         <details v-for="g in skillGroups" :key="g.category" class="skill-group" open>
@@ -723,8 +741,8 @@ const TYPE_LABEL: Record<string, string> = {
         </form>
       </section>
 
-      <section class="panel">
-        <header class="panel-head">
+      <section class="profile-panel">
+        <header class="profile-panel-head">
           <h3>项目经历</h3>
         </header>
         <ul class="project-list">
@@ -759,8 +777,8 @@ const TYPE_LABEL: Record<string, string> = {
     </div>
 
     <!-- 底部：成长时间线（10 §4） -->
-    <section class="panel">
-      <header class="panel-head">
+    <section class="profile-panel" data-enter="sec">
+      <header class="profile-panel-head">
         <h3>成长时间线</h3>
       </header>
       <div class="tl-groups">
@@ -818,10 +836,15 @@ const TYPE_LABEL: Record<string, string> = {
       @close="avatarOpen = false"
     >
       <p class="pw-t-cap profile-hint">选一个喜欢的，或继续用名字首字母。</p>
-      <div class="pw-grid pw-grid--avatars">
+      <!-- 双类名桥接：`avatar-grid`/`avatar-pick` 是设计稿类（取值的唯一来源，base.css），
+           `pw-grid--avatars`/`pw-avatar-pick` 是原语层别名 —— 两者取值等价，
+           但别名层还补了设计稿 `.avatar-pick` 没写的 `padding:0`（设计稿的按钮重置
+           本来就带 padding:0，本工程的按钮重置带了内边距，必须在这里复位）。
+           保留别名类也是 verify_tech05c T4f「原语层无孤儿类」的消费方。 -->
+      <div class="avatar-grid pw-grid--avatars">
         <button
           type="button"
-          class="pw-avatar-pick"
+          class="avatar-pick pw-avatar-pick avatar-pick--initial"
           :class="{ on: avatarDraft === '' }"
           title="首字母头像"
           @click="setAvatarDraft('')"
@@ -832,11 +855,21 @@ const TYPE_LABEL: Record<string, string> = {
           v-for="e in AVATAR_PRESETS"
           :key="e"
           type="button"
-          class="pw-avatar-pick"
+          class="avatar-pick pw-avatar-pick"
           :class="{ on: avatarDraft === e }"
           @click="setAvatarDraft(e)"
         >
           {{ e }}
+        </button>
+        <button
+          type="button"
+          class="avatar-pick pw-avatar-pick avatar-pick--up"
+          data-pw-avatar-upload
+          title="上传图片（接入后开放）"
+          @click="pickAvatarImage"
+        >
+          <PwIcon name="download" :size="16" />
+          <span>上传图片</span>
         </button>
       </div>
       <PwCard variant="ghost" class="profile-avatar-note">
@@ -1026,6 +1059,14 @@ const TYPE_LABEL: Record<string, string> = {
   margin: 0 0 8px;
 }
 
+/* 首字母格：设计稿 `openAvatarPicker` 里是行内样式（18px / 600 / brand-700），
+   这里落成作用域类，避免行内样式绕开设计稿层。 */
+.avatar-pick--initial {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--brand-700);
+}
+
 .profile-avatar-note {
   margin-top: 16px;
   display: flex;
@@ -1045,18 +1086,18 @@ const TYPE_LABEL: Record<string, string> = {
     grid-template-columns: 1fr;
   }
 }
-.panel {
+.profile-panel {
   border: 1px solid var(--pw-border, #e0e0e0);
   border-radius: 8px;
   padding: 12px;
 }
-.panel-head {
+.profile-panel-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
-.panel-head h3 {
+.profile-panel-head h3 {
   margin: 0;
   font-size: 15px;
 }

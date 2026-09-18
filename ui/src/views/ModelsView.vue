@@ -401,7 +401,7 @@ function removeModel(entry: ModelListEntry): void {
 
 <template>
   <section class="models-view">
-    <header class="mv-head">
+    <header class="mv-head page-head">
       <button type="button" class="pw-btn pw-btn--icon" title="返回" @click="goBack">←</button>
       <div class="pw-grow">
         <h2 class="pw-t-page">模型管理</h2>
@@ -448,7 +448,7 @@ function removeModel(entry: ModelListEntry): void {
       核心服务未连接 —— 暂时读不到系统里可用的 Provider，添加模型会不可用（不影响已保存的模型）。
     </p>
 
-    <div class="pw-grid pw-grid--models" data-pw-models-grid>
+    <div class="pw-grid pw-grid--models model-grid" data-pw-models-grid>
       <!-- 空态 -->
       <PwCard v-if="models.length === 0" variant="ghost" class="mv-empty">
         <span class="pw-avatar pw-avatar--lg">✦</span>
@@ -463,7 +463,7 @@ function removeModel(entry: ModelListEntry): void {
         v-for="m in models"
         :key="m.id"
         stack
-        class="mv-card"
+        class="mv-card model-card"
         :data-model-id="m.id"
         :data-pw-model-id="m.id"
         :data-pw-model-status="statusKey(m)"
@@ -489,7 +489,7 @@ function removeModel(entry: ModelListEntry): void {
           <PwChip v-if="needsKeyAndMissing(m)" size="sm" variant="outline">未配密钥</PwChip>
         </div>
 
-        <div class="pw-row pw-row--wrap mv-card-foot">
+        <div class="pw-row pw-row--wrap mv-card-foot mc-foot">
           <PwButton size="sm" variant="secondary" @click="openView(m.id)">查看</PwButton>
           <PwButton
             v-if="!m.isDefault"
@@ -511,9 +511,8 @@ function removeModel(entry: ModelListEntry): void {
     </div>
 
     <button
-      v-if="models.length > 0"
       type="button"
-      class="mv-add-row"
+      class="new-card mv-add-row"
       :disabled="!providers.length"
       @click="openAdd"
     >
@@ -765,10 +764,9 @@ function removeModel(entry: ModelListEntry): void {
   margin-top: 2px;
 }
 
-.mv-card-foot {
-  gap: 4px;
-  margin-top: 4px;
-}
+/* `.mv-card-foot` 的内距/上距**交给设计稿 `.model-card .mc-foot`**（gap/margin-top
+   都取 `var(--space-1)`=4px，与原先字面量同值）。删掉本地块是为了消掉
+   与设计选择器的同权重（0,2,0）平局 —— 平局靠源序决定，构建后源序不可依赖。 */
 
 .mv-empty {
   grid-column: 1 / -1;
@@ -780,35 +778,35 @@ function removeModel(entry: ModelListEntry): void {
   text-align: center;
 }
 
+/* 形态与配色**全部**交给设计稿 `.new-card`（竖排 / 居中 / min-height:150px /
+   虚线边 / hover 变 brand-300+brand-700）。这里只保留设计稿没管的两件事：
+   满宽 + 禁用态。⚠️ 不要再往这里加 display/flex-direction/gap/border/color
+   —— 那是设计稿的活，加了就会盖掉它（第三批"原语层盖设计层"同款坑）。 */
 .mv-add-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   width: 100%;
-  margin-top: 4px;
-  padding: 12px 16px;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-card);
-  background: transparent;
-  color: var(--text-2);
+  margin-top: var(--space-3);
   cursor: pointer;
 }
 
-.mv-add-row:hover:not(:disabled) {
-  background: var(--surface-2);
-}
-
-.mv-add-row:disabled {
+/* 设计稿的 `.new-card:hover` 不分禁用态，这里补上"禁用不进 hover"的兜底，
+   把三项回写成 `.new-card` 的静态取值（不是另发明一套外观）。 */
+.mv-add-row:disabled,
+.mv-add-row:disabled:hover {
   opacity: 0.5;
   cursor: not-allowed;
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-3);
 }
 
+/* 设计稿是行内 `border-radius:10px`（没有对应 token，`--r-md`=8 / `--r-lg`=12
+   都不等于 10），故按设计原值写字面量。 */
 .mv-add-icon {
   display: grid;
   place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: var(--f-radius-2);
+  border-radius: 10px;
   background: var(--surface-3);
 }
 

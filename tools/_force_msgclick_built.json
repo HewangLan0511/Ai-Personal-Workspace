@@ -1,0 +1,102 @@
+{
+  "exe": "C:\\Users\\baiyu\\Desktop\\Personal Workspace\\core\\target\\release\\personal-workspace-core.exe",
+  "tag": "built",
+  "steps": [
+    {
+      "click": "侧栏 设置",
+      "title_after": "Personal Workspace"
+    },
+    {
+      "click": "设置 → 外观",
+      "title_after": "Personal Workspace"
+    },
+    {
+      "click": "外观 → 深色",
+      "title_after": "Personal Workspace"
+    }
+  ],
+  "title_initial": "Personal Workspace",
+  "webview_target": 1120736,
+  "webview_children": [
+    {
+      "hwnd": 33361752,
+      "cls": "WRY_WEBVIEW",
+      "rect": [
+        480,
+        239,
+        2080,
+        1239
+      ]
+    },
+    {
+      "hwnd": 4330346,
+      "cls": "Chrome_WidgetWin_0",
+      "rect": [
+        480,
+        239,
+        2080,
+        1239
+      ]
+    },
+    {
+      "hwnd": 1121798,
+      "cls": "Chrome_WidgetWin_1",
+      "rect": [
+        480,
+        239,
+        2080,
+        1239
+      ]
+    },
+    {
+      "hwnd": 1120736,
+      "cls": "Chrome_RenderWidgetHostHWND",
+      "rect": [
+        480,
+        239,
+        2080,
+        1239
+      ]
+    },
+    {
+      "hwnd": 1120736,
+      "cls": "Chrome_RenderWidgetHostHWND",
+      "rect": [
+        480,
+        239,
+        2080,
+        1239
+      ]
+    },
+    {
+      "hwnd": 1121798,
+      "cls": "Chrome_WidgetWin_1",
+      "rect": [
+        480,
+        239,
+        2080,
+        1239
+      ]
+    }
+  ],
+  "dark_button": {
+    "x": 815,
+    "y": 199
+  },
+  "config_ui_theme": "\"light\"",
+  "config_keys_sample": [
+    "ai.default_provider",
+    "app.autostart",
+    "app.data_dir",
+    "db.migration_version",
+    "privacy.telemetry",
+    "runtime.http_port",
+    "runtime.sidecar_port",
+    "schema_version",
+    "ui.dashboard.layout_locked",
+    "ui.dashboard.usage",
+    "ui.dashboard.widgets",
+    "ui.nav.collapsed"
+  ],
+  "title_final": "Personal Workspace"
+}

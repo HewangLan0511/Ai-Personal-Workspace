@@ -26,6 +26,7 @@ import {
   type SuggestKind,
   type SuggestResult,
 } from '@/api/learningService'
+import PwIcon from '@/components/PwIcon.vue'
 import { useAiStore } from '@/stores/ai'
 import { useLearningStore } from '@/stores/learning'
 import { logger } from '@/utils/logger'
@@ -288,16 +289,17 @@ async function saveRemind(): Promise<void> {
 </script>
 
 <template>
-  <section class="page">
-    <header class="page-bar">
-      <h2>学习成长</h2>
-      <div class="page-bar-actions">
-        <span class="stage-note">AI 规划，用户执行，系统提醒</span>
-        <button type="button" @click="showNew = !showNew">
-          {{ showNew ? '取消' : '新建目标' }}
-        </button>
+  <section class="page page-skeleton">
+    <div class="page-head">
+      <div class="grow">
+        <h2 class="t-page">学习成长</h2>
+        <div class="t-cap" style="margin-top: 2px">AI 规划，用户执行，系统提醒 · 正在推进 {{ store.goals.length }} 条主线</div>
       </div>
-    </header>
+      <button class="btn btn--secondary btn--sm" type="button" @click="showNew = !showNew">
+        <PwIcon :name="showNew ? 'x' : 'plus'" :size="15" />
+        {{ showNew ? '取消' : '新建目标' }}
+      </button>
+    </div>
 
     <!-- 提醒条（09 §5）：应用内提醒 + 三个动作 -->
     <div v-for="r in store.activeReminders" :key="r.goalId" class="reminder-bar">
@@ -305,93 +307,97 @@ async function saveRemind(): Promise<void> {
         「{{ r.title }}」已 <b>{{ r.idleDays }}</b> 天未更新，是否继续？
       </span>
       <span class="reminder-actions">
-        <button type="button" @click="actOnReminder(r.goalId, 'learning')">继续</button>
-        <button type="button" @click="actOnReminder(r.goalId, 'paused')">暂停</button>
-        <button type="button" @click="actOnReminder(r.goalId, 'archived')">归档</button>
-        <button type="button" class="ghost" @click="store.dismiss(r.goalId)">稍后</button>
+        <button class="btn btn--secondary btn--sm" type="button" @click="actOnReminder(r.goalId, 'learning')">继续</button>
+        <button class="btn btn--ghost btn--sm" type="button" @click="actOnReminder(r.goalId, 'paused')">暂停</button>
+        <button class="btn btn--ghost btn--sm" type="button" @click="actOnReminder(r.goalId, 'archived')">归档</button>
+        <button class="btn btn--ghost btn--sm" type="button" @click="store.dismiss(r.goalId)">稍后</button>
       </span>
     </div>
 
     <details class="remind-settings">
-      <summary>提醒设置</summary>
-      <label>
-        长期未更新阈值
-        <input v-model.number="remindDays" type="number" min="0" max="365" /> 天
-      </label>
-      <label>
-        <input v-model="remindEnabled" type="checkbox" />
-        启用提醒（关掉后不再打扰）
-      </label>
-      <button type="button" @click="saveRemind">保存并立即检查</button>
+      <summary class="t-sm" style="cursor: pointer; color: var(--text-3)">提醒设置</summary>
+      <div class="row" style="gap: var(--space-4); margin-top: var(--space-3)">
+        <label class="t-sm">
+          长期未更新阈值
+          <input v-model.number="remindDays" class="input-inline" type="number" min="0" max="365" /> 天
+        </label>
+        <label class="t-sm">
+          <input v-model="remindEnabled" type="checkbox" />
+          启用提醒（关掉后不再打扰）
+        </label>
+        <button class="btn btn--secondary btn--sm" type="button" @click="saveRemind">保存并立即检查</button>
+      </div>
     </details>
 
     <form v-if="showNew" class="new-goal" @submit.prevent="submitNew">
-      <input v-model="newGoal.title" placeholder="标题（必填），例如：学习计算机视觉并完成项目" />
-      <input v-model="newGoal.description" placeholder="描述（可选）" />
-      <input v-model="newGoal.expectedAt" placeholder="期望完成时间（可选），如 2026-12-31" />
-      <select v-model="newGoal.priority">
+      <label class="input grow"><input v-model="newGoal.title" placeholder="标题（必填），例如：学习计算机视觉并完成项目" /></label>
+      <label class="input grow"><input v-model="newGoal.description" placeholder="描述（可选）" /></label>
+      <label class="input" style="width: 200px"><input v-model="newGoal.expectedAt" placeholder="期望完成时间，如 2026-12-31" /></label>
+      <select v-model="newGoal.priority" class="select">
         <option value="low">低优先级</option>
         <option value="medium">中优先级</option>
         <option value="high">高优先级</option>
       </select>
-      <button type="submit">创建</button>
+      <button class="btn btn--primary btn--sm" type="submit">创建</button>
     </form>
 
-    <p v-if="store.error" class="hint warn">{{ store.error }}</p>
+    <p v-if="store.error" class="t-cap" style="color: var(--danger)">{{ store.error }}</p>
 
-    <div v-if="store.goals.length === 0" class="empty-state">
-      <p>还没有学习目标。</p>
-      <p class="stage-note">先建一个目标，再用「AI 生成路线」让它拆成可执行阶段。</p>
+    <div v-if="store.goals.length === 0" class="empty">
+      <div class="illus"><PwIcon name="target" :size="28" /></div>
+      <div class="t-sm">还没有学习目标</div>
+      <div class="t-cap">先建一个目标，再用「AI 生成路线」让它拆成可执行阶段。</div>
     </div>
 
-    <!-- 目标列表 -->
-    <div class="goal-grid">
+    <!-- 目标列表（设计稿卡片网格形态） -->
+    <div class="grid g2 goal-grid">
       <article
         v-for="g in store.goals"
         :key="g.id"
-        class="goal-card"
+        class="card card--lg card--hoverable goal-card"
         :class="{ selected: g.id === selectedId }"
         @click="select(g.id)"
       >
-        <header>
-          <h3>{{ g.title }}</h3>
-          <span class="tag" :class="`tag-${GOAL_STATUS_META[g.status].color}`">
+        <div class="row" style="justify-content: space-between">
+          <span class="t-card grow">{{ g.title }}</span>
+          <span class="badge" :class="GOAL_STATUS_META[g.status].color === 'ok' ? 'badge--success' : GOAL_STATUS_META[g.status].color === 'warn' ? 'badge--warning' : 'badge--brand'">
             {{ GOAL_STATUS_META[g.status].label }}
           </span>
-        </header>
-        <p v-if="g.description" class="stage-note">{{ g.description }}</p>
-        <div class="progress">
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: `${g.progress.percent}%` }" />
-          </div>
-          <span class="progress-text">
-            {{ g.progress.done }}/{{ g.progress.total }}（{{ g.progress.percent }}%）
-          </span>
         </div>
-        <footer class="stage-note">
-          <span>优先级 {{ g.priority }}</span>
-          <span v-if="g.expectedAt">期望 {{ g.expectedAt }}</span>
-        </footer>
+        <p v-if="g.description" class="t-cap">{{ g.description }}</p>
+        <div class="row" style="gap: var(--space-3)">
+          <span class="progress grow"><i :style="{ width: `${g.progress.percent}%` }" /></span>
+          <span class="t-cap mono">{{ g.progress.done }}/{{ g.progress.total }}（{{ g.progress.percent }}%）</span>
+        </div>
+        <div class="row" style="gap: var(--space-4)">
+          <span class="t-cap">优先级 {{ g.priority }}</span>
+          <span v-if="g.expectedAt" class="t-cap">期望 {{ g.expectedAt }}</span>
+        </div>
       </article>
     </div>
 
     <!-- 目标详情 -->
     <section v-if="selected" class="goal-detail">
       <header class="detail-bar">
-        <h3>{{ selected.title }}</h3>
+        <h3 class="t-section">{{ selected.title }}</h3>
         <div class="detail-actions">
-          <button type="button" @click="setGoalStatus(selected, 'learning')">开始/继续</button>
-          <button type="button" @click="setGoalStatus(selected, 'paused')">暂停</button>
-          <button type="button" @click="setGoalStatus(selected, 'done')">标记完成</button>
-          <button type="button" @click="setGoalStatus(selected, 'archived')">归档</button>
-          <button type="button" class="danger" @click="removeGoal(selected)">删除</button>
+          <button class="btn btn--primary btn--sm" type="button" @click="setGoalStatus(selected, 'learning')">开始/继续</button>
+          <button class="btn btn--secondary btn--sm" type="button" @click="setGoalStatus(selected, 'paused')">暂停</button>
+          <button class="btn btn--secondary btn--sm" type="button" @click="setGoalStatus(selected, 'done')">标记完成</button>
+          <button class="btn btn--secondary btn--sm" type="button" @click="setGoalStatus(selected, 'archived')">归档</button>
+          <button class="btn btn--danger btn--sm" type="button" @click="removeGoal(selected)">删除</button>
         </div>
       </header>
 
-      <!-- 竖向时间轴（09 §7：节点带状态色） -->
-      <ol class="timeline">
-        <li v-for="(n, i) in nodes" :key="n.id" class="timeline-node">
-          <span class="dot" :class="`dot-${n.status}`" />
+      <!-- 竖向时间轴（09 §7：节点带状态色；视觉 = 设计稿 .timeline / .tl-item / .node） -->
+      <div class="timeline">
+        <div
+          v-for="(n, i) in nodes"
+          :key="n.id"
+          class="tl-item timeline-node"
+          :class="n.status === 'done' ? 'done' : n.status === 'learning' ? 'cur' : 'todo'"
+        >
+          <span class="node"><PwIcon name="check" :size="10" /></span>
           <div class="node-body">
             <div class="node-head">
               <input
@@ -400,14 +406,18 @@ async function saveRemind(): Promise<void> {
                 :disabled="nodeBusy"
                 @change="renameNode(n, ($event.target as HTMLInputElement).value)"
               />
-              <span v-if="n.estimated" class="stage-note">{{ n.estimated }}</span>
-              <span class="tag" :class="`tag-${NODE_STATUS_META[n.status].color}`">
+              <span v-if="n.estimated" class="t-cap">{{ n.estimated }}</span>
+              <span
+                class="badge"
+                :class="NODE_STATUS_META[n.status].color === 'ok' ? 'badge--success' : NODE_STATUS_META[n.status].color === 'warn' ? 'badge--warning' : 'badge--brand'"
+              >
                 {{ NODE_STATUS_META[n.status].label }}
               </span>
             </div>
             <div class="node-actions">
               <select
                 :value="n.status"
+                class="select"
                 :disabled="nodeBusy"
                 @change="setNodeStatus(n, ($event.target as HTMLSelectElement).value as NodeStatus)"
               >
@@ -415,25 +425,27 @@ async function saveRemind(): Promise<void> {
                   {{ NODE_STATUS_META[s].label }}
                 </option>
               </select>
-              <button type="button" :disabled="i === 0" @click="moveNode(n, -1)">上移</button>
-              <button type="button" :disabled="i === nodes.length - 1" @click="moveNode(n, 1)">
+              <button class="btn btn--ghost btn--sm" type="button" :disabled="i === 0" @click="moveNode(n, -1)">上移</button>
+              <button class="btn btn--ghost btn--sm" type="button" :disabled="i === nodes.length - 1" @click="moveNode(n, 1)">
                 下移
               </button>
-              <button type="button" @click="addNote(n)">备注</button>
-              <button type="button" class="danger" @click="removeNode(n)">删除</button>
+              <button class="btn btn--ghost btn--sm" type="button" @click="addNote(n)">备注</button>
+              <button class="btn btn--danger btn--sm" type="button" @click="removeNode(n)">删除</button>
             </div>
             <p v-if="n.note" class="node-note">备注：{{ n.note }}</p>
-            <p v-if="n.resources.length" class="stage-note">
+            <p v-if="n.resources.length" class="t-cap">
               资料方向：{{ n.resources.join(' / ') }}
             </p>
           </div>
-        </li>
-        <li v-if="nodes.length === 0" class="stage-note">还没有路线节点 —— 用下面的「AI 生成路线」或手动添加。</li>
-      </ol>
+        </div>
+        <div v-if="nodes.length === 0" class="t-cap">还没有路线节点 —— 用下面的「AI 生成路线」或手动添加。</div>
+      </div>
 
       <div class="add-node">
-        <input v-model="newTitle" placeholder="手动添加一个阶段" @keyup.enter="addNode" />
-        <button type="button" @click="addNode">添加节点</button>
+        <label class="input grow"><input v-model="newTitle" placeholder="手动添加一个阶段" @keyup.enter="addNode" /></label>
+        <button class="btn btn--secondary btn--sm" type="button" @click="addNode">
+          <PwIcon name="plus" :size="14" /> 添加节点
+        </button>
       </div>
 
       <!-- AI 生成（建议态；采纳是用户动作） -->
@@ -443,17 +455,17 @@ async function saveRemind(): Promise<void> {
           <span class="stage-note">AI 只建议，不改动任何进度数据</span>
         </header>
         <div class="ai-controls">
-          <select v-model="suggestKind">
+          <select v-model="suggestKind" class="select">
             <option value="roadmap">生成学习路线</option>
             <option value="optimize">路线优化建议</option>
             <option value="summary">阶段总结草稿</option>
           </select>
-          <select v-model="ai.providerId" :disabled="providers.length === 0">
+          <select v-model="ai.providerId" class="select" :disabled="providers.length === 0">
             <option v-if="providers.length === 0" value="">未配置 Provider</option>
             <option v-for="p in providers" :key="p.id" :value="p.id">{{ p.label }}</option>
           </select>
-          <input v-model="extra" placeholder="补充说明（可选）" />
-          <button type="button" :disabled="!canGenerate" @click="generate">
+          <label class="input grow" style="min-width: 160px"><input v-model="extra" placeholder="补充说明（可选）" /></label>
+          <button class="btn btn--primary btn--sm" type="button" :disabled="!canGenerate" @click="generate">
             {{ generating ? '生成中…' : '生成' }}
           </button>
         </div>
@@ -463,27 +475,27 @@ async function saveRemind(): Promise<void> {
 
           <!-- 解析失败 → 文本展示 + 手动录入（09 §2 禁止让用户看到 JSON 报错） -->
           <template v-if="suggestion.degraded">
-            <p class="hint">
+            <p class="t-cap">
               模型这次没有返回可解析的结构，已降级为文本展示。你可以照着内容在下方手动添加节点。
             </p>
             <pre class="raw">{{ suggestion.raw }}</pre>
-            <button type="button" @click="draftAdd">按此内容手动录入节点</button>
+            <button class="btn btn--secondary btn--sm" type="button" @click="draftAdd">按此内容手动录入节点</button>
           </template>
 
           <!-- 结构化路线 → 草稿可编辑，采纳才落库 -->
           <template v-else-if="suggestion.kind === 'roadmap' && drafts.length > 0">
             <ul class="drafts">
               <li v-for="(d, i) in drafts" :key="i">
-                <input v-model="d.title" placeholder="阶段标题" />
-                <input v-model="d.estimated" placeholder="预估时长" class="narrow" />
-                <button type="button" @click="draftMove(i, -1)">↑</button>
-                <button type="button" @click="draftMove(i, 1)">↓</button>
-                <button type="button" class="danger" @click="draftRemove(i)">×</button>
+                <label class="input grow"><input v-model="d.title" placeholder="阶段标题" /></label>
+                <label class="input" style="width: 110px"><input v-model="d.estimated" placeholder="预估时长" /></label>
+                <button class="btn btn--ghost btn--sm" type="button" title="上移" @click="draftMove(i, -1)">↑</button>
+                <button class="btn btn--ghost btn--sm" type="button" title="下移" @click="draftMove(i, 1)">↓</button>
+                <button class="btn btn--danger btn--sm" type="button" title="删除" @click="draftRemove(i)">×</button>
               </li>
             </ul>
             <div class="draft-actions">
-              <button type="button" @click="draftAdd">加一个</button>
-              <button type="button" class="primary" @click="acceptRoadmap">
+              <button class="btn btn--ghost btn--sm" type="button" @click="draftAdd">加一个</button>
+              <button class="btn btn--primary btn--sm" type="button" @click="acceptRoadmap">
                 {{ nodes.length > 0 ? '覆盖现有路线并采纳' : '采纳为学习路线' }}
               </button>
             </div>
@@ -501,7 +513,7 @@ async function saveRemind(): Promise<void> {
 
       <!-- 更新记录（learning_updates） -->
       <section v-if="updates.length" class="updates">
-        <h4>更新记录</h4>
+        <h4 class="t-section">更新记录</h4>
         <ul>
           <li v-for="u in updates" :key="u.id">
             <span class="stage-note">{{ u.createdAt }}</span> {{ u.content }}
@@ -513,258 +525,186 @@ async function saveRemind(): Promise<void> {
 </template>
 
 <style scoped>
-.page-bar,
-.detail-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.page-bar-actions,
-.detail-actions,
-.reminder-actions,
-.ai-controls,
-.draft-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+/* UI-FUSION-FULL：本页只保留设计稿组件层之外的少量页内布局，
+ * 视觉原语（card / progress / timeline / badge / button / input）一律走 base.css 里的
+ * 设计稿组件层；此处零裸色值，全部走 token。 */
+
+/* 提醒条（09 §5）：状态用 warning 语义色，不写死色值 */
 .reminder-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  border-left: 3px solid #f9ab00;
-  background: rgba(249, 171, 0, 0.08);
-  border-radius: 4px;
+  gap: var(--gap-stack);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--gap-card);
+  border-left: 3px solid var(--warning);
+  background: var(--warning-soft);
+  border-radius: var(--r-sm);
 }
+
+.reminder-actions,
+.detail-actions,
+.ai-controls,
+.draft-actions {
+  display: flex;
+  gap: var(--gap-inline);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .remind-settings {
-  margin: 8px 0 16px;
-  font-size: 13px;
+  margin: 0 0 var(--gap-card);
 }
-.remind-settings label {
-  margin-right: 16px;
-}
+
 .remind-settings input[type='number'] {
   width: 64px;
 }
+
+/* 新建目标表单：设计稿 field 行形态 */
 .new-goal {
   display: flex;
-  gap: 8px;
+  gap: var(--gap-inline);
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  align-items: center;
+  margin-bottom: var(--gap-card);
 }
-.new-goal input {
+
+.new-goal .input {
   min-width: 180px;
 }
-.goal-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
-}
+
+/* 选中态：品牌色描边（token，不写死） */
 .goal-card {
-  border: 1px solid var(--pw-border, #e0e0e0);
-  border-radius: 8px;
-  padding: 12px;
   cursor: pointer;
 }
+
 .goal-card.selected {
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 1px #1a73e8 inset;
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 1px var(--brand-500) inset;
 }
-.goal-card header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-.goal-card h3 {
-  font-size: 15px;
-  margin: 0;
-}
-.progress {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0 4px;
-}
-.progress-bar {
-  flex: 1;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #188038;
-  transition: width 0.2s ease;
-}
-.progress-text,
-.goal-card footer {
-  font-size: 12px;
-  opacity: 0.75;
-}
-.goal-card footer {
-  display: flex;
-  gap: 12px;
-}
+
+/* 目标详情 */
 .goal-detail {
-  margin-top: 20px;
-  border-top: 1px solid var(--pw-border, #e0e0e0);
-  padding-top: 16px;
+  margin-top: var(--gap-section);
 }
-.timeline {
-  list-style: none;
-  margin: 12px 0;
-  padding: 0;
-}
-.timeline-node {
-  position: relative;
+
+.detail-bar {
   display: flex;
-  gap: 12px;
-  padding: 0 0 16px 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-stack);
+  flex-wrap: wrap;
+  margin-bottom: var(--gap-card);
 }
-.timeline-node::before {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 14px;
-  bottom: 0;
-  width: 1px;
-  background: var(--pw-border, #e0e0e0);
+
+/* 路线编辑器内层（.timeline / .tl-item / .node 的视觉来自设计稿组件层） */
+.timeline-node {
+  align-items: flex-start;
 }
-.timeline-node:last-child::before {
-  display: none;
-}
-.dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  margin-top: 4px;
-  flex: 0 0 auto;
-  z-index: 1;
-}
-.dot-not_started {
-  background: #9aa0a6;
-}
-.dot-learning {
-  background: #1a73e8;
-}
-.dot-done {
-  background: #188038;
-}
-.dot-paused {
-  background: #f9ab00;
-}
-.node-body {
-  flex: 1;
-}
+
 .node-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--gap-inline);
   flex-wrap: wrap;
 }
+
+.node-body {
+  flex: 1;
+  min-width: 0;
+}
+
 .node-title {
   border: 1px solid transparent;
   background: transparent;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--fs-card);
+  font-weight: var(--fw-semi);
   min-width: 200px;
   padding: 2px 4px;
+  border-radius: var(--r-xs);
+  color: var(--text-1);
 }
+
 .node-title:hover,
 .node-title:focus {
-  border-color: var(--pw-border, #e0e0e0);
-  background: #fff;
+  border-color: var(--border);
+  background: var(--surface-1);
 }
+
 .node-actions {
   display: flex;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
   flex-wrap: wrap;
 }
+
 .node-note {
-  margin: 4px 0 0;
-  font-size: 13px;
-  opacity: 0.85;
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-body-sm);
+  color: var(--text-2);
 }
-.tag {
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 10px;
-  border: 1px solid currentColor;
-}
-.tag-gray {
-  color: #5f6368;
-}
-.tag-blue {
-  color: #1a73e8;
-}
-.tag-green {
-  color: #188038;
-}
-.tag-yellow {
-  color: #b06000;
-}
+
 .add-node {
   display: flex;
-  gap: 8px;
-  margin: 8px 0 20px;
+  gap: var(--gap-inline);
+  margin: var(--space-2) 0 var(--gap-card);
 }
+
+/* AI 建议块：虚线引导卡形态 */
 .ai-block {
-  border: 1px dashed var(--pw-border, #e0e0e0);
-  border-radius: 8px;
-  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+  padding: var(--space-4);
+  margin-top: var(--gap-card);
 }
-.ai-block header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
+
 .ai-block h4 {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-section);
+  line-height: var(--lh-section);
+  font-weight: var(--fw-semi);
 }
+
 .advisory {
-  color: #b06000;
-  font-size: 12px;
-  margin: 8px 0;
+  color: var(--warning-text);
+  font-size: var(--fs-caption);
+  margin: var(--space-2) 0;
 }
+
+.suggestion {
+  margin-top: var(--gap-card);
+}
+
 .raw {
   white-space: pre-wrap;
-  background: rgba(0, 0, 0, 0.04);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 12px;
+  background: var(--surface-3);
+  padding: var(--space-2);
+  border-radius: var(--r-xs);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
   max-height: 280px;
   overflow: auto;
 }
+
 .drafts {
   list-style: none;
   padding: 0;
-  margin: 8px 0;
+  margin: var(--space-2) 0;
 }
+
 .drafts li {
   display: flex;
   gap: 6px;
   margin-bottom: 6px;
 }
+
 .drafts input.narrow {
   width: 90px;
 }
-.hint.warn {
-  color: #b06000;
-}
-.danger {
-  color: #c5221f;
-}
+
 .updates ul {
   list-style: none;
   padding: 0;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
 }
 </style>

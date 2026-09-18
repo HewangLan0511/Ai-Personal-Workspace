@@ -147,6 +147,7 @@ pub const KEYS: &[&str] = &[
     // 页面与 AI 侧栏不得直连 —— 禁止出现第二事实源。
     // 刻意**不含探测状态**（available/lastCheck/lastError）：重启后如显示「已连接/失败」
     // 即假状态 —— 恢复出的模型一律回到「未测试」，等真实探测给结论。
+    "ai.models.registry",
     // ---- TECH-07-C4（Workspace Snapshot v1 持久化落点）----
     // **唯一持久化落点**：`workspace.snapshot.last`（PW-INTEGRATION-003 冻结键）。
     // 类型 `object` = 直接存 Snapshot v1 文档本体（形态由
@@ -156,6 +157,17 @@ pub const KEYS: &[&str] = &[
     // 默认 `{}` = "从未写入过"（validate 会因缺 schemaVersion 直接拒绝，
     // 语义等价于空快照，但不会被误当成一份合法快照）。
     "workspace.snapshot.last",
+    // ---- UI-FUSION-FULL（设计稿壳层并入：三档宽度 + 插件组件区清单）----
+    // 设计稿 `RESIZE_CONF` 的三档宽度里，AI 档已由 `ui.ai.width` 承载（阶段5 登记）。
+    // 这里补上导航 / 组件区两档。**类型用 number**（不是 `ui.ai.width` 那种 string）：
+    // `ui.ai.*` 用 string 是因为它们要同时兼容"localStorage 只能存字符串"的老约定；
+    // 这两个键是本轮新增，没有历史副本，直接按真实语义登记为数值，不做无谓同构。
+    "ui.shell.nav_w",
+    "ui.shell.widget_w",
+    // 插件组件区（设计稿 `WIDGETS`）的**顺序 + 启用状态**，`array` 存
+    // `[{id,name,icon,on}]` —— 与 `ui.dashboard.widgets` 同为 `array`（同类事物同类型）。
+    // 与首页 Widget 网格**不是同一份数据**：那份是内容区的卡片布局，这份是右侧挂件列。
+    "ui.shell.widgets",
 ];
 
 /// 配置项期望类型（04 §4 类型校验）。`number|null` 表示可空数值。
@@ -206,6 +218,9 @@ pub fn expected_type(key: &str) -> &'static str {
         "ai.models.registry" => "string",
         // TECH-07-C4：Workspace Snapshot v1 文档本体（object —— 非空即"写过"）
         "workspace.snapshot.last" => "object",
+        // UI-FUSION-FULL：壳层三档宽度之二 + 插件组件区清单
+        "ui.shell.nav_w" | "ui.shell.widget_w" => "number",
+        "ui.shell.widgets" => "array",
         _ => "any",
     }
 }
@@ -273,6 +288,11 @@ fn default_for(key: &str) -> Value {
         // TECH-07-C4：默认空对象 = 从未写过（validate 会因缺 schemaVersion 拒绝，
         // 不会被当成合法快照；**绝不能**用 null —— 测试要求登记键有显式非 null 默认值）
         "workspace.snapshot.last" => serde_json::json!({}),
+        // UI-FUSION-FULL：三档宽度的初值 = 设计稿 RESIZE_CONF.def（nav 236 / widget 224）。
+        // 空数组 = "从未调过顺序"，前端回落到设计稿 WIDGETS 的原始顺序与开关。
+        "ui.shell.nav_w" => serde_json::json!(236),
+        "ui.shell.widget_w" => serde_json::json!(224),
+        "ui.shell.widgets" => serde_json::json!([]),
         _ => Value::Null,
     }
 }
@@ -324,6 +344,62 @@ mod tests {
                 "登记键 {key} 未登记 expected_type（会静默变成无类型校验）"
             );
         }
+    }
+
+    /// 契约约束（**反向**）：`expected_type` / `default_for` 里出现过的键，
+    /// 必须全都在 `KEYS` 白名单内。
+    ///
+    /// 加这条的原因：`ai.models.registry` 曾同时登记了 `expected_type` 与 `default_for`，
+    /// 却**漏在 `KEYS` 数组**里 —— 结果 `ConfigService::set` 直接拒绝写入
+    /// （"未登记的配置键"），而上面两条正向测试查不出来：它们是"遍历 KEYS 再查
+    /// type/default"，漏掉的那一项压根不在 KEYS 里，永远不会被遍历到。
+    ///
+    /// 本测试直接扫源码文本（`include_str!` 自身），方向与正向测试相反 ——
+    /// 键只要在 match 臂里出现，就必须在 KEYS 里。自维护：无需再抄一份键清单。
+    #[test]
+    fn every_typed_key_is_in_whitelist() {
+        const SRC: &str = include_str!("config.rs");
+        // ⚠️ 下面两根"针"**必须拼出来**，源码里绝不能出现"f n expected_type"
+        // 这样的连续字面量（即"fn "紧接类型表函数名）：`tools/verify_tech04.py`、
+        // `verify_tech05c.py`、`verify_model_registry.py` 三个门禁都用
+        // `config_rs.split(...)` 以该字面量为分隔符截取函数体。本文件里只要再多一处，
+        // 它们就会取到**测试段之后**的空区间 ⇒ 类型表恒判"未登记"
+        // （本轮亲身踩过：tech04 44→43、tech05c 34→33、model_registry 32→31）。
+        let needle_type = format!("fn {}", "expected_type");
+        let start = SRC
+            .find(&needle_type)
+            .expect("测试失效：找不到类型表函数");
+        let end = SRC
+            .find("#[cfg(test)]")
+            .expect("测试失效：找不到 tests 段起点");
+        let body = &SRC[start..end];
+
+        // 只认"像键"的字面量：含 `.`，且字符集为 [a-z0-9_.]。
+        // 这可自然排除类型值（number/string/boolean/array/object/number|null/any）
+        // 与 default 值（"light"/"360"/""/"[]"/"consult" 等 —— 都不含 `.`）。
+        let looks_like_key = |s: &str| {
+            s.len() >= 3
+                && s.contains('.')
+                && s.chars()
+                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.' || c == '_')
+        };
+
+        let mut checked = 0usize;
+        for lit in body.split('"').skip(1).step_by(2) {
+            if !looks_like_key(lit) {
+                continue;
+            }
+            assert!(
+                KEYS.contains(&lit),
+                "键 {lit} 已在 expected_type/default_for 登记，却不在 KEYS 白名单里 —— \
+                 ConfigService::set 会拒绝写入（漏登 KEYS）"
+            );
+            checked += 1;
+        }
+        assert!(
+            checked >= 20,
+            "反向扫描只取到 {checked} 个键字面量，测试本身可能已失效（正则/文本被改）"
+        );
     }
 
     /// layout_locked 必须是 boolean（回归：曾落到 any）。

@@ -82,6 +82,14 @@
   --brand-600: var(--f-brand-600);
   --brand-action: var(--brand-500);
 
+  /* ---------- UI-FUSION-REAL：品牌梯度整段并入（原型 tokens.css 原值） ---------- */
+  --brand-100: #dfe7fb;
+  --brand-200: #c4d2f7;
+  --brand-300: #9db3f0;
+  --brand-400: #6f8ce6;
+  --brand-700: #2e45a0;
+  --brand-contrast: #ffffff;
+
   --success: var(--f-success);
   --warning: var(--f-warning);
   --danger: var(--f-danger);
@@ -111,6 +119,126 @@
 
   --shadow-card: 0 1px 3px rgba(20, 23, 28, 0.07), 0 1px 2px rgba(20, 23, 28, 0.05);
   --shadow-floating: 0 8px 24px rgba(20, 23, 28, 0.14), 0 2px 6px rgba(20, 23, 28, 0.08);
+
+  /* ---------- UI-FUSION-REAL：原型标度整段并入（个人工作台原型 tokens.css 原值） ----------
+   * 排版（fs / lh / ls / fw / font-display / font-mono）、Shell 布局（sidebar-w 等）、
+   * 语义间距（gap 系列、pad 系列）、圆角（r 系列）、阴影（shadow-xs 到 lg）、
+   * 微动效（dur-micro / dur-fast / ease-out）。
+   * 与既有 radius 系列、shadow-card 并存（不改名不改义），消费方按原型类名引用。 */
+  --fs-display: 26px;  --lh-display: 34px;  --ls-display: -0.022em;
+  --fs-page: 20px;     --lh-page: 28px;    --ls-page: -0.014em;
+  --fs-section: 15px;  --lh-section: 22px; --ls-section: -0.006em;
+  --fs-card: 14px;     --lh-card: 20px;    --ls-card: -0.003em;
+  --fs-body: 14px;     --lh-body: 22px;
+  --fs-body-sm: 13px;  --lh-body-sm: 20px;
+  --fs-caption: 12px;  --lh-caption: 18px;
+  --fs-label: 11px;    --lh-label: 16px;   --ls-label: 0.06em;
+  --fs-num-lg: 22px;   --lh-num-lg: 28px;  --ls-num-lg: -0.01em;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semi: 600;
+  --font-display: 'Segoe UI Variable Display', 'Segoe UI Variable Text', 'Segoe UI', system-ui,
+    'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  --font-mono: 'Cascadia Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --sidebar-w: 236px;
+  --sidebar-w-mini: 64px;
+  --topbar-h: 56px;
+  --appbar-h: 46px;
+  --widget-w: 224px;
+  --content-max: 1120px;
+  --panel-inset: 10px;
+
+  --gap-inline: 8px;
+  --gap-stack: 12px;
+  --gap-card: 20px;
+  --gap-section: 32px;
+  --pad-card: 20px;
+  --pad-card-lg: 24px;
+  --pad-page-x: 32px;
+  --pad-page-t: 28px;
+
+  --r-xs: 4px;
+  --r-sm: var(--f-radius-1);
+  --r-md: var(--f-radius-2);
+  --r-lg: var(--f-radius-3);
+  --r-xl: var(--f-radius-4);
+  --r-2xl: var(--f-radius-5);
+  --r-full: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(18, 22, 33, 0.04);
+  --shadow-sm: 0 1px 2px rgba(18, 22, 33, 0.05), 0 1px 1px rgba(18, 22, 33, 0.03);
+  --shadow-md: 0 4px 12px -2px rgba(18, 22, 33, 0.07), 0 2px 4px -2px rgba(18, 22, 33, 0.05);
+  --shadow-lg: 0 16px 40px -8px rgba(18, 22, 33, 0.14), 0 4px 12px -4px rgba(18, 22, 33, 0.06);
+
+  --dur-micro: 120ms;
+  --dur-fast: 160ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* ---------- UI-FUSION-FULL：原型组件/页面层所需的余留变量（2026-09-18） ----------
+   * 逐页复刻 `personal-workspace-ui/index.html` 时，原型 CSS 被**逐字并入** base.css；
+   * 它消费的变量必须先在 token 层存在（token 声明只能落在 tokens.css / motion-tokens.css，
+   * verify_tech05c T4a 守护）。此处把原型 `:root` 中此前未并入的部分按**原型原值**补齐，
+   * 使原型样式零改写即可生效（含 --space-N 间距标度）。
+   * 只新增、不改动既有键值 —— 既有验证基线（appbar 计算值等）不受影响。 */
+  --bg-app-hover: #e4e7ec;
+  --surface-inset: #edeff3;
+  --border-focus: #6e8be6;
+
+  --success-text: #1f7351;
+  --warning-text: #8a6116;
+  --danger-text: #a03329;
+  --info: #4a6bdc;
+  --info-soft: #eff3fd;
+  --text-on-brand: #ffffff;
+
+  --app-tint-1: #e8eefb;
+  --app-ink-1: #3a57c4;
+  --app-tint-2: #e7f5ef;
+  --app-ink-2: #1f7351;
+  --app-tint-3: #faf2e0;
+  --app-ink-3: #8a6116;
+  --app-tint-4: #f3edfb;
+  --app-ink-4: #5b3fa8;
+  --app-tint-5: #fbecea;
+  --app-ink-5: #a03329;
+  --app-tint-6: #e9f3f7;
+  --app-ink-6: #1f6279;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  /* 设计稿 `tokens.css` 的标度**跳过了 7**（…6:24 → 8:32），但 `index.html` 的
+     `.run-prep` 用了 `padding: var(--space-6) var(--space-7)` —— 未定义的变量会让
+     整条 `padding` 声明被浏览器静默丢弃（"看起来接完了其实没生效"）。
+     这里按标度的等差中项补上 28px（24 与 32 之间），使设计稿那条声明真正生效。 */
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* 设计稿 `.cinema-entering .stage .win` / `.cinema-stabilizing .appbar .apptab`
+     用 `var(--i, 0)` 做"第几个窗口/标签"的错峰序号，序号由 JS 逐元素 `style.setProperty('--i', i)`
+     写入。这里给根一个 0 的基线值 —— 与设计稿的 fallback 同值，让"未写入序号的页面"
+     不产生未解析变量（D12 门禁），也不改变任何错峰行为。 */
+  --i: 0;
+
+  --titlebar-h: 44px;
+  --ai-panel-w: 360px;
+  --z-drawer: 60;
+  --z-modal: 70;
+  --z-toast: 80;
+  --z-tip: 90;
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  /* 原型 --dur-base/--dur-slow/--ease-inout → 映射到既有 Motion Token（不新增时长事实来源） */
+  --dur-base: var(--mt-dur-base);
+  --dur-slow: var(--mt-dur-panel);
+  --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ---------- Legacy 桥接（存量样式兼容，新代码禁用） ---------- */
   --bg: var(--bg-app);
@@ -162,4 +290,43 @@
 
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+
+  /* UI-FUSION-REAL：并入项的暗色映射（品牌梯度取原型暗色段） */
+  --brand-100: #223055;
+  --brand-200: #2e3f6e;
+  --brand-300: #4e68ae;
+  --brand-400: #6f8ce6;
+  --brand-700: #b3c3f5;
+  --brand-contrast: #10131a;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 4px 12px -4px rgba(0, 0, 0, 0.35);
+
+  /* UI-FUSION-FULL：补齐项的暗色映射（与浅色键一一对应，值取原型暗色段原值） */
+  --bg-app-hover: #171a1f;
+  --surface-inset: #131619;
+  --border-focus: #6e8be6;
+
+  --success-text: #7fd1ac;
+  --warning-text: #e2c283;
+  --danger-text: #ee9c8f;
+  --info: #6f8ce6;
+  --info-soft: #1b2340;
+  --text-on-brand: #10131a;
+
+  --app-tint-1: #22305a;
+  --app-ink-1: #a8bcf5;
+  --app-tint-2: #16302a;
+  --app-ink-2: #7fd1ac;
+  --app-tint-3: #302816;
+  --app-ink-3: #e2c283;
+  --app-tint-4: #2a2140;
+  --app-ink-4: #c0acef;
+  --app-tint-5: #33211f;
+  --app-ink-5: #ee9c8f;
+  --app-tint-6: #16303a;
+  --app-ink-6: #8fc9de;
+
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }

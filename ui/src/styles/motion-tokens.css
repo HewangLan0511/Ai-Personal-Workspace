@@ -47,6 +47,73 @@
   /* ---------- 组件 motion 语义值（由上面的 token 派生，组件直接用） ---------- */
   --mt-press-scale: calc(1 - 0.015 * var(--mt-intensity));
   --mt-hover-lift: calc(1px * var(--mt-intensity));
+
+  /* ============================================================
+   * UI-FUSION-FULL：设计稿 Motion 词汇表（2026-09-18）
+   * ------------------------------------------------------------
+   * 设计稿（personal-workspace-ui/index.html）沿用 UI-01 规格的**细粒度**动作名
+   * （press / hover / drag / reorder / drop / highlight / scene-in / scene-out /
+   *  window / toast-in / toast-out / ctx / drawer / modal-bg / modal / ai / nav /
+   *  dwell / perm / entrance / ambient …）。真实应用此前只保留了 5 档
+   * （quick / base / panel / scene / cinematic），逐页复刻时这些名字必须能解析，
+   * 否则 `transition/animation` 整条声明会被浏览器丢弃（静默失效）。
+   *
+   * 因此这里把设计稿词汇**映射到既有 Skin 通道时长**（calc 派生），而不是另立字面值：
+   *   - 默认态取值与设计稿原值一致（如 press = 120×2/3 = 80ms）；
+   *   - Skin 换肤 / Motion Guard 仍然只改 5 档基元 → 派生值自动跟随，
+   *     不产生第二套"时长事实来源"；
+   *   - Intensity 依旧不参与任何时长计算（§七）。
+   * 幅度/透明度基元直接沿用设计稿原式（含 --mt-intensity / --mt-drift / --mt-scale-on）。
+   * ============================================================ */
+  --mt-dur-press: calc(var(--mt-dur-quick) * 2 / 3); /* 80ms  @quick=120 */
+  --mt-dur-hover: calc(var(--mt-dur-quick) * 7 / 6); /* 140ms */
+  --mt-dur-drag: calc(var(--mt-dur-quick) * 5 / 6); /* 100ms */
+  --mt-dur-reorder: calc(var(--mt-dur-base) * 8 / 9); /* 160ms @base=180 */
+  --mt-dur-drop: calc(var(--mt-dur-base) * 8 / 9); /* 160ms */
+  --mt-dur-highlight: calc(var(--mt-dur-cinematic) * 23 / 28); /* 460ms @cinematic=560 */
+  --mt-dur-scene-out: calc(var(--mt-dur-quick) * 2 / 3); /* 80ms */
+  --mt-dur-scene-in: calc(var(--mt-dur-quick) * 7 / 6); /* 140ms */
+  --mt-dur-window: calc(var(--mt-dur-base) * 10 / 9); /* 200ms */
+  --mt-dur-toast-in: var(--mt-dur-base); /* 180ms */
+  --mt-dur-toast-out: var(--mt-dur-quick); /* 120ms */
+  --mt-dur-ctx: calc(var(--mt-dur-quick) * 5 / 6); /* 100ms */
+  --mt-dur-drawer: var(--mt-dur-panel); /* 240ms */
+  --mt-dur-modal-bg: calc(var(--mt-dur-quick) * 7 / 6); /* 140ms */
+  --mt-dur-modal: var(--mt-dur-base); /* 180ms */
+  --mt-dur-ai: calc(var(--mt-dur-panel) * 13 / 12); /* 260ms */
+  --mt-dur-ai-out: calc(var(--mt-dur-base) * 10 / 9); /* 200ms */
+  --mt-dur-nav: calc(var(--mt-dur-panel) * 13 / 12); /* 260ms */
+  --mt-dur-nav-out: calc(var(--mt-dur-base) * 10 / 9); /* 200ms */
+  --mt-dur-dwell: var(--mt-dur-cinematic); /* 560ms —— 交互节奏，不随 reduced/off 降级 */
+  --mt-dur-perm: calc(var(--mt-dur-quick) * 7 / 6); /* 140ms */
+  --mt-dur-entrance: calc(var(--mt-dur-base) * 10 / 9); /* 200ms */
+  --mt-dur-entrance-ws: calc(var(--mt-dur-panel) * 11 / 12); /* 220ms */
+  --mt-dur-entrance-2: var(--mt-dur-base); /* 180ms */
+  --mt-dur-ambient: calc(var(--mt-dur-cinematic) * 15 / 14); /* 600ms（仅 loading 循环） */
+
+  /* 缓动：ease-out / inout 复用 tokens.css 的曲线，in / emphasis 取设计稿原值 */
+  --mt-ease-out: var(--ease-out);
+  --mt-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --mt-ease-inout: var(--ease-inout);
+  --mt-ease-emphasis: cubic-bezier(0.05, 0.7, 0.1, 1);
+
+  /* 距离 / 缩放 / 透明度基元（设计稿原式；幅度随 Intensity 与 Skin 自动缩放） */
+  --mt-dist-hover: calc(1px * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-page: calc(4px * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-float: calc(2px * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-toast: calc(6px * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-modal: calc(4px * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-panel: calc(24px * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-window: calc(8px * var(--mt-intensity) * var(--mt-drift));
+  --mt-dist-item: calc(8px * var(--mt-intensity) * var(--mt-drift));
+
+  --mt-scale-press: calc(1 - 0.015 * var(--mt-intensity) * var(--mt-scale-on));
+  --mt-scale-float: calc(1 - 0.02 * var(--mt-intensity) * var(--mt-scale-on));
+  --mt-scale-window: calc(1 - 0.01 * var(--mt-intensity) * var(--mt-scale-on));
+
+  --mt-fade-from: clamp(0, calc(1 - 0.95 * var(--mt-intensity)), 1);
+  --mt-fade-window: clamp(0, calc(1 - 0.3 * var(--mt-intensity)), 1);
+  --mt-fade-dim: clamp(0, calc(1 - 0.6 * var(--mt-intensity)), 1);
 }
 
 /* ---------- Motion Guard（§九） ----------

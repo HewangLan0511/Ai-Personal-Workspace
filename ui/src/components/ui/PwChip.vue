@@ -25,11 +25,22 @@ const props = withDefaults(
 
 const emit = defineEmits<{ (e: 'remove'): void }>()
 
+/**
+ * 双类名桥接：工程类（`pw-chip*`）+ 设计稿类（`chip*`）。
+ * 设计稿 `fn:tagEditorHtml` 用的是 `.chip.chip--brand.chip--removable`；
+ * 这里同时挂上，让 `base.css`（UI-FUSION-FULL 逐字并入段）里那条
+ * `.chip--removable{padding-right:var(--space-1)}` 真正作用到元素上，
+ * 而不是只存在于 CSS 里没有消费方（见 CONTEXT-PACK §1.3「有规则、无消费方」）。
+ * 取值两侧一致，`primitives.css` 在后 ⇒ 工程侧原样，视觉无变化。
+ */
 const classes = computed(() => [
   'pw-chip',
+  'chip',
   props.variant === 'default' ? '' : `pw-chip--${props.variant}`,
+  props.variant === 'default' ? '' : `chip--${props.variant}`,
   props.size === 'sm' ? 'pw-chip--sm' : '',
   props.removable ? 'pw-chip--removable' : '',
+  props.removable ? 'chip--removable' : '',
 ])
 </script>
 

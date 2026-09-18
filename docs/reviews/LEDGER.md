@@ -117,6 +117,10 @@
 | **L-045** | 阶段5 收尾排查（**发行态 AI 整体不可用**） | **`system/build_sidecar.py` 打包时没有 `--add-data`** ⇒ PyInstaller 只收集"被 import 的 `.py`"、**不收集 `.md`**，安装包内 `ai/prompt/` 是空的 ⇒ **发行态** `/ai/chat` 一律报「模板不存在：consult_default」，AI 对话**整体不可用**；而开发态（跑源码）一切正常。<br>**症状伪装**：报错形似"路由没写"，与 L-043/L-044 的"跑的不是这份产物"同族，且**开发态验收永远测不到**。 | **重要** | 阶段5 | ✅ **已关闭**（2026-09-13）：`build_sidecar.py` 加 `--add-data <repo>/ai/prompt;ai/prompt`；`is_fresh()` 把 `ai/` 与 `system/win/` 纳入比对（改模板也会触发重打）；**门禁新增 B134 静态守护**；新增 `tools/verify_sidecar_bundle.py` **发行态实测 8/8**（打包 exe 真出 chunk=30、首块 50ms） |
 | **L-046** | 阶段5 收尾排查（**配置落库通路不存在**） | **`ui.ai.*` 五个侧栏持久化键未登记 + 前端零调用**：①`core/src/db/config.rs` 的 `KEYS` 漏登记 ⇒ `ConfigService::set` 拒绝写入（验收 9a/9b 直接失败）；②前端 `stores/ai.ts` 只写 `localStorage`（`lsSet`），**从不调 `put_config`** ⇒ 即便登记了键，core 侧"落库副本"也永远为空 —— 典型的"文件存在 ≠ 功能存在"。<br>**契约侧同源问题**：契约 03 §3.1.1 的键表也落后于代码（阶段4 的 `mode.current` / `mode.switch_memory` / `ai.active_profile` 三键同样未登记）；§3.4 还挂着**并不存在**的 `POST /api/v1/ai/chat`。 | **重要** | 阶段5 | ✅ **已关闭**（2026-09-13）：core 登记 5 键（`KEYS`/`expected_type`/`default_for` 三处，类型统一 `string` 以与 localStorage 同构）；前端新增 `persist()` **双写**（localStorage + `put_config`，core 不可达时静默降级）并在 7 处调用；契约 03 补登记 8 个键 + `/ai/*` 端点 + 8 个 `ai_*` command，并**订正** `POST /api/v1/ai/chat` 不存在（AI 刻意只走 Tauri command）；`CONTRACT_SCHEMA_VERSION` 6→7（无表结构变更，故无迁移） |
 
+| **L-047** | UI 保真收口·①（2026-09-18 实测） | **门禁 A020/A021 命中批量工具，gate "0F/0W" 基线已失真**：`python tools/gate.py --stage 9 --build` 实测 **FAIL=40 / WARN=116 / PASS=30**，40 条 FAIL 全为 A020（硬编码用户绝对路径）/A021（硬编码 Program Files 路径），**全部落在 `tools/_*.py` 批量脚本**（`_fusion_build.py` / `_force_motion_check.py` / `_force_refresh_install.py` / `_force_app_click.py` / `_force_ui_dom.py` / `_diag_webview_*.py` / `_skill_patch.py` …），产品代码 0 命中；WARN 116 主要来自 `personal-workspace-ui/verify_*.py`（原型目录）的 Q001 print 残留。**根因**：A020/A021 的判据面向**产品代码**，却对开发者侧验证工具同样生效，而这些工具必须引用仓库绝对根路径与解释器/Edge 位置（部分无法表达为相对路径）。**现状影响**：协议要求的每批脚本自身即触发 FAIL ⇒ "门禁 0F" 已不可能达成，红线判据名存实亡。 | **重要** | — | 🟡 **登记待办 · 需白宇裁决**：<br>**A 案**：把 `tools/_*.py` 的仓库根改为 `Path(__file__).resolve().parents[1]`、Edge 改环境变量推导（本次已对新脚本 `_force_appbar_check.py` 如此处理，A020/A021 **0 命中**）；解释器路径类命中需另行收敛（或加白名单常量）。<br>**B 案**：`gate.py` 的 A020/A021 显式排除 `tools/`（＝把判据收回到"产品代码"语义）。<br>本次未擅自改门禁，也未批量改他批脚本。 |
+
+| **L-048** | UI 保真收口·FULL（2026-09-18 随批登记） | **`_force_ui_dom.py` 的逐页 marker 已随设计层落地而更新**（`/plugins` `.pw-card,.plugin-card`→`.page-head,.card,.tile`；`/device` `.pw-card,.device-card`→`.page-head,.card,.metric`；`/profile` `.pw-card,.profile-card`→`.page-head,.profile-head`）。**性质是"判据过时"不是"放松判据"**：三页原先用自造卡片类（`.plugin-card`/`.device-card`），现已统一到设计稿组件层的 `.card/.tile/.metric/.profile-head`，旧 marker 类在源码里已不存在、不改就恒红。**未放松**：每页仍要求"该页特有的结构性类在 DOM 里"，且选取的都是**不依赖 core 数据**的元素（无 core 时列表为空，故不选列表项类）。 | 建议 | — | ✅ **已落盘**（本批内完成；`_force_ui_dom.py` 6/12 → **12/12**） |
+
 ---
 
 ## 条例缺陷登记（REVIEW-004 自检发现：规则 / 门禁 / 标准**自身**的矛盾）
@@ -686,3 +690,599 @@
 > 覆盖全部套件 exit=0 证据。报告：`docs/tech/V0.1-FINAL-report.md`。
 > **冻结**：V0.1-FINAL complete · no new feature · no C8 · C1~C7 remain green。tag = `v0.1`。
 > **Debt 登记**：多显示器 / exePath / debug target 6.3GB / tauri bundle / 嵌套回归沙箱干扰。遗留登记：多显示器 / WindowInfo 无 exe / dist chunk housekeeping。
+
+## V0.1-RELEASE · Windows 桌面安装版（2026-09-16~17，PASS）
+
+> **范围**：基线（tag `v0.1` = `628349a` clean）→ `tauri build` 正式 release（exit 0，6m34s，零产品改动）→
+> 安装/启动/卸载验证 → 运行时冒烟 → 资源路径核查 → 版本确认 → 重装为可用状态。报告：`docs/tech/V0.1-RELEASE-report.md`。
+>
+> **产物**：msi 13.8MB + nsis 12.6MB（`targets=all` 各一份）+ 主程序 exe 9.5MB + sidecar service.exe 9.0MB（PyInstaller 6.22.2）。
+>
+> **NSIS 全程验证 ✅**：`/S` 静默装 → `D:\Personal Workspace` → 启动 → **HTTP API 冒烟 11/11**
+> （`tools/_release_smoke2.py`：数据目录 `%APPDATA%\PersonalWorkspace` / /health / apps / modes /
+> monitors=2 / layouts / profile 表 + `ai.default_provider` / 18 表清单）→ 卸载干净 → **本轮复装为可用状态**（应用在运行）。
+>
+> **MSI 已产出 ⚠️**：自动化静默装 1619/1603 —— 1603 为 perMachine 需管理员，PowerShell 提权触发 UAC
+> 被沙箱拦截（CreateProcessW win32_err=5），自动化不可行；**手动双击 + UAC 放行即可安装，非打包缺陷**。
+>
+> **发行态确认**：安装后零仓库路径依赖（生产 invoke 直连、不依赖端口/仓库）；sidecar 模板资源发行态不缺
+> （B134/L-045 延续有效）；版本标识：安装包元数据 0.1.0（exe 内嵌 PE FileVersion=1.0.0.0 来自 Cargo，记录在案不阻塞）。
+> **停止点**：V0.1-RELEASE 完成，未进入 C8。
+
+## UI-FUSION-REAL · 原型视觉真实化迁移（2026-09-17，全绿 · READY FOR REVIEW）
+
+> **范围**：`personal-workspace-ui/` = 唯一视觉源，迁移进 `ui/` 成为真实 Vue 组件（零 iframe/截图/innerHTML/重设计）。
+> 对照：`docs/tech/UI-FUSION-REAL-mapping.md` · 报告：`docs/tech/UI-FUSION-REAL-report.md`（§17 格式 + Navigation 专项）。
+>
+> **改动面**：重建 **NavSide**（原型分组 IA + SVG 图标 + ⚙设置底栏 + 设备在线行，`.app-nav`/href 依赖全保留）、
+> **首页 DashboardView+HomeHero**（greet + Hero 大卡接 workspaceRuntime + grid-recent 真实启动 + widget 区原样）、
+> **SettingsView**（set-layout 左 subnav + row-item，全部真实绑定含 Model Center 入口）、SoftwareView page-head、
+> tokens.css/base.css 并入原型标度（--fs-*/--sidebar-w/--r-*/--shadow-*/--gap-*/--brand-*，含暗色映射；--mt-* 零触碰）。
+> 新增 `HomeHero.vue`（已登记 T1c 白名单）。**core / workspace 冻结域 / motion-tokens / primitives 零改动。**
+>
+> **机器证据**：vue-tsc 0 error · vite build rc=0 · Tauri release 构建成功（新 UI 嵌入）·
+> 回归（清洁环境串行）：TECH-02 11/11（新 CSS hash 基线已登记）· C1 16/16 · C2 25/25 · C3 27/27 · C4 25/25+1D ·
+> C5 全过 · C6 27/27 · C7 S13/13·R7/8·D6/6（R 红灯为嵌套争抢，独立证据齐）· TECH-05C 34/34 · contracts 6/6 ·
+> 发行态 Smoke 6/6（`tools/_fusion_smoke.py`）。
+>
+> **视觉对比**：CDP 截图 12 真实页 + 4 原型页存档 `tools/_fusion_shots/`，DOM 级确认 set-layout/侧栏分组到位；
+> "同一产品"最终判定权在人工验收。
+>
+> **Release status：NOT RELEASED / READY FOR REVIEW** —— 等白宇视觉确认后再打包发版；**tag v0.1 未覆盖**。
+> **记录在案（非阻塞）**：工作空间/学习/项目/生活/设备/插件 六页 page-head 轻改未执行（映射表计划项）；
+> Navigation 专项 PASS（不计 C8）。
+
+## UI-FUSION-FORCE · 强制替换（2026-09-17，**NEEDS FIX**：唯一缺项=实机点击）
+
+> **根因（实测）**：不是"两套 UI"，而是**用户打开的是旧安装件** —— `ui/src` 只有一套 UI（融合后新 UI），
+> 但 `D:\Personal Workspace\personal-workspace-core.exe` 为 **9,536,000 B / 09-17 15:52**（V0.1-RELEASE 那版）。
+> **处置**：NSIS 静默升级刷新为 **10,296,320 B / 22:04** 新构建；桌面快捷方式本就指向该 exe → 启动即新 UI。
+> 报告：`docs/tech/UI-FUSION-FORCE-report.md`。
+>
+> **新增接管点**：`ui/src/router/index.ts` 窗口标题跟随页面（`PAGE_TITLES` + `afterEach` + `document.title`）；
+> `core/capabilities/pw.json` + `core:window:allow-set-title`（已生成进 `gen/schemas/capabilities.json`）。
+> **零改动**：workspace 冻结域 / motion-tokens / primitives / RunView / AI·Model·Profile 域。
+>
+> **机器证据**：vue-tsc 0 · vite build 0 · Tauri release 构建 0（新 exe/msi/nsis）· 安装件刷新实测
+> （before 9,536,000 → after 10,296,320）· **exe 内嵌资产键证明**（`/assets/index-DH2HsG9S.js` +
+> `/assets/DashboardView-B-hWNAQS.js` + `/assets/window-A0jItH6s.js` = 新 UI 入口/首页/动态 chunk）·
+> **逐页 DOM 断言 11/11 渲染真实内容**（`tools/_force_ui_dom.py`：新 NavSide `.nav-foot` + `a[href=/settings]`
+> + 分组 工作/学习/项目/生活；设置页 `.set-layout` + subnav 外观/工作空间/AI 与模型/数据/关于）·
+> 安装件启动冒烟 5/5（health/apps/modes/monitors/layouts）· C1~C7 回归见正文。
+>
+> **NEEDS FIX 的唯一原因**：**桌面被用户其他窗口占满**（WorkBuddy/音乐播放器），真实鼠标事件落到别的窗口；
+> Windows 拒绝后台抢前台、消息级 `WM_LBUTTON*` Chromium 不响应、WebView2 CDP 端点首屏后即关闭
+> → 「正式 Tauri 实机点击通过」未取得机器证据。待桌面空闲重跑 `tools/_force_app_click.py` 补证。
+> **另记**：窗口标题跟随页面实机未生效（实现+权限已编入，原因未定，`.catch` 已改为记录告警）；不阻塞。
+
+### 追加：原型视觉保真第二轮（用户实测反馈"很多地方跟设计不一样、连动画都没有"）
+
+> **用户判断被实测证实**：原型 61 处 `transition:` / 32 组 `@keyframes` / 49 处 `animation:`
+> vs 应用侧 **9 / 1 / 0**；`var(--mt-*` 在 views/components **零消费**；
+> `LifeView / DeviceView / PluginsView` 根类是遗留 `.page-skeleton`（**max-width:640 居中窄卡**）——
+> 与原型整页布局根本不是一回事。**上一轮报告"同一产品"的说法不成立，此处更正。**
+>
+> **本轮已交付**（全部落在 `ui/src/styles/base.css`，keyframes 仍只在该文件 → `verify_tech04 T4c` 守护不破）：
+> ① 骨架统一 `.page/.page-skeleton` → `max-width:var(--content-max)` 全宽左对齐、`.page-bar` → 原型 page-head、
+> `.aiv/.models-view/.mode-view/.layout-view` 加整页宽度上限；
+> ② 动效层 4 组 keyframes（`pwViewIn` / `pwEnterUp` / `pwToastIn` / `pwPulse`）**均有真实消费方**，
+> 幅度由 `--mt-intensity/--mt-drift` 派生 → Motion/Perf Guard 与 Skin 自动生效（实测 `data-motion=off` 时长归零）；
+> ③ 卡片/行/导航项/应用方块统一 transition + hover 上浮 + `--shadow-md`，表格行 hover 底色；
+> ④ `.app-topbar` → `--appbar-h` + surface-1 + `--fs-card`，`.app-status` → surface-2 + `--fs-label`（结构未动）。
+> ⑤ 基线记账：`base.css a9da3f64183d3a69 → 3558c87215e7bd74`（同步 c2/c3/c4/c5/c6 五个脚本）。
+>
+> **机器证据**：vue-tsc 0 · vite build 0 · Tauri release 0 · 安装件刷新（10,296,320 → **10,763,264 B / 23:33**）·
+> 动效实测 `tools/_force_motion_check.py`：`/life /device` 的 `.page-skeleton` maxWidth=1120px + text-align=left +
+> 宽度随视口流动（1280→620 / 1440→754，不再被 640 卡死）；`headAnim=pwViewIn`、`cardAnim=pwEnterUp`、
+> `transition-duration=0.12s`；`data-motion=off` → 全部 0s。
+>
+> **仍未对齐（下一批）**：① 六个页面的**内部**卡片仍是自造类（`.card/.metric`）而非原型 `pw-card`/row-item 网格
+> （仅骨架对齐）；② ModeView 编辑态 / ModelsView 网格 / AiView 会话壳内部结构；③ 壳层仍留旧 TopBar + ModeBar + StatusBar
+> 三件（原型为 appbar + ai-dock；ModeBar.vue 受 C6 冻结 hash 基线约束，改动需记账）；④ 原型依赖演示态 DOM 的
+> keyframes（sceneIn/stageSettle/swapFlash/rshArm…）无消费方，不接。
+>
+> **环境事实**：用户当时在跑**独占全屏游戏**（LoL）—— 抓屏全白/黑、抢前台不可能、真实点击会落进游戏；
+> 点击脚本的"落点归属校验"已自动拦截（**未向游戏发出任何点击**）。
+
+## UI-FUSION-APPBAR · 顶部壳层 appbar 化（2026-09-17~18，保真收口 ① 完成 · 待视觉确认）
+
+> **范围（＝CONTEXT-PACK §1.2 的 ①）**：把「TopBar(44px) + ModeBar(30px) 两条全宽横条叠放」收成
+> **一条原型 `.titlebar` 形态的 appbar（46px）**。视觉源 = `personal-workspace-ui/index.html` 的
+> `.shell > .titlebar`：`.tb-mark`(logo+应用名) → `.tb-sep` → `.tb-context`(我的电脑 · 当前页) →
+> 中段（模式栏） → `.tb-spacer` → 右侧动作区。
+>
+> **改动面（4 个产品文件 + 6 个验收/工具文件）**：
+> - `ui/src/App.vue`：新增 `.app-titlebar` 包裹 TopBar/ModeBar；模式栏经 **slot 注入 appbar 中段**
+>   （放在 spacer **之前** → 右侧动作区才贴右缘）。
+> - `ui/src/components/TopBar.vue`：重写为原型 titlebar 结构（logo 取原型 `.tb-logo` path 原文；
+>   `.tb-context` 复用 `PAGE_TITLES`；右侧＝主题切换 / 最小化 / 设置）。
+>   **验收依赖保留**：DOM 仍含「设置」「最小化」文本 + `a[href="/settings"]`（verify_stage1 2b）。
+> - `ui/src/router/index.ts`：导出 `PAGE_TITLES`（顶栏上下文与窗口标题同一事实来源，避免两表分叉）。
+> - `ui/src/styles/base.css`：`.app-titlebar`/`.app-topbar` 骨架 + `.tb-*` 原型原子类 +
+>   **`.mode-bar` 就地收编为 appbar 内联段** + `.app-main` 取 `--bg-canvas`（与 `--bg-app` 的 appbar 形成色阶分层）。
+>
+> **关键实现选择（判据更强）**：模式栏视觉**不改 `ModeBar.vue`**，由 base.css 三段选择器
+> `.app-shell .app-titlebar .mode-bar`（特异性 0,3,0）覆盖其 scoped 规则（0,2,0）⇒
+> **C6 冻结基线 `eccb9c10727d3d30` 保持原值**（比"改基线并记账"更强的零改动证据），
+> S2a 豁免唯一性（`modeApi.restore` 恰好 1 处＝ModeBar）不受影响。覆盖是否真生效**以计算值实测判定**（见下）。
+>
+> **机器证据**：
+> - `tools/_fusion_build.py`：vue-tsc **exit 0** · vite build **exit 0**。
+> - **新脚本 `tools/_force_appbar_check.py` = 14/14**（Edge 无头 + CDP；跑在 **`beforeBuildCommand` 产出的生产 dist** 上，
+>   非验证构建）—— 单条 appbar（`.mode-bar` 几何完全落在 `.app-titlebar` y 区间内）· appbar 高 46 ·
+>   mode-bar 计算值 `rgba(0,0,0,0)` / `border-bottom:0px` / `min-height:0px`（**0,3,0 覆盖生效实证**）·
+>   `.app-main` = `rgb(244,245,248)`＝`--bg-canvas` · 动作区三项（深色 / 最小化 / 设置→`/settings`）·
+>   **右缘对齐**（1024 视口下"设置"右缘 1016、spacer 293）· **窄窗 1024×640 零溢出**（scrollW−clientW=0）·
+>   **暗色跟随 token**（appbar `rgb(16,18,22)` / main `rgb(12,14,18)`，与浅色值不同）· 顶栏仍含「设置」「最小化」。
+> - `tools/_force_motion_check.py`：8 页骨架/动效**无回归**（`.page-skeleton` 1120px 左对齐、
+>   `pwViewIn`/`pwEnterUp` 在场、transition 0.12s、`data-motion=off` → 全 0s；keyframes 仍仅 base.css 五组）。
+> - **基线记账**：`base.css 3558c87215e7bd74 → 4c95f4fc3b0bd16d`（c2/c3/c4/c5/c6 **五处已同步**），
+>   同步后重跑各自 hash 检查：c2 A3b / c3 A3b / c4 S3 / c5 S3 / c6 S2a·S3·S4 —— **全 PASS**。
+> - **Tauri release 重建 exit 0**（touch `core/src/main.rs`；产出 exe + msi + nsis）·
+>   exe 内嵌 `/assets/index-1V7AP897.js`（生产构建入口 chunk）·
+>   **NSIS 刷新安装实测**：`D:\Personal Workspace\personal-workspace-core.exe` **10,763,264 → 11,383,808 B**（`refreshed:true`）
+>   ⇒ 桌面快捷方式指向的正式 App 已含本批改动；**应用已重新启动为可用状态**。
+>
+> **记录在案（非阻塞）**：
+> 1. **门禁基线失真（新发现 → 见 L-047）**：实测 **FAIL=40 / WARN=116 / PASS=30**，与 CONTEXT-PACK §2 记的"0F/0W"不符。
+>    40 条 FAIL **全部**是 A020/A021 且**全部落在 `tools/_*.py` 批量脚本**，产品代码 0 命中；
+>    其中 `_fusion_build.py` / `_force_motion_check.py` / `_force_refresh_install.py` 正是协议要求运行的脚本。
+>    **本批净增 0 条**：新探针原写死 3 条路径，已改为 `__file__` 推导 + 环境变量定位 Edge，复跑后探针 0 命中。
+> 2. `verify_tech04.py` **41/44**：T4a/T4b（页面清单含 `/run`、视图清单含 `RunView.vue`）+ T3g（`HomeHero.vue` 为新 runtime 消费者）
+>    三条是**历史快照未随 TECH-07-C1 / UI-FUSION-REAL 更新**（涉事文件 mtime 09-16 23:05 / 09-17 16:55，均早于本批）。
+> 3. `_force_ui_dom.py` 本次 **6/12**：`/learning /project /life /profile /plugins /device` 未命中 marker ——
+>    其中 4 页（Life/Device/Learning/Profile）**源码里根本没有**该 marker 类，另 2 页（Project/Plugins）的 marker 依赖列表数据（无 core 在场则为空）。
+>    **这两类恰是 ②/③ 的施工范围**，非本批引入（本批未动这 6 个 view）。
+> 4. **实机逐页点击验收**（`_force_app_click.py`）本批**未跑**：按协议本批只需 build + motion + 重建 + 刷新安装；
+>    该项仍为 UI-FUSION 里程碑的未决项（原因为桌面被占，非产品问题）。
+> 5. 原型壳层的**「窗口即纸面」内缩面板**（`.shell > .panel`：10px 内缩 + 20px 圆角 + 边框/阴影，侧栏/内容/组件列/AI 栏同处一块面板）
+>    **本批未做** —— 本批只做"顶部 appbar"；面板化会同时改壳层网格与全部区域容器，应独立成批。
+
+## UI-FUSION-FULL · 设计稿组件层逐字并入 + 页面按设计稿重建（2026-09-18）
+
+> **指令**：把设计稿（`personal-workspace-ui/index.html`，唯一视觉源）的 UI **完整接入**，
+> 逐项对照复刻（样式 / 布局 / 间距 / 颜色 / 字体 / 状态 / 响应式），不得遗漏页面、按钮、动画。
+>
+> **做法（关键选择：能机械化的绝不手抄）**：设计稿的组件层与页面层 CSS 由
+> `tools/_fusion_css_import.py` **逐字抽取**后并入 `base.css`，而不是"看着改"。
+> 排除表是**显式的、可复核的**（脚本里的 `EXCLUDE`），逐条给出不并入的理由：
+> 壳层（真实应用已复刻并验收）/ AI 面板（真实应用已有自身 `.ai-*` 体系）/
+> Run 页（TECH-07-C1~C7 冻结验收）/ 模型中心（已有真实实现）/ 开发态展示页（spec / skinlab / mt-*）。
+> 副产品：抽出的片段**不得含自定义属性声明**（否则违反 T4a/T9a），脚本内置该校验并已拦住两次真实失误
+> （`:root` 块被注释前缀污染、`.skin-sandbox` 暗藏 `--mt-intensity`）。
+
+> **改动面**
+>
+> 1. **token 层补齐**（`styles/tokens.css`，浅色 + 暗色各一段）：设计稿 `:root` 里此前未并入的
+>    35 个变量 —— `--space-1..16` 间距标度、`--app-tint-*`/`--app-ink-*`（6 组）、`--border-focus`、
+>    `--bg-app-hover`、`--surface-inset`、`--*-text`（3）、`--info`/`--info-soft`、`--text-on-brand`、
+>    `--titlebar-h`、`--ai-panel-w`、`--z-*`（4）、`--shadow-inset`、`--dur-base`/`--dur-slow`/`--ease-inout`
+>    （后三者**映射到既有 Motion Token**，不新增时长事实来源）。**只新增、不改既有键值**。
+> 2. **motion 词汇表补齐**（`styles/motion-tokens.css`）：设计稿沿用 UI-01 的**细粒度**动作名
+>    （`--mt-dur-press/hover/drag/reorder/drop/highlight/scene-in/out/window/toast-in/out/ctx/drawer/
+>    modal-bg/modal/ai/nav/entrance/…` 共 25 个 + 4 个缓动 + 距离/缩放/透明度基元）。
+>    真实应用此前只有 5 档（quick/base/panel/scene/cinematic）——**缺名会让整条 transition 声明被浏览器丢弃**
+>    （静默失效，正是"看起来接完了其实没动"的典型）。故把设计稿词汇**以 calc 派生挂在 5 档基元上**：
+>    默认态取值与设计稿原值一致（如 press = 120×2/3 = 80ms），Skin 换肤 / Motion Guard 仍然只改基元 → 派生值自动跟随。
+> 3. **设计稿组件层 / 页面层逐字并入**（`base.css` 末尾 `UI-FUSION-FULL:BEGIN..END` 段）：
+>    **374 条规则 + 13 组 keyframes**（`toastIn/fadeIn/modalIn/drawerIn/skel/swapFlash/ctxIn/okFlash/errShake/rshArm/rshCrest/swapIn/pulse`）。
+>    覆盖 `.card/.btn/.badge/.chip/.seg/.tabs/.switch/.checkbox/.radio/.progress/.skel/.spinner/.empty/.error/
+>    .tile/.row-item/.ctx-menu/.arrange-row/.wizard/.pick/.timeline/.tl-item/.life-grid/.life-card/.metric/
+>    .spark/.app/.minimap/.stat/.hero/.greet/.nowplaying/.ws-card/.ws-grid/.new-card/.widget-col/.wcard/
+>    .app-square/.app-row/.app-pick/.icon-btn/.search/.select/.field/.avatar/.drawer/.scrim/.modal/.rsh` 等。
+>    keyframes 仍**只落在 base.css**（T4c/T9b 守护不变）。
+> 4. **图标体系从零补齐**（`components/PwIcon.vue`，由 `tools/_fusion_icon_import.py` 生成）：
+>    设计稿有 **62 个** `<symbol id="i-*">`，真实应用此前**共 6 个内联 svg**（NavSide 3 / TopBar 1 / HomeHero 1 / DeviceView 1）。
+>    逐字搬 62 个图标的 path（24 网格 / stroke 1.6 / round），组件化后按需 tree-shake。
+>    **放在 `components/` 而非 `components/ui/`** —— 后者被 `verify_tech05d` T9c 钉死为 4 个原语，加进去会判红；图标集不是"第二套组件体系"。
+>    类名用 `.pw-ico`（**不是** `.ico`）：设计稿 `.nav-item .ico` 已是侧栏图标包壳，同名会互相串味（实测已踩）。
+> 5. **页面按设计稿重建**：`LifeView`（`page-head` + `.life-grid` 四列 + 5 张 `.life-card`，其中 2 张 span2；
+>    卡头统一「名称 / 来源 / 图标」）· `DeviceView`（设备身份卡 + `grid g4` 指标 + `.spark` 曲线 + `row-item` 进程表 + 虚线引导卡；
+>    二次确认弹层改用 `.scrim + .modal`）· `PluginsView`（`row-item` 列表卡 + `.switch` 启停 + `tile` 市场网格 + 详情**抽屉**）·
+>    `LearningView`（目标卡 + `.progress > i` + `.timeline/.tl-item/.node` 路线轴）· `ProjectView`（`.card--lg` 项目卡 + `.chip` 技术栈 +
+>    `.empty` 空态）· `ProfileView`/`AiView`/`ModelsView`/`ModeView` 页头统一到设计稿 `page-head` 几何。
+>    六页的**自造 scoped 样式块已删除或改写为 token-only**（原先含 `#1a73e8/#188038/#f9ab00` 等裸色值）。
+
+> **机器证据（跑在 `beforeBuildCommand` 产出的生产 dist 上，不是验证构建）**
+>
+> - **新脚本 `tools/_force_design_check.py` = 23/23**（D1~D14）。判据刻意分两层，**缺一不可**：
+>   ① 规则级（样式表里这些选择器的声明就是设计稿取值）；② 计算级（真实元素的 computed style 就是设计稿取值）。
+>   只查其一都会漏——"文件里有但没生效"或"生效但值被别处改掉"。逐条：
+>   `.card` 圆角 `var(--r-xl)`→16px 实测 · `.card--lg` padding 24px · `.life-grid` **4 列实测** · `.life-card.span2` 实测横跨 2 列 ·
+>   `.badge` inline-flex/22px · `.btn` inline-flex/28px(`--sm`) · `.btn--primary` 用 `--brand-500` · `.switch` 36×20 且 `::after` 16px ·
+>   `.progress` 6px / `.progress.thin` 4px 实测 · `.metric .v` 19px · **图标 7 枚 `svg.pw-ico` 实测（子节点非空 / stroke-width 1.6）** ·
+>   字面 token 精确解析（`--space-4`=16px / `--space-12`=48px / `--space-16`=64px / `--app-tint-4`=#f3edfb / `--border-focus`=#6e8be6）·
+>   派生时长是 calc 表达式（挂在 Skin 通道上）· **端到端**：`.switch` transitionDuration=0.16s(`--dur-fast`)、`.row-item`=0.12s(`--dur-micro`) ·
+>   13 组新 keyframes 全部注册 · 暗色 `.card` = `rgb(26,29,35)`=`--surface-1`（非白）· **0 个未解析变量**（base.css 用到的 **132 个** `var()` 全有值）·
+>   各页页头（`/life /device /plugins` 的 `.page-head`、`/dashboard` 的 `.greet`）· **67/67** 组件层规则在样式表里。
+> - `tools/_force_ui_dom.py`：**12/12**（原 6/12）—— 见下方"契约演进"。
+> - `tools/_force_appbar_check.py`：**14/14** 无回归。
+> - `tools/_force_motion_check.py`：8 页骨架/动效**无回归**；keyframes 由 5 组 → 18 组（新增 13 组，均在 base.css）。
+> - `tools/_fusion_build.py`：vue-tsc **exit 0** · vite build **exit 0**，且 **0 条 CSS 语法告警**
+>   （过程中真的踩到两条：抽取范围把 `</style>` 一起搬进来；`PwIcon` 的 `.ico` 与侧栏撞名 —— 均已修）。
+> - 冻结/禁止项复跑：`c2 A3a/A3b` · `c3 A3a/A3b` · `c5 S3` · `c6 S2a/S2b/S3/S4a/S4b` ·
+>   `tech05c T4a~T4f`（含 **T4f 原语层 63 个类全部有消费方**）· `tech05d T9a~T9f` —— **全 PASS**。
+>   `tech04 T4c`（keyframes 全局仅 base.css）PASS；`tech04 T4a/T4b` 仍红 —— **历史快照漂移**（基线未含 `/run`、`RunView.vue`），非本批引入。
+
+> **基线记账（三处 hash 全部同步 + 复跑通过）**
+>
+> | 文件 | 旧 | 新 |
+> |---|---|---|
+> | `ui/src/styles/base.css` | `4c95f4fc3b0bd16d` | **`899ddfd9ec26ccbd`** |
+> | `ui/src/styles/tokens.css` | `7ac1c66e5b32ae4e` | **`31f888d853037a87`** |
+> | `ui/src/styles/motion-tokens.css` | `e5e44af4aa807d38` | **`adee6b0380a7b04d`** |
+>
+> `primitives.css` `2de660ce01c2c7d5` 与 `ModeBar.vue` `eccb9c10727d3d30` **均未改动**（保持原值）。
+> 同步落点：`tools/verify_tech07c2/3/4/5/6.py` 的 frozen 表（5 文件）。
+
+> **契约演进（L-048，需知会）**：`tools/_force_ui_dom.py` 的逐页 marker 有三条**随设计层落地而更新**：
+> `/plugins` 原 `.pw-card, .plugin-card` → `.page-head, .card, .tile`；
+> `/device` 原 `.pw-card, .device-card` → `.page-head, .card, .metric`；
+> `/profile` 原 `.pw-card, .profile-card` → `.page-head, .profile-head`。
+> 理由：这三页原先用**自造卡片类**，现已统一到设计稿组件层的 `.card/.tile/.metric`；
+> 旧 marker 类在源码里已不存在，不改就恒红（"判据过时"而非"功能坏了"）。
+> **判据没有放松**：每页仍要求"该页特有的**结构性**类在 DOM 里"，且选取的都是**不依赖 core 数据**的元素
+> （无 core 时列表为空，故不选列表项类）。
+
+> **记录在案（非阻塞，未做的事）**
+>
+> 1. **壳层「窗口即纸面」内缩面板**（`.shell > .panel`：10px 内缩 + 圆角面板包住侧栏/内容/组件列/AI 栏）**仍未做** ——
+>    与 ① 批相同理由：会同时改壳层网格与全部区域容器，应独立成批。
+> 2. **Run / Mode 详情 / 模型中心的"内部结构"**未按设计稿重建（③）—— 这三个域已有真实实现且被冻结验收
+>    （Run 的 runtime 结构 + C1~C7），本批只统一了页头几何与按钮语言，**没有动它们的内部结构与逻辑**。
+>    `ModeView` 的拖拽画布按约束**未加任何 transform 动画**。
+> 3. **设计稿的开发态页面不接**：`spec`（Design System 展示页）/ `skinlab`（换肤对比台）/ `guard`（动效对比台）——
+>    不进产品导航，其 CSS（`.spec-*/.swatch/.demo/.comp-*/.skinlab*/.mt-*`）与 keyframes（`sceneIn/stageSettle/dockIn…`）已在排除表里。
+> 4. **设计稿的演示数据类卡片不造假**：`ROUTES.life` 的「今日日程 / 待办速览 / 剪贴板」、设备页的「系统版本 / 开机时长 / 安全状态」
+>    等依赖演示态或本机无对应 API 的卡片**没有伪造**；真实能力到位前保留真实卡片（这也是"来源可追溯"的界面原则）。
+> 5. **门禁基线**：`gate.py --stage 9 --build` 的 A020/A021 失真仍待裁决（见 **L-047**），本批未动门禁，**本批净增 0 条**。
+
+---
+
+## UI-FUSION-FULL 第二批 · 壳层双类名桥接 + 运行页重建 + 交互件补齐（2026-09-18）
+
+> 主题：**"设计稿 CSS 在文件里，类名却不在元素上"** —— 本批专治这一类"看起来接完了其实没生效"。
+
+> **1. 壳层四区双类名桥接（几何终于落到真实元素上）**
+> `App.vue` 根 `app-shell shell` / `.panel panel` / `.content content` / `.main view`；
+> `NavSide` → `app-nav sidebar`（去掉自造 `.nav-list` 包裹与自造折叠按钮，与原型一致）；
+> 新增 `WidgetCol.vue`（`app-widget widget-col`，原型 WIDGETS 默认集 + `widgetSortCb` 复刻）、
+> `ColHandle.vue`（`.rsh--nav` / `.rsh--widget`，行为按原型 `mountHandles` 挂载口径：手柄是容器子节点）；
+> `AiSidebar` 重写为单根 `ai-dock`（收起 = 同一根加 `.collapsed`，不再是另一个 rail 元素）。
+> `useShellLayout` **改为单例**（原先是每组件各建一份 → 两个 ResizeObserver 抢写 `data-rs`、
+> 两个宽度变量互相覆盖），`RESIZE_CONF` / `SQUEEZE_CHAIN` / `CW_GATE` / `RS_GATE` 滞回带逐值移植。
+> 新增 3 个配置键并登记 `core/src/db/config.rs`（`ui.shell.nav_w/widget_w/widgets`）——
+> **Tauri 下未登记的键会被 `put_config` 拒绝**，登记是硬前提（`cargo test db::config` 5/5）。
+
+> **2. 运行页（`/run`）按 `ROUTES.run` DOM 重建（本批最大块）**
+> 原实现用自造类名（`.run-page/.run-stage/.run-win/.run-foot/.run-appbar/.run-tab`）→ 设计规则**一条都没命中**。
+> 现按原型 line 2794–2833 逐字重建：结构顺序纠正为 `run-head → run-status → appbar → stage`
+> （**appbar 在 stage 之上**，原实现错放页脚）；设计类全部就位（`.run-head/.badge-emoji/.live/.seg`、
+> `.run-status/.rs-item/.rs-k/.rs-app/.rs-dot/.rs-st`、`.appbar/.apptab.on`、
+> `.stage(.manual)/.stage-grid/.win/.win-bar/.nm/.win-role/.grip/.win-body/.win-handle/.rz-*`、
+> `.stage-hint/.ai-fab`、`.minimap i.t1..t6`）。
+> **双类名保留冻结钩子**：`data-pw="run-stage|run-win..."` + `.run-win` / `.run-win__bar` /
+> `.run-win__rz*` / `.run-win__bar.is-grab` / `.run-stage__hint` 与设计类并存（C2/C3 的 D 段靠它们定位）。
+> 图标内联 24×24 path（**A6d 禁止 RunView import 组件**，不能引 `PwIcon`）。
+> 新增真实交互：appbar 标签点击 → `.win.sel` + `.win-role`「当前工作窗口」；
+> `run-struct`「布局结构」→ `.modal` 列真实窗口关系。设计稿 `.win-body` 的 mock 文案**不照抄**，换真实窗口事实。
+
+> **3. 沉浸态 cinema 接线（此前只有 CSS，没有 JS）**
+> `useShellLayout` 新增 `cinema` / `setCinema()` / `playCinema()`，复刻原型 `go()` + `syncNavAuto()` +
+> `initStage()` + `playCinema()`：`.cinema` **提前一拍**切换（不等场景离场，否则组件区比侧栏晚 80ms 收）；
+> `navAutoMini`/`navRunExpanded`（工作模式内手动展开过就不再自动收）；`cinema-entering`(0–240) →
+> `cinema-stabilizing`(240–560)，门限取 `CINEMA.gate`/`CINEMA.stable`。
+> `App.vue`：`:class="{mini, cinema}"`、`.app-main` 按路由加 `.noscroll`、路由 watch + `nextTick` 后播动画
+> （原型是同步写 innerHTML 后立刻播；组件化必须等 DOM 就位，否则 `--i` 序号与入场动画全丢）。
+> 修正隐患：`manualNav` 的 watch 会把"工作模式自动折叠"误当用户意图 → 退出运行页后侧栏展不开，已按 `navAutoMini` 排除。
+
+> **4. 补齐此前完全缺失的交互件**
+> `composables/useContextMenu.ts` + `components/CtxMenu.vue`（原型 `ctxMenu()`/`closeCtx()`）：
+> 跟随鼠标 + 视口避让（boxW 200 / rowH 34 / 边距 8）、点外部·滚轮·Esc 三条关闭路径、
+> 退场先播 `.out` 再移除（时长 `--mt-dur-ctx`）；已在首页「最近使用」`.app-square` 接线
+> （原型 line 5029–5043 的条目与顺序）。未实现的能力（添加到工作空间 / 移出最近使用 / 高级设置）
+> **保留条目但标 `disabled`** —— 不造假按钮，也不悄悄删掉。
+> `.set-body.swap-in`（原型 `patchSettings`）：设置页分类切换只换内容区 + 重播 `swap-in`。
+> `okFlash` / `errShake`（原型 line 1339–1340）已导出并用于设置页 API Key 保存。
+
+> **5. 新增探针与门禁结果**
+> - `tools/_fusion_shell_probe.py` **43/43**（真实 Edge + CDP）：四区双类名、宽度 = token、
+>   `data-rs` 滞回四态、拖拽改宽并落 token、蓄力折叠 → `.shell.mini`+64px、双击复位 236、
+>   rail 切换、干净会话 700 自动折叠。
+> - `tools/_design_coverage.py`（新，静态覆盖度审计）：原型 markup 267 个 class，已接 236（**88.4%**）/ 引用次数 **92.5%**。
+>   未接的 31 个绝大多数是**开发态页面**（`skinlab-*`/`spec-grid`/`mt-*`）与**原型 mock 内容类**
+>   （`w70`/`ind`/`mock-*`，按纪律换成真实数据），**不算缺失** —— 这才是"还剩多少"的可复核口径。
+> - `verify_tech07c2` **全绿**：A 段 17 项 + R（`tech07c` 16/16、`tech02_workspace` 11/11）+
+>   D1–D6 真实 core + 真实记事本窗口（`D2 ui=True` 真窗口进 UI）。
+> - `verify_tech07c3` **全绿**：D5 缩放 → **真实窗口几何真的变了**（`w 572→755`、`h 536→679`）。
+> - `verify_tech07c4` / `tech07c5` **rc=0**（冻结 hash + R 链全绿）；`tech07c6` 见下条。
+> - `verify_tech04` **44/44** · `verify_tech05c` **34/34** · `verify_tech05d` **89/89** · `verify_tech06a` **43/43**。
+> - `tools/_force_design_check.py` **ALL OK: True**（67/67 规则级命中 + 计算级取值 + 0 未解析变量）。
+
+> **基线记账（本批第二轮，全部带理由登记）**
+>
+> | 脚本 | 改动 | 理由 |
+> |---|---|---|
+> | `verify_tech04` | 路由基线补 `/run` + `RunView.vue`；runtime 消费者白名单登记 `HomeHero.vue` | 历史漂移（HEAD 已含 `/run`）；HomeHero 与 `WorkspaceStatus` 同类**只读**消费者 |
+> | `verify_tech05d` / `verify_tech06a` | 路由基线补 `/run` + `RunView.vue` | 同上 |
+> | `verify_tech06b` | T5b `16 → 17` | 同上 |
+> | `verify_tech07c2..c6` | `base.css` hash `899ddfd9ec26ccbd → db5244f71716e677` | UI-FUSION-FULL「整段并入」走 §2.3 登记流程；**不是**自造第二套视觉 |
+> | `verify_tech07c` | T7C-1c 放宽为"舞台底色必须是 `--bg-sunken` 且真被消费" | 几何已随设计稿移进 `base.css`，RunView 不该再留第二份 scoped 声明 |
+> | `verify_tech07c2..c6` | `tokens.css` hash `31f888d853037a87 → 4741eed584a8b589` | 补两个**设计稿自身缺失**的自定义属性（下面单列），同属 §2.3 登记流程 |
+>
+> `tokens.css` 本批**先**改了内容、**再**登记 hash（两处改动都在同一批内）：
+> - **`--space-7: 28px`** —— 设计稿 `tokens.css` 的标度**跳过了 7**（…6:24 → 8:32），
+>   但 `index.html` 的 `.run-prep` 写了 `padding: var(--space-6) var(--space-7)`。
+>   未定义的变量会让**整条 `padding` 声明被浏览器静默丢弃** —— 这正是"设计稿自己也有的
+>   一条假落地"。按标度等差中项补 28px，让那条声明真正生效。
+> - **`--i: 0`** —— 设计稿 `.cinema-entering .stage .win` / `.cinema-stabilizing .appbar .apptab`
+>   用 `var(--i, 0)` 做错峰序号，序号由 JS 逐元素 `setProperty('--i', i)` 写入（`playCinema()`）。
+>   根上给 0 与设计稿 fallback 同值：不改变错峰行为，同时消掉"未解析变量"。
+>
+> 两处均由 `tools/_force_design_check.py` 的 **D12 零未解析变量**（132 个 `var()`）抓出，
+> 修完复跑 **ALL OK: True**、`unresolved vars: []`。
+>
+> `motion-tokens.css` `adee6b0380a7b04d` / `primitives.css` `2de660ce01c2c7d5`
+> **本批未改动**（保持原值）。全部 26 个冻结 hash 表项静态核对一致。
+
+> **`verify_tech04` T4a/T4b 的历史漂移至此清零**（上批登记的遗留项关闭）。
+
+> **本批踩的坑（写进 skill，别再踩）**
+> 1. **验收脚本要求的构建方式就是被测条件**：`ui/dist` 必须用 `VITE_CORE_BASE=''`（同源）构建
+>    （`tools/_fusion_build.py`）。用裸 `npm run build` 覆盖 dist 后，c2 的 D 段（同源代理到临时 core）
+>    连不上 → `D2 真窗口进 UI` **假红**（`ui投影={titles:[],bars:[]}`），而静态门禁全绿。**脚本红先核对产物。**
+> 2. **重建 DOM 时删掉"看起来多余"的旧类名 = 打掉冻结钩子**：C3 的 D5/D6 用
+>    `.run-win__rz--se` / `.run-win__rz` / `.run-win__bar.is-grab` 定位，删掉后 D5 直接
+>    `no-managed-charmap-handle`。**重构前先 grep 验收脚本用了哪些选择器。**
+> 3. **验收脚本跑到一半改了 `ui/src`** → 后续脚本（c4/c5/c6）全部 FATAL
+>    "`ui/dist` 早于 `ui/src`"。批量跑验收期间**冻结源码**。
+
+> **仍未做（如实记录）**
+> 1. **工作空间卡 `.ws-card`**：全仓零实现 —— 首页工作空间网格、右键菜单第二个挂载点、新建向导都还没有数据源（`stores/` 无 workspaces store）。
+> 2. **模型中心内部结构**：`.model-card/.mc-foot/.model-grid` 有规则无消费方，`ModelsView` 仍是自造卡片。
+> 3. `/plugins` 的"开关只改数字"局部更新（原型 `patchPluginCount`）；`workspaces/create` 向导步骤条。
+> 4. 实机逐页点击验收（`_force_app_click.py`）本批仍未跑。
+
+---
+
+## UI-FUSION-FULL · 第三批：原语层别名对齐 + 缺口口径收紧（2026-09-18）
+
+> 起因：用户指令「以设计稿的 UI 为唯一标准 … 让代码架构与设计保持一致、贴合 UI」。
+> 本轮先解决一个**系统性**问题：`primitives.css` 是设计稿 `§5 PRIMITIVES` 的**近似副本**，
+> 且在 `main.ts` 里加载在 `base.css` **之后** ⇒ 同族声明会**盖住**设计稿。于是"组件层逐字并入"
+> 虽然完成了，**页面实际渲染值仍由原语层决定** —— 这正是"设计接了但看起来不一样"的根因。
+
+### 1. 实测到的 10 处真实漂移（改前 → 改后）
+
+| 项 | 设计稿 | 原语层（改前） | 改后 |
+|---|---|---|---|
+| `.pw-t-section` 字号 | `--fs-section` **15px** | 16px 字面量 | 消费 token |
+| `.pw-t-card` 字号 | `--fs-card` **14px** | 15px 字面量 | 消费 token |
+| `.pw-t-*` 行高/字距 | `--lh-*` / `--ls-*` | **全部缺失** | 全部补上 |
+| `.pw-t-page` 字族/字距 | `--font-display` / `-0.014em` | 无字族 / `-0.01em` | 消费 token |
+| `.pw-t-label` | `text-transform: uppercase` | **缺失** | 补上 |
+| `.pw-card` 内距 | `--pad-card` **20px** | `--f-space-4` 16px | 消费 token |
+| `.pw-card--lg` 内距 | `--pad-card-lg` **24px** | `--f-space-5` 20px | 消费 token |
+| `.pw-card--hoverable:hover` | `--shadow-md` + `translateY(-1px)` | `--shadow-card`，**无位移** | 对齐 |
+| `.pw-avatar` 配色 | `--brand-100` / `--brand-700` | `--brand-50` / `--brand-600` | 对齐 |
+| `.pw-grid` 间距 | `--gap-card` **20px** | `--f-space-3` 12px | 对齐（并给 `.pw-grid--models` 单独 12px = 设计 `.model-grid`） |
+
+另有 **全部缺 transition** 的交互件（`.pw-btn` / `.pw-chip` / `.pw-input` / `.pw-row-item`）、
+`.pw-btn` 基类多一条**透明边框**（挤掉 1px 内距）、`.pw-btn--lg` 字号 15px（设计 `--fs-card` 14px）、
+`.pw-btn--primary` 用 `#fff` 而非 `--text-on-brand`、`.pw-btn--danger` 用 `--danger` 而非 `--danger-text`、
+`.pw-btn--secondary` 缺 `--shadow-xs`、`.pw-btn--icon` 缺圆角/过渡、
+`.pw-scrim`/`.pw-drawer` **缺入场动画**且 `z-index` 写死 40/41（设计 `--z-modal`/`--z-drawer`=60）、
+`.pw-drawer` 用 `--shadow-floating` 而非 `--shadow-lg`。
+
+⇒ 全部改为**消费设计稿 token**（`--f-space-*` → `--space-*`、`--radius-controls` → `--r-md`、
+`--f-radius-3` → `--r-lg`、`--shadow-floating` → `--shadow-lg`）。选择器一律不动
+（`verify_tech05c` T4f 的"每个 `.pw-*` 必须被消费"因此不受影响）。
+
+### 2. 门禁补盲区（这才是防复发的关键）
+
+- `tools/_force_design_check.py`
+  - **D1d**：`.pw-card` 必须**字面**含 `padding:var(--pad-card)` / `border-radius:var(--r-xl)`，
+    `.pw-card--lg` 含 `padding:var(--pad-card-lg)`，`.pw-card--hoverable:hover` 含 `translateY(-1px)` + `shadow-md`；
+    计算级用 `/models` 的 `.pw-card--lg` 实测内距 == `--pad-card-lg` 证明真生效。
+  - **D1e**：`.pw-t-page` 20px / `.pw-t-section` 15px / `.pw-t-card` 14px / `.pw-t-label` uppercase /
+    `.pw-btn` 高 34px —— 全部在 `/models` 真实元素上量。
+  - `RULE_SELECTORS` 加 5 条原语选择器；probe 增 `textTransform` / `letterSpacing`；`PAGE_SELECTORS` 增 `/models`。
+  - **踩坑（已写在工具注释里）**：探针必须用**精确选择器**。`document.querySelector('.pw-card')`
+    在 `/models` 上第一个命中的是带 `--lg` 的当前模型卡（24px）→ 拿它量基类**假红**；
+    `.pw-btn` 第一个命中的是头部 `--icon`（30×30）同理。基类改用**规则级**判据，计算级只留无覆写的 `--lg`。
+- `tools/verify_tech05c.py` **T4c 修工具缺陷**：原先用行首锚定 `^\s*(--x)\s*:` 收集"已定义变量"，
+  而 `tokens.css` 的排版标度段是**一行多声明** ⇒ `--lh-*` / `--ls-*` 全家被判"未定义"（**假阴性**）。
+  这也解释了为什么"这些 token 从没被消费"一直没人发现。改为剥注释后不锚行首匹配。
+- `tools/_design_coverage.py`
+  - 新增 **`--strict`**：只把 `.vue` 当消费方（排除 `base.css` 的"规则在但没人用"虚高），
+    并区分**生产页 / 开发页**缺口。
+  - 新增**缺口 → 原型页面归属**：把每个缺口类定位到它出现的原型块
+    （`page:<路由>` / `fn:<函数>` / `const:<数据>`），回答"去哪补"。
+
+### 3. 缺口口径（严格口径第一次有真实数字）
+
+| 口径 | 类种 | 引用次数 |
+|---|---|---|
+| 默认（含 CSS：规则级接入） | 237/267 = **88.8%** | 1694/1830 = 92.6% |
+| **`--strict`（仅 .vue 消费方）** | **179/267 = 67.0%** | **1584/1830 = 86.6%** |
+| `--strict` 未接 | 88（生产页 **65** / 开发页 23） | 181（生产页 **129** / 开发页 52） |
+
+**归属后可见：绝大多数"缺口"不是缺口** ——
+- `const:WIN_MOCK`（`.ind/.w70/.w85/.w40/.w55/.w30`，共 17 次）＝原型**mock 窗口骨架条**，按纪律换真实数据；
+- `page:spec`（13 类）/ `page:skinlab` / `page:guard` / `page:showcase` ＝**开发态页面**，登记为"不接"；
+- `tint/tint2` ＝ `appIcon()/minimap()` 里按应用色号拼的类，只在有 `.app.tint1..6` 徽章的页面需要。
+
+**真正的产品页缺口（有界）：**
+| 归属 | 类 |
+|---|---|
+| `page:ai` | `.tabs .ai-grid .ai-sessions .ai-session-list .ai-session .ai-chat .ai-chat-head .ai-msgs` |
+| `page:create` | `.wsteps .wstep .wline .pick-grid .pick .em .tick .detect .app-pick .btn--lg` |
+| `page:workspaces` | `.wf-row .wf-mode .wf-mode--new .new-card` |
+| `fn:wsCard` | `.ws-card .hd` |
+| `page:models` + `fn:modelCardHTML/modelGridHTML` | `.model-grid .model-card .mc-foot` |
+| `fn:runPrepSequence` | `.run-prep .rp-steps .rp-step .spinner` |
+| `fn:nowPlaying` | `.nowplaying .ttl .art .ctrl` |
+| `fn:openAvatarPicker` | `.avatar-grid .avatar-pick .avatar-pick--up` |
+| `fn:openRunModeCreate` / `fn:openModelAdd` | `.tick .app-pick .pick-grid .em`（复用上面同一批） |
+| `fn:tagEditorHtml` | `.chip--removable` |
+| `fn:openCustomize` | `.arrange-row` |
+| `fn:openAddApp` / `page:apps` | `.app-row .wide .tm .hover-only` |
+
+### 4. 本批结果
+
+- `tools/_fusion_build.py`：`vue-tsc exit=0` · `vite build exit=0`
+- `tools/_force_design_check.py`：**ALL OK: True** —— 25 项全绿（含新 D1d/D1e），`rules found 72/72`，
+  `unresolved vars: []`
+- `tools/verify_tech05c.py`：**34/34**（T4c 正则修复后不再假红；T4f 63 个类全有消费方）
+- 冻结表 26 项静态核对一致；primitives.css 新基线 `2de660ce01c2c7d5 → 014cff0446e63ef6`（5 处同步）
+
+### 5. 本批教训（写进 skill）
+
+1. **"并入设计稿 CSS" ≠ "页面按设计稿渲染"**：只要还有一层加载更晚的近似副本（原语层），
+   交出来的就是**副本的值**。做视觉融合时必须问一句：**这些选择器的 computed 值由谁最终决定？**
+2. **门禁只量"设计类"会留盲区**：`_force_design_check` 23 项全绿的同时，`.pw-card` 比设计稿紧 4px、
+   `.pw-t-section` 大 1px、hover 不抬升。**改完必须补一条"别名一致性"判据**，否则漂移无法回归。
+3. **探针要用精确选择器**：`querySelector('.a')` 命中的常是同族的**变体**元素（`.a--lg` / `.a--icon`），
+   拿它量基类 = 假红。基类优先用**规则级**判据，计算级只留无覆写的元素。
+4. **工具的"定义"正则别锚行首**：项目里的 token 段大量"一行多声明"，锚行首会静默漏掉一整族变量，
+   进而掩盖"这些 token 没人用"。
+
+---
+
+## UI-FUSION-FULL · 第四批：button 重置精确复位 + `config.rs` 漏登修复 + 页面结构归位（2026-09-18）
+
+### 0. 本批起因
+
+上批遗留两个红：`verify_tech06b` **45/48**（C2/C3/C6 红）。先按"是否陈旧产物"排查（重建 release 后仍红），
+再把 C4 的报错读到底：
+
+> `未登记的配置键：ai.models.registry（新增键必须先登记到 config.rs 的 KEYS）`
+
+### 1. `config.rs`：键在 `expected_type` / `default_for` 里，却**漏在 `KEYS` 数组**
+
+- **现象**：`ai.models.registry` 在 `expected_type`(→"string") 与 `default_for`(→"") **都已登记**，
+  注释块也写了，**唯独 `KEYS` 数组里没有那一行**。于是 `ConfigService::set` 直接拒绝写入
+  ⇒ 模型清单无法持久化 ⇒ C2/C3/C6 连红。C4 反而"因错误原因通过"（它期待未登记键被拒……而测试用的正是这个键）。
+- **为什么既有测试抓不到**：`every_registered_key_has_an_explicit_type/_default` 都是
+  **"遍历 KEYS → 查 type/default"**（正向）。漏的这一项压根不在 `KEYS` 里 ⇒ 永远不会被遍历到。
+- **修复**：① `KEYS` 补 `"ai.models.registry"`；② 新增**反向**测试
+  `every_typed_key_is_in_whitelist` —— 扫 `include_str!("config.rs")` 自身文本，
+  取 `expected_type`/`default_for` 段里"像键"的字面量，断言**每个都在 `KEYS` 内**。
+- ⚠️ **新坑（本批踩到并记录）**：那条新测试最初写成 `SRC.find("pub fn expected_type")`，
+  而 `verify_tech04.py` / `verify_tech05c.py` / `verify_model_registry.py` **三个门禁**都用
+  `config_rs.split("fn expected_type")[-1]` 截函数体 —— 文件里多一处该字面量，它们就取到
+  **测试段之后的空区间**，`expected_type` 恒判"未登记"（tech04 44→43、tech05c 34→33、model_registry 32→31，
+  全是**假红**）。**正解**：针必须运行时拼（`format!("fn {}", "expected_type")`），
+  源码里不得出现该连续字面量。这条已写进测试注释。
+
+### 2. `base.css` / `primitives.css`：设计稿的 button 重置被排除 ⇒ 所有"裸 button"类多一圈灰边
+
+- **根因**：设计稿基础重置是 `button{background:none;border:0;padding:0}`；`_fusion_css_import.py` 的
+  EXCLUDE 表把它**有意整组排除**（理由：工程 base.css 已有自己的重置）。但工程版重置是
+  `background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:4px 10px` ——
+  **它是一个可见盒子**。于是所有假设"裸 button"的设计稿类都被硬塞边框/底色：
+  `.icon-btn`（30×30 应透明）、`.seg button`（分段控件段间冒边）、`.tabs button`、`.chip button`、
+  `.win-btns button`、`.btn`（设计**无边框**）。这与第三批"原语层盖设计层"是同一类事故。
+- **为什么没整体改工程重置**：工程期还有大量裸按钮走 `class="primary"` + `button.primary`
+  （ModeView / SoftwareView / LayoutView …），改重置会一次性打掉它们的盒子（大面积回归）。
+- **修复（精确复位）**：
+  1. `base.css` 在工程重置**之后、设计稿并入段之前**新增一段，**只列设计稿类名**
+     （`.btn/.icon-btn/.new-card/.ai-session/.pick/.app-pick/.app-square/.wcard/.nav-item/` +
+     `.tabs button/.seg button/.chip button/.win-btns button`）→ `background:none;border:0`。
+     置于并入段之前是刻意的：凡设计稿自己声明了 `background/border` 的类，都以"同权重、源序更后"胜出，
+     故清单宁多勿漏、**不会反向覆盖设计稿**。
+  2. `primitives.css` 给 `.pw-btn` 补 **`border:0`**（设计 `.btn` 无边框；`--secondary` / `--danger`
+     自己会声明 border，不受影响）。原先**每个 `pw-btn` 都多一圈灰边**，`--primary` 尤其明显。
+
+### 3. 页面内部结构类名归位（本批完成 2/7 页）
+
+| 页 | 挂上的设计稿类（双类名桥接） | 同时让出的本地块 |
+|---|---|---|
+| **ModelsView** | `.model-grid` / `.model-card` / `.mc-foot` / `.new-card` | `.mv-add-row` 只留"满宽+禁用态"（形态交 `.new-card`：竖排/居中/`min-height:150px`/虚线）；删 `.mv-card-foot` 本地块（消同权重平局） |
+| **AiView** | `.ai-grid` / `.ai-sessions` / `.ai-session-list` / `.ai-session`(+`.on`) / `.ai-chat` / `.ai-chat-head` / `.ai-msgs` / `.tabs` / `.msg` / `.bubble`(+`.me`) | 删 `.aiv-tabs` / `.aiv-grid` / `.aiv-sessions` / `.aiv-session-list` / `.aiv-session` / `.aiv-chat` / `.aiv-chat-head` / `.aiv-msgs` / `.aiv-msg-body` 的版面与外观声明；tab 由 `pw-btn` 对改为设计稿下划线式 `.tabs` |
+
+**关键纪律**：本地 scoped 块会被编译成 `.x[data-v-*]`，与设计选择器**同权重（0,2,0）**，
+平局靠**源序**决定 ⇒ **构建后源序不可依赖**。凡是设计稿已覆盖的版面/外观值，一律**删掉本地块**让位。
+
+**顺手对齐的偏离**（AiView）：`.ai-grid` 由 `240px minmax(0,1fr)/gap:12px` → 设计 `264px 1fr/gap:--gap-section`；
+`.ai-sessions` 内距 `12px` → `0`（内距压到表头那一行 `--space-3 --space-4 --space-2`）；
+`.ai-session` 内距/圆角/`.on` 高亮 → 设计值（`brand-50`/`brand-700`）；气泡 → 设计 `.msg .bubble`
+（`--r-lg` / `surface-2`；自己贴右 `brand-50` + 右下小圆角）。角色标签("你"/"AI")是本工程增项，保留。
+
+### 4. 本批门禁证据
+
+| 门禁 | 结果 |
+|---|---|
+| `verify_tech06b.py` | **48/48**（修复前 45/48） |
+| `verify_model_registry.py` | **32/32** |
+| `verify_tech04.py` | **44/44** |
+| `verify_tech05c.py` | **34/34** |
+| `verify_tech05d.py` | **89/89** |
+| `verify_tech06a.py` | **43/43** |
+| `_force_design_check.py` | **ALL OK: True**（**26 项**，含本批新增 **D1f** 按钮边框复位判据；`rules 72/72`；`unresolved vars: []`） |
+| `_fusion_build.py` | `vite build` exit=0 |
+| `core` 单测（`db::config`） | **6/6** |
+| 冻结基线 | `base.css db5244f71716e677 → 9d86a51bf1883369`、`primitives.css 014cff0446e63ef6 → 37a8ff2d375f61c4`（5 脚本同步） |
+
+### 5. 剩余 5 页 → **第五批完成**（交付报告：`docs/reviews/UI-FUSION-BATCH5.md`）
+
+`page:workspaces` + `fn:wsCard`（ModeView list）、`page:create`（ModeView 向导）、
+`fn:runPrepSequence`（RunView）、`fn:nowPlaying`、`fn:openAvatarPicker`（ProfileView）、
+`fn:tagEditorHtml` / `fn:openCustomize`、`fn:openAddApp`（SoftwareView）—— 全部归位完成。
+本批防复发门禁 **D1f** 已落地并 PASS（探针 25 → 26 项）：`/models` 增 `.pw-btn--icon`/`.icon-btn`/
+`.seg button` 探针、新增 `/ai` 页探针 `.tabs button`，probe 增采 `borderWidth`。
+
+---
+
+## UI-FUSION-FULL · 第五批：剩余 5 页结构归位（2026-09-18，设计核对环节 C2–C6 未跑）
+
+### 0. 一句话
+
+把剩余 5 页 + 2 个浮层/抽屉函数的**页面内部结构类名归位到设计稿**，并按第四批 §3 的纪律
+删掉同权重本地块让设计稿生效。详见 `docs/reviews/UI-FUSION-BATCH5.md`。
+
+### 1. 归位清单
+
+| 设计稿来源 | 类 | 落地 |
+|---|---|---|
+| `fn:nowPlaying` | `.nowplaying .ttl .art .bar .ctrl` | **DashboardView** greet 行（⚠️ 口径修正，见 §2） |
+| `fn:openAvatarPicker` | `.avatar-grid .avatar-pick .avatar-pick--up` | ProfileView（补「上传图片」预留入口，点击如实提示未接入） |
+| `fn:openAddApp` / `page:apps` | `.app-row .app-square .nm .tm .wide .hover-only` | SoftwareView（列表视图表格 → `.app-row`） |
+| `fn:runPrepSequence` | `.run-prep .rp-steps .rp-step .spinner` | RunView「恢复默认」流程（**绑真实操作**） |
+| `fn:tagEditorHtml` | `.chip--removable` | `PwChip.vue` 双类名桥接 |
+| `fn:openCustomize` | `.arrange-row`(+`.off`) | DashboardView 组件管理行 |
+| `page:workspaces` | `.ws-card .hd .nm .actions .new-card` | ModeView 列表视图 |
+| `page:create` | `.wsteps .wstep .wline .pick-grid .pick .em .tick .detect .app-pick .btn--lg` | ModeView 向导内部 |
+
+### 2. 两处口径判断（不是照抄清单）
+
+1. **`nowPlaying` → DashboardView，不 LifeView**：设计稿在首页 greet 行右侧（`ROUTES.home` 2201），
+   且 `.nowplaying` 带 `@media (max-width:1040px){display:none}` —— 放 LifeView 会在窄屏把音乐条
+   **整体藏掉**（功能回归）。数据仍走 `lifeApi.mediaNow()` 真实 SMTC，无会话走 `.nowplaying.idle`。
+2. **`runPrepSequence` 不抄 3×340ms**：`.rp-step.done` 只认真实操作完成信号
+   （`refresh()` → `layout.apply()` → `refresh()`）；ModeView `.detect` 的"N 个应用"取自 apps store
+   真实运行态，没有在跑就是 0。
+
+### 3. 本批踩的坑（**重复踩了第三/四批记过的那条**）
+
+> **`ui/dist` 必须用 `tools/_fusion_build.py`（`VITE_CORE_BASE=''` 同源）构建。**
+> 裸 `npx vite build` 会让 C2 的 D 段整段假红（`ui投影={"titles":[],"bars":[]}`，D2 红、D3 `ui=0 core=7`）。
+> 症状看起来像"改坏了 RunView"，实际是 UI 连不上 core 的随机端口。已写进 CONTEXT-PACK §2 备忘。
+
+另一条小坑：RunView 里 `let out: X|null = null` + 闭包内赋值 → TS 控制流把 `out` 判成 `null`，
+`if (!out) return` 之后的类型是 `never` ⇒ 10 条 TS 报错。显式收窄（`const applied = out as X | null`）解决。
+
+### 4. 本批证据与遗留
+
+| 项 | 结果 |
+|---|---|
+| `vue-tsc --noEmit` | `exit=0` |
+| `tools/_fusion_build.py` | `built in 3.12s`，exit=0 |
+| `tools/_force_design_check.py` | **ALL OK: True** · 26 → **27 项**（新增 **D1g** 页面归位判据）；实测 `.nowplaying` rectH=46、`.new-card` rectH=150 |
+| 冻结基线 | `base.css 9d86a51bf1883369 → 121b562804633520`（c2/c3/c4/c5/c6 已同步）；`primitives.css` 未变 |
+| **未跑** | `verify_tech07c2~c6` —— 需要 Edge WebView 出沙箱，用户拒绝了权限申请（dist 已按同源方式重建，随时可跑） |
+| **未做** | Tauri release 重打包 + NSIS 刷新（等门禁跑完再做） |
+
+
+
+

@@ -1,0 +1,441 @@
+{
+  "routes": [
+    {
+      "path": "/dashboard",
+      "title": "首页 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "",
+      "mainText": "夜深了 9 月 18 日 · 星期五 · 准备开始什么？ 没有进行中的工作空间 当前工作空间 · 未启动 还没有应用在运行 继续工作 切换工作空间 最近使用 全部软件 软件库还是空的 —— 到「软件」页添加一个，这里会显示最常用的。 当前任",
+      "hasMarker": true,
+      "label": "首页",
+      "ok": true
+    },
+    {
+      "path": "/mode",
+      "title": "工作空间 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "工作模式 保存当前环境为模式，下次一键回到这个状态 保存当前环境为模式 新建模式 布局编辑器",
+      "mainText": "工作模式 保存当前环境为模式，下次一键回到这个状态 保存当前环境为模式 新建模式 布局编辑器 还没有工作模式。最快的方式：把手头的软件开好、摆好位置，点「保存当前环境为模式」——下次一键回到这个状态。 TypeError: Failed t",
+      "hasMarker": true,
+      "label": "工作空间",
+      "ok": true
+    },
+    {
+      "path": "/software",
+      "title": "软件 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "我的软件 按分组管理软件，点击直接启动 · 高频软件在首页有专属位置",
+      "mainText": "我的软件 按分组管理软件，点击直接启动 · 高频软件在首页有专属位置 全部分类 开发 浏览器 办公 媒体 游戏 其他 列表视图 添加软件 全部（0） 开发 浏览器 办公 媒体 游戏 其他 还没有添加软件，点这里开始 添加第一个软件",
+      "hasMarker": true,
+      "label": "软件",
+      "ok": true
+    },
+    {
+      "path": "/learning",
+      "title": "学习 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "学习成长 AI 规划，用户执行，系统提醒 · 正在推进 0 条主线 新建目标",
+      "mainText": "学习成长 AI 规划，用户执行，系统提醒 · 正在推进 0 条主线 新建目标 提醒设置 无法读取学习目标（核心服务可能仍在启动） 还没有学习目标 先建一个目标，再用「AI 生成路线」让它拆成可执行阶段。",
+      "hasMarker": true,
+      "label": "学习",
+      "ok": true
+    },
+    {
+      "path": "/project",
+      "title": "项目 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "项目管理 可绑定工作模式、关联学习目标 · 共 0 个项目 新建项目",
+      "mainText": "项目管理 可绑定工作模式、关联学习目标 · 共 0 个项目 新建项目 无法读取项目列表：TypeError: Failed to fetch 还没有项目 建一个项目并绑定工作模式后，进入该模式时就会显示当前项目。",
+      "hasMarker": true,
+      "label": "项目",
+      "ok": true
+    },
+    {
+      "path": "/life",
+      "title": "生活 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "生活中心 只展示结果，不展示配置 · 卡片来自插件，来源可追溯 管理卡片",
+      "mainText": "生活中心 只展示结果，不展示配置 · 卡片来自插件，来源可追溯 管理卡片 天气 天气插件 未设置城市（不自动定位） 加载失败：TypeError: Failed to fetch 查询 正在播放 音乐插件 当前没有播放中的媒体 只读系统媒体",
+      "hasMarker": true,
+      "label": "生活",
+      "ok": true
+    },
+    {
+      "path": "/ai",
+      "title": "AI 助手 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": true,
+      "pageHead": "AI 助手 聚焦会话 · 适合多轮讨论与长任务；随手一问用右侧的 AI 助手 聊天 工作空间助手 当前模型 未配置",
+      "mainText": "AI 助手 聚焦会话 · 适合多轮讨论与长任务；随手一问用右侧的 AI 助手 聊天 工作空间助手 当前模型 未配置 历史会话 ＋ 新会话 00:49 未授权任何用户数据 ✦ 咨询模式 普通对话。我不会读取你的项目、文件或个人信息。 清空 发",
+      "hasMarker": true,
+      "label": "AI 助手",
+      "ok": true
+    },
+    {
+      "path": "/profile",
+      "title": "档案 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "个人数字档案 我是谁，我正在成为谁 用 未命名 还没有填写方向 编辑资料导出 Markdown",
+      "mainText": "个人数字档案 我是谁，我正在成为谁 用 未命名 还没有填写方向 编辑资料导出 Markdown 先认识一下 —— 只需要 3 个字段 开始记录 技能树 还没有技能，手动加一条或等系统建议。 编程语言 框架 工具 领域知识 其他 添加技能 项",
+      "hasMarker": true,
+      "label": "档案",
+      "ok": true
+    },
+    {
+      "path": "/plugins",
+      "title": "插件 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "插件 已安装 0 个 · 0 个启用中 · 权限在插件详情里管理 扫描插件目录",
+      "mainText": "插件 已安装 0 个 · 0 个启用中 · 权限在插件详情里管理 扫描插件目录 已安装 点插件可以查看详情与权限 还没有安装插件。从下面的「获取插件」开始。 更多组件 0 个可用 没有发现候选插件 点右上「扫描插件目录」，或从下面的压缩包安",
+      "hasMarker": true,
+      "label": "插件",
+      "ok": true
+    },
+    {
+      "path": "/device",
+      "title": "设备 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "设备中心 查看与管理 · 首页只展示状态，这里可以深入查看 刷新",
+      "mainText": "设备中心 查看与管理 · 首页只展示状态，这里可以深入查看 刷新 本机 桌面设备 · 指标每 2s 采样 · 历史保留 5 分钟（内存缓冲，不落库） 未连接 CPU 0% 内存 0 共 0 CPU · 最近采样 正在积累历史数据…（默认每 ",
+      "hasMarker": true,
+      "label": "设备",
+      "ok": true
+    },
+    {
+      "path": "/settings",
+      "title": "设置 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": true,
+      "subnav": [
+        "外观",
+        "工作空间",
+        "AI 与模型",
+        "数据",
+        "关于"
+      ],
+      "modelsEntry": false,
+      "pageHead": "设置 管理外观、工作空间与数据 · 所有设置只保存在这台电脑上",
+      "mainText": "设置 管理外观、工作空间与数据 · 所有设置只保存在这台电脑上 外观 工作空间 AI 与模型 数据 关于 主题 浅色 / 深色，立即生效 浅色 深色",
+      "hasMarker": true,
+      "label": "设置",
+      "ok": true
+    },
+    {
+      "path": "/models",
+      "title": "模型中心 · Personal Workspace",
+      "navFoot": true,
+      "navSettings": true,
+      "navHrefs": [
+        "/dashboard",
+        "/mode",
+        "/software",
+        "/learning",
+        "/project",
+        "/life",
+        "/ai",
+        "/device",
+        "/profile",
+        "/plugins",
+        "/settings"
+      ],
+      "groups": [
+        "工作",
+        "学习",
+        "项目",
+        "生活"
+      ],
+      "setLayout": false,
+      "subnav": [],
+      "modelsEntry": false,
+      "pageHead": "← 模型管理 工作台的模型控制中心 · 连接、测试与切换，技术细节都替你收好了 ＋ 添加模型",
+      "mainText": "← 模型管理 工作台的模型控制中心 · 连接、测试与切换，技术细节都替你收好了 ＋ 添加模型 当前模型 ✦ 未配置 当前模型来自 ModelRegistry canonical（未设置）：尚未设置 切换模型 我的模型 暂无模型 核心服务未连",
+      "hasMarker": true,
+      "label": "模型中心",
+      "ok": true
+    }
+  ],
+  "started": "2026-09-18 00:49:04",
+  "nav_summary": {
+    "navFoot": true,
+    "settings": true,
+    "hrefs": [
+      "/dashboard",
+      "/mode",
+      "/software",
+      "/learning",
+      "/project",
+      "/life",
+      "/ai",
+      "/device",
+      "/profile",
+      "/plugins",
+      "/settings"
+    ],
+    "groups": [
+      "工作",
+      "学习",
+      "项目",
+      "生活"
+    ]
+  },
+  "settings": {
+    "subnav": [
+      "外观",
+      "工作空间",
+      "AI 与模型",
+      "数据",
+      "关于"
+    ],
+    "modelsEntry": false
+  },
+  "all_ok": true
+}
